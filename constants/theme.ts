@@ -1,53 +1,174 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Scory Design System (Updated Colors)
+ * Primary: #26EE5A (Green)
+ * Secondary: #000000 (Black)
  */
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    // Brand Colors
+    primary: '#26EE5A',
+    primaryDark: '#000000',
+    secondary: '#000000',
+    success: '#22C55E',
+    warning: '#FACC15',
+    error: '#EF4444',
+    info: '#3B82F6',
+
+    // Background
+    background: '#F9FAFB',
+    surface: '#FFFFFF',
+    surfaceSecondary: '#F3F4F6',
+
+    // Text
+    text: '#111827',
+    textSecondary: '#374151',
+    textMuted: '#9CA3AF',
+    textInverse: '#FFFFFF',
+
+    // Border
+    border: '#E5E7EB',
+    borderLight: '#F3F4F6',
+
+    // Icon
+    icon: '#6B7280',
+    iconActive: '#26EE5A',
+
+    // Legacy (for compatibility)
+    tint: '#000000',
+    tabIconDefault: '#9CA3AF',
+    tabIconSelected: '#000000',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    // Brand Colors
+    primary: '#26EE5A',
+    primaryDark: '#000000',
+    secondary: '#000000',
+    success: '#34D399',
+    warning: '#EAB308',
+    error: '#F87171',
+    info: '#60A5FA',
+
+    // Background
+    background: '#0B0B0B',
+    surface: '#1E1E1E',
+    surfaceSecondary: '#2A2A2A',
+
+    // Text
+    text: '#F9FAFB',
+    textSecondary: '#D1D5DB',
+    textMuted: '#9CA3AF',
+    textInverse: '#000000',
+
+    // Border
+    border: '#2A2A2A',
+    borderLight: '#1E1E1E',
+
+    // Icon
+    icon: '#9CA3AF',
+    iconActive: '#26EE5A',
+
+    // Legacy (for compatibility)
+    tint: '#26EE5A',
+    tabIconDefault: '#9CA3AF',
+    tabIconSelected: '#26EE5A',
+  },
+};
+
+export const Typography = {
+  fontFamily: {
+    regular: 'SFProDisplay-Regular',
+    medium: 'SFProDisplay-Medium',
+    semiBold: 'SFProDisplay-Semibold',
+    bold: 'SFProDisplay-Bold',
+  },
+  fontSize: {
+    xs: 12,
+    sm: 14,
+    base: 16,
+    lg: 18,
+    xl: 20,
+    '2xl': 24,
+    '3xl': 28,
+    '4xl': 32,
+  },
+  lineHeight: {
+    tight: 1.2,
+    normal: 1.5,
+    relaxed: 1.75,
+  },
+};
+
+export const Spacing = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  '2xl': 40,
+  '3xl': 48,
+  '4xl': 64,
+};
+
+export const Radius = {
+  none: 0,
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  '2xl': 24,
+  full: 9999,
+};
+
+export const Shadows = {
+  sm: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  md: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
   },
 };
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
+    sans: 'SF Pro Display',
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    rounded: 'SF Pro Rounded',
     mono: 'ui-monospace',
   },
-  default: {
-    sans: 'normal',
+  android: {
+    sans: 'SFProDisplay-Regular',
     serif: 'serif',
-    rounded: 'normal',
+    rounded: 'sans-serif',
+    mono: 'monospace',
+  },
+  default: {
+    sans: 'SFProDisplay-Regular',
+    serif: 'serif',
+    rounded: 'sans-serif',
     mono: 'monospace',
   },
   web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    sans: "'SF Pro Display', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
+    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
