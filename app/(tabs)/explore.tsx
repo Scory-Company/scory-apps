@@ -1,112 +1,323 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Colors, Spacing, Typography } from '@/constants/theme';
+import {
+  CategoryFilterChips,
+  ForYouCard,
+  RecentlyAddedCard,
+  SearchBar,
+  SectionHeader,
+  TopRatedCard,
+  TrendingTopicCard
+} from '@/features/explore/components';
+import React, { useState } from 'react';
+import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+export default function ExploreScreen() {
+  const colors = Colors.light;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
-export default function TabTwoScreen() {
+  const categories = [
+    'All',
+    'Science',
+    'Health',
+    'Technology',
+    'Business',
+    'Finance',
+    'Education',
+    'Environment',
+  ];
+
+  const trendingTopics = [
+    {
+      id: 1,
+      keyword: 'AI in Healthcare',
+      count: '234 articles',
+      icon: 'medical' as const,
+      gradientColors: ['#667eea', '#764ba2']
+    },
+    {
+      id: 2,
+      keyword: 'Climate Change',
+      count: '189 articles',
+      icon: 'leaf' as const,
+      gradientColors: ['#f093fb', '#f5576c']
+    },
+    {
+      id: 3,
+      keyword: 'Blockchain',
+      count: '156 articles',
+      icon: 'cube' as const,
+      gradientColors: ['#4facfe', '#00f2fe']
+    },
+    {
+      id: 4,
+      keyword: 'Mental Health',
+      count: '142 articles',
+      icon: 'heart' as const,
+      gradientColors: ['#43e97b', '#38f9d7']
+    },
+  ];
+
+  const forYouData = [
+    {
+      id: 1,
+      image: require('@/assets/images/dummy/news/education.png'),
+      title: 'The Future of Artificial Intelligence in Medical Diagnosis',
+      author: 'Dr. Sarah Johnson',
+      category: 'Health',
+      rating: 4.8,
+      reads: '12k',
+    },
+    {
+      id: 2,
+      image: require('@/assets/images/dummy/news/blockchain.png'),
+      title: 'Sustainable Energy Solutions for Developing Countries',
+      author: 'Prof. Michael Chen',
+      category: 'Environment',
+      rating: 4.6,
+      reads: '8.5k',
+    },
+    {
+      id: 3,
+      image: require('@/assets/images/dummy/news/mental-health.png'),
+      title: 'Understanding Quantum Computing: A Beginner Guide',
+      author: 'Dr. Emily Rodriguez',
+      category: 'Technology',
+      rating: 4.9,
+      reads: '15k',
+    },
+  ];
+
+  const recentlyAddedData = [
+    {
+      id: 1,
+      image: require('@/assets/images/dummy/news/education.png'),
+      title: 'Machine Learning in Finance',
+      author: 'Alex Thompson',
+      category: 'Finance',
+      rating: 4.5,
+      date: '2 days ago',
+    },
+    {
+      id: 2,
+      image: require('@/assets/images/dummy/news/blockchain.png'),
+      title: 'Neuroplasticity and Learning',
+      author: 'Dr. Lisa Wang',
+      category: 'Education',
+      rating: 4.7,
+      date: '3 days ago',
+    },
+  ];
+
+  const topRatedData = [
+    {
+      id: 1,
+      title: 'The Impact of Social Media on Mental Health',
+      author: 'Dr. James Wilson',
+      rating: 4.9,
+      category: 'Health',
+    },
+    {
+      id: 2,
+      title: 'Cryptocurrency and the Future of Finance',
+      author: 'Sarah Martinez',
+      rating: 4.8,
+      category: 'Finance',
+    },
+    {
+      id: 3,
+      title: 'Renewable Energy Technologies',
+      author: 'Prof. David Lee',
+      rating: 4.8,
+      category: 'Science',
+    },
+  ];
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Explore</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+            Discover new research & insights
+          </Text>
+        </View>
+
+        {/* Search Bar */}
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search journals, topics, authors..."
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
+
+        {/* Category Filter Chips */}
+        <CategoryFilterChips
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
         />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+
+        {/* Trending Topics */}
+        <View style={styles.section}>
+          <SectionHeader
+            title="Trending Now"
+            icon="flame"
+            iconColor={colors.error}
+            onViewAllPress={() => console.log('View all trending')}
+          />
+
+          <View style={styles.trendingGrid}>
+            {trendingTopics.slice(0, 4).map((topic) => (
+              <TrendingTopicCard
+                key={topic.id}
+                keyword={topic.keyword}
+                count={topic.count}
+                icon={topic.icon}
+                gradientColors={topic.gradientColors}
+                onPress={() => console.log('Trending topic pressed:', topic.keyword)}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* For You Section */}
+        <View style={styles.section}>
+          <SectionHeader
+            title="For You"
+            icon="sparkles"
+            iconColor={colors.warning}
+            onViewAllPress={() => console.log('View all for you')}
+          />
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.forYouScrollContent}
+          >
+            {forYouData.map((item) => (
+              <ForYouCard
+                key={item.id}
+                image={item.image}
+                title={item.title}
+                author={item.author}
+                category={item.category}
+                rating={item.rating}
+                reads={item.reads}
+                onPress={() => console.log('For you card pressed:', item.title)}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Top Rated This Week */}
+        <View style={styles.section}>
+          <SectionHeader
+            title="Top Rated This Week"
+            icon="trophy"
+            iconColor={colors.warning}
+            onViewAllPress={() => console.log('View all top rated')}
+          />
+
+          <View style={styles.topRatedList}>
+            {topRatedData.map((item, index) => (
+              <TopRatedCard
+                key={item.id}
+                rank={index + 1}
+                title={item.title}
+                author={item.author}
+                category={item.category}
+                rating={item.rating}
+                onPress={() => console.log('Top rated card pressed:', item.title)}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Recently Added */}
+        <View style={styles.section}>
+          <SectionHeader
+            title="Recently Added"
+            icon="time"
+            iconColor={colors.info}
+            onViewAllPress={() => console.log('View all recently added')}
+          />
+
+          <View style={styles.recentlyAddedList}>
+            {recentlyAddedData.map((item) => (
+              <RecentlyAddedCard
+                key={item.id}
+                image={item.image}
+                title={item.title}
+                author={item.author}
+                category={item.category}
+                rating={item.rating}
+                date={item.date}
+                onPress={() => console.log('Recently added card pressed:', item.title)}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Bottom Padding */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 30,
+  },
+  header: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.lg,
+  },
+  headerTitle: {
+    fontSize: Typography.fontSize['3xl'],
+    fontWeight: '700',
+    marginBottom: Spacing.xs,
+  },
+  headerSubtitle: {
+    fontSize: Typography.fontSize.base,
+  },
+  section: {
+    marginBottom: Spacing.xl,
+  },
+  trendingGrid: {
+    paddingHorizontal: Spacing.lg,
     flexDirection: 'row',
-    gap: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  forYouScrollContent: {
+    paddingLeft: Spacing.lg,
+    paddingRight: Spacing.xl,
+    gap: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  topRatedList: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  recentlyAddedList: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
   },
 });

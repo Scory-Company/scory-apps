@@ -1,76 +1,64 @@
 /**
- * Scory Design System (Updated Colors)
- * Primary: #26EE5A (Green)
- * Secondary: #000000 (Black)
+ * Scory Design System (Updated Colors + Poppins)
  */
 
 import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    // Brand Colors
     primary: '#26EE5A',
-    primaryDark: '#000000',
-    secondary: '#000000',
+    primaryDark: '#282828',
+    secondary: '#282828',
     success: '#22C55E',
     warning: '#FACC15',
     error: '#EF4444',
     info: '#3B82F6',
 
-    // Background
+    textwhite: '#FFFFFF',
+
     background: '#F9FAFB',
     surface: '#FFFFFF',
     surfaceSecondary: '#F3F4F6',
 
-    // Text
     text: '#111827',
     textSecondary: '#374151',
     textMuted: '#9CA3AF',
     textInverse: '#FFFFFF',
 
-    // Border
     border: '#E5E7EB',
     borderLight: '#F3F4F6',
 
-    // Icon
     icon: '#6B7280',
     iconActive: '#26EE5A',
 
-    // Legacy (for compatibility)
-    tint: '#000000',
+    tint: '#282828',
     tabIconDefault: '#9CA3AF',
-    tabIconSelected: '#000000',
+    tabIconSelected: '#282828',
   },
   dark: {
-    // Brand Colors
     primary: '#26EE5A',
-    primaryDark: '#000000',
-    secondary: '#000000',
+    primaryDark: '#282828',
+    secondary: '#282828',
     success: '#34D399',
     warning: '#EAB308',
     error: '#F87171',
     info: '#60A5FA',
 
-    // Background
     background: '#0B0B0B',
     surface: '#1E1E1E',
     surfaceSecondary: '#2A2A2A',
 
-    // Text
     text: '#F9FAFB',
     textSecondary: '#D1D5DB',
     textMuted: '#9CA3AF',
     textInverse: '#000000',
 
-    // Border
     border: '#2A2A2A',
     borderLight: '#1E1E1E',
 
-    // Icon
     icon: '#9CA3AF',
     iconActive: '#26EE5A',
 
-    // Legacy (for compatibility)
     tint: '#26EE5A',
     tabIconDefault: '#9CA3AF',
     tabIconSelected: '#26EE5A',
@@ -79,10 +67,10 @@ export const Colors = {
 
 export const Typography = {
   fontFamily: {
-    regular: 'SFProDisplay-Regular',
-    medium: 'SFProDisplay-Medium',
-    semiBold: 'SFProDisplay-Semibold',
-    bold: 'SFProDisplay-Bold',
+    regular: 'Poppins-Regular',
+    medium: 'Poppins-Medium',
+    semiBold: 'Poppins-SemiBold',
+    bold: 'Poppins-Bold',
   },
   fontSize: {
     xs: 12,
@@ -148,27 +136,27 @@ export const Shadows = {
 
 export const Fonts = Platform.select({
   ios: {
-    sans: 'SF Pro Display',
+    sans: 'Poppins-Regular',
     serif: 'ui-serif',
-    rounded: 'SF Pro Rounded',
-    mono: 'ui-monospace',
+    rounded: 'Poppins-Regular',
+    mono: 'monospace',
   },
   android: {
-    sans: 'SFProDisplay-Regular',
+    sans: 'Poppins-Regular',
     serif: 'serif',
-    rounded: 'sans-serif',
+    rounded: 'Poppins-Regular',
     mono: 'monospace',
   },
   default: {
-    sans: 'SFProDisplay-Regular',
+    sans: 'Poppins-Regular',
     serif: 'serif',
-    rounded: 'sans-serif',
+    rounded: 'Poppins-Regular',
     mono: 'monospace',
   },
   web: {
-    sans: "'SF Pro Display', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    sans: "'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+    rounded: "'Poppins', sans-serif",
+    mono: "Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });

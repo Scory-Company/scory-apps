@@ -1,9 +1,8 @@
-import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import React from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 interface HeroBannerProps {
-  badge?: string;
   title: string;
   subtitle: string;
   ctaText?: string;
@@ -11,7 +10,6 @@ interface HeroBannerProps {
 }
 
 export function HeroBanner({
-  badge = '✨ Pilihan Editor',
   title,
   subtitle,
 }: HeroBannerProps) {
@@ -25,9 +23,6 @@ export function HeroBanner({
       >
         <View style={styles.content}>
           <View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{badge}</Text>
-            </View>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.subtitle}>{subtitle}</Text>
           </View>
@@ -54,23 +49,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 160,
   },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs / 2,
-    borderRadius: Radius.full,
-    marginBottom: Spacing.sm,
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: Typography.fontSize.xs,
-    fontWeight: '700',
-  },
   title: {
     fontSize: Typography.fontSize.xl,
+    fontFamily: Typography.fontFamily.bold,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: Colors.light.textwhite,
     marginBottom: Spacing.xs,
   },
   subtitle: {

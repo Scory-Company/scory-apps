@@ -9,14 +9,13 @@ interface SectionHeaderProps {
 }
 
 export function SectionHeader({ title, actionText, onActionPress }: SectionHeaderProps) {
-  const colors = Colors.light;
-
+  
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      <Text style={styles.title}>{title}</Text>
       {actionText && onActionPress && (
         <TouchableOpacity onPress={onActionPress}>
-          <Text style={[styles.actionText, { color: colors.textSecondary }]}>{actionText}</Text>
+          <Text style={styles.actionText}>{actionText}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -33,9 +32,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Typography.fontSize.xl,
     fontWeight: '700',
+    color: Colors.light.text,
   },
   actionText: {
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
+    color: Colors.light.textSecondary,
   },
 });

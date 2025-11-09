@@ -1,13 +1,13 @@
-import { Colors, Spacing, Typography, Radius, Shadows } from '@/constants/theme';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Image, ImageSource } from 'expo-image';
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface TrendingCardProps {
   image: ImageSource;
   title: string;
-  duration: string;
-  pages: number;
+  author: string;
+  rating?: number;
   difficulty?: 'Mudah' | 'Sedang' | 'Sulit';
   source?: 'Scopus' | 'Sinta 1' | 'Sinta 2' | 'Sinta 3' | 'Sinta 4' | 'WoS' | 'IEEE';
   onPress?: () => void;
@@ -16,8 +16,8 @@ interface TrendingCardProps {
 export function TrendingCard({
   image,
   title,
-  duration,
-  pages,
+  author,
+  rating,  
   difficulty,
   source,
   onPress,
@@ -69,10 +69,22 @@ export function TrendingCard({
           </View>
         )}
       </View>
+
+      {typeof rating === 'number' && (
+        <View style={styles.ratingBadge}>
+          <Text style={styles.ratingText}>⭐ {rating.toFixed(1)}</Text>
+        </View>
+      )}
       <View style={styles.info}>
-        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+        <Text
+          style={[styles.title, { color: colors.text }]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Text>
         <Text style={[styles.meta, { color: colors.textMuted }]}>
-          {duration} • {pages} halaman
+          {author}
         </Text>
       </View>
     </TouchableOpacity>
@@ -112,14 +124,34 @@ const styles = StyleSheet.create({
   },
   info: {
     padding: Spacing.md,
+    minHeight: 90,
+    justifyContent: 'flex-start',
   },
   title: {
     fontSize: Typography.fontSize.base,
     fontWeight: '700',
     marginBottom: Spacing.xs / 2,
+    lineHeight: Typography.fontSize.base * 1.3,
+    maxHeight: Typography.fontSize.base * 1.3 * 2, 
   },
   meta: {
     fontSize: Typography.fontSize.xs,
     fontWeight: '500',
+  },
+  ratingBadge: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs / 2,
+    borderRadius: Radius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    color: Colors.light.textwhite,
   },
 });

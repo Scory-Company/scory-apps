@@ -1,6 +1,7 @@
 import { Colors, Spacing, Typography, Radius, Shadows } from '@/constants/theme';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 
 interface PersonalizationCardProps {
   onPress?: () => void;
@@ -14,7 +15,7 @@ export function PersonalizationCard({ onPress }: PersonalizationCardProps) {
       style={[
         styles.container,
         {
-          backgroundColor: colors.text,
+          backgroundColor: colors.secondary,
           ...Shadows.sm,
         },
       ]}
@@ -26,7 +27,13 @@ export function PersonalizationCard({ onPress }: PersonalizationCardProps) {
           <Text style={styles.title}>Personalize Journal Recommendations</Text>
           <Text style={styles.subtitle}>Choose your interests for better results</Text>
         </View>
-        <Text style={styles.arrow}>→</Text>
+        <View>
+          <Image
+            source={require('@/assets/images/icon-tab/klik-personalize.png')}
+            style={{ width: 50, height: 50 }}
+            contentFit="contain"
+          />
+        </View>
       </View>
     </TouchableOpacity>
   );
