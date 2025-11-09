@@ -1,13 +1,14 @@
 import { Colors, Spacing, Typography } from '@/constants/theme';
 import {
   CategoryFilterChips,
-  ForYouCard,
   RecentlyAddedCard,
   SearchBar,
   SectionHeader,
   TopRatedCard,
-  TrendingTopicCard
+  TrendingTopicCard,
+  PersonalizationPrompt
 } from '@/features/explore/components';
+import { CardArticle } from '@/features/shared/CardArticle';
 import React, { useState } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +17,8 @@ export default function ExploreScreen() {
   const colors = Colors.light;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const hasPersonalizationData = false;
 
   const categories = [
     'All',
@@ -34,28 +37,28 @@ export default function ExploreScreen() {
       keyword: 'AI in Healthcare',
       count: '234 articles',
       icon: 'medical' as const,
-      gradientColors: ['#667eea', '#764ba2']
+      gradientColors: ['#667eea', '#764ba2'] as [string, string]
     },
     {
       id: 2,
       keyword: 'Climate Change',
       count: '189 articles',
       icon: 'leaf' as const,
-      gradientColors: ['#f093fb', '#f5576c']
+      gradientColors: ['#f093fb', '#f5576c'] as [string, string]
     },
     {
       id: 3,
       keyword: 'Blockchain',
       count: '156 articles',
       icon: 'cube' as const,
-      gradientColors: ['#4facfe', '#00f2fe']
+      gradientColors: ['#4facfe', '#00f2fe'] as [string, string]
     },
     {
       id: 4,
       keyword: 'Mental Health',
       count: '142 articles',
       icon: 'heart' as const,
-      gradientColors: ['#43e97b', '#38f9d7']
+      gradientColors: ['#43e97b', '#38f9d7'] as [string, string]
     },
   ];
 
@@ -138,26 +141,28 @@ export default function ExploreScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Explore</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            Discover new research & insights
-          </Text>
-        </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Explore</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+          Discover new research & insights
+        </Text>
+      </View>
 
-        {/* Search Bar */}
+      {/* Search Bar - Fixed */}
+      <View style={[styles.searchBarContainer, { backgroundColor: colors.background }]}>
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search journals, topics, authors..."
         />
+      </View>
 
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Category Filter Chips */}
         <CategoryFilterChips
           categories={categories}
@@ -188,34 +193,42 @@ export default function ExploreScreen() {
           </View>
         </View>
 
-        {/* For You Section */}
-        <View style={styles.section}>
-          <SectionHeader
-            title="For You"
-            icon="sparkles"
-            iconColor={colors.warning}
-            onViewAllPress={() => console.log('View all for you')}
-          />
+        {/* For You Section - Conditional based on personalization */}
+        {hasPersonalizationData ? (
+          <View style={styles.section}>
+            <SectionHeader
+              title="For You"
+              icon="sparkles"
+              iconColor={colors.warning}
+              onViewAllPress={() => console.log('View all for you')}
+            />
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.forYouScrollContent}
-          >
-            {forYouData.map((item) => (
-              <ForYouCard
-                key={item.id}
-                image={item.image}
-                title={item.title}
-                author={item.author}
-                category={item.category}
-                rating={item.rating}
-                reads={item.reads}
-                onPress={() => console.log('For you card pressed:', item.title)}
-              />
-            ))}
-          </ScrollView>
-        </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.forYouScrollContent}
+            >
+              {forYouData.map((item) => (
+                <CardArticle
+                  key={item.id}
+                  image={item.image}
+                  title={item.title}
+                  author={item.author}
+                  category={item.category}
+                  rating={item.rating}
+                  reads={item.reads}
+                  onPress={() => console.log('For you card pressed:', item.title)}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ) : (
+          <View style={styles.section}>
+            <PersonalizationPrompt
+              onSetupPress={() => console.log('Setup personalization')}
+            />
+          </View>
+        )}
 
         {/* Top Rated This Week */}
         <View style={styles.section}>
@@ -277,16 +290,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 30,
-  },
   header: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
-    paddingBottom: Spacing.lg,
+    paddingBottom: Spacing.sm,
   },
   headerTitle: {
     fontSize: Typography.fontSize['3xl'],
@@ -295,6 +302,16 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: Typography.fontSize.base,
+  },
+  searchBarContainer: {
+    paddingBottom: Spacing.sm,
+    zIndex: 10,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 30,
   },
   section: {
     marginBottom: Spacing.xl,
