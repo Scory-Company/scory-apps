@@ -5,32 +5,69 @@ import { Body, Heading } from '@/shared/components/ui/Typography';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useGoogleAuth, loginWithEmail, registerWithEmail } from '@/services/auth';
+import { useToast } from '@/features/shared/hooks/useToast';
 
 type AuthMode = 'login' | 'register';
 
 export default function LoginScreen() {
   const router = useRouter();
   const colors = Colors.light;
+  const toast = useToast();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
 
-  const handleLogin = (email: string, password: string, rememberMe: boolean) => {
-    // TODO: Implement login logic
-    console.log('Login:', { email, password, rememberMe });
-    router.replace('/(tabs)');
+  // Google Auth hook
+  const { loading, error, signIn, isAuthenticated } = useGoogleAuth();
+
+  // Auto-navigate when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated]);
+
+  // Show error toast
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  const [authLoading, setAuthLoading] = useState(false);
+
+  const handleLogin = async (email: string, password: string, _rememberMe: boolean) => {
+    setAuthLoading(true);
+    try {
+      await loginWithEmail(email, password);
+      closeAuthModal();
+      toast.success('Login successful!');
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      toast.error(error.message || 'Invalid email or password');
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
-  const handleRegister = (name: string, email: string, password: string) => {
-    // TODO: Implement register logic
-    console.log('Register:', { name, email, password });
-    router.replace('/(tabs)');
+  const handleRegister = async (name: string, email: string, password: string) => {
+    setAuthLoading(true);
+    try {
+      await registerWithEmail(email, password, name);
+      closeAuthModal();
+      toast.success('Account created successfully!');
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create account');
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
-  const handleGoogleSignIn = () => {
-    // TODO: Implement Google sign in logic
-    console.log('Google sign in');
+  const handleGoogleSignIn = async () => {
+    await signIn();
   };
 
   const openAuthModal = (mode: AuthMode) => {
@@ -87,10 +124,16 @@ export default function LoginScreen() {
         </View>
 
         {/* Google Sign In */}
-        <Button variant="google" size="md" fullWidth onPress={handleGoogleSignIn}>
+        <Button
+          variant="google"
+          size="md"
+          fullWidth
+          onPress={handleGoogleSignIn}
+          disabled={loading}
+        >
           <View style={styles.googleButtonContent}>
             <Ionicons name="logo-google" size={20} color={colors.text} />
-            <Body>Continue with Google</Body>
+            <Body>{loading ? 'Signing in...' : 'Continue with Google'}</Body>
           </View>
         </Button>
       </View>
@@ -104,6 +147,9 @@ export default function LoginScreen() {
         onLogin={handleLogin}
         onRegister={handleRegister}
       />
+
+      {/* Toast Component */}
+      <toast.ToastComponent />
     </View>
   );
 }

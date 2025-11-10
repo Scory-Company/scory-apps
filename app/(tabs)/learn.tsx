@@ -57,18 +57,19 @@ export default function LearnScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Header */}
-        <View style={styles.header}>
+      {/* Header */}
+      <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Learn</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
             Your personalized learning journey
           </Text>
         </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
 
         {/* Learning Stats Cards */}
         <View style={styles.statsContainer}>

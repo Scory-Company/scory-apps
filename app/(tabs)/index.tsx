@@ -6,29 +6,83 @@ import {
   SectionHeader
 } from '@/features/home/components';
 import { CardArticle } from '@/features/shared/components/CardArticle';
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GreetingsCard } from '@/features/home/components/GreetingsCard';
 import { categoryCards, popularArticles } from '@/data/mock';
+import { getProfile, User } from '@/services/auth';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const colors = Colors.light;
+  const [user, setUser] = useState<User | null>(null);
+
+  // Load user on initial mount
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    const profile = await getProfile();
+    if (profile) {
+      setUser(profile);
+    }
+  };
+
+  const checkAndReloadUser = useCallback(async () => {
+    try {
+      // Get stored user data from AsyncStorage
+      const storedUser = await AsyncStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+
+        // Only update if data is different (check by comparing relevant fields)
+        if (
+          !user ||
+          user.fullName !== parsedUser.fullName ||
+          user.nickname !== parsedUser.nickname ||
+          user.avatarUrl !== parsedUser.avatarUrl
+        ) {
+          console.log('✅ User data changed, reloading...');
+          setUser(parsedUser);
+        } else {
+          console.log('ℹ️ No changes detected, skipping reload');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user data:', error);
+    }
+  }, [user]);
+
+  // Reload user data only when screen is focused AND data might have changed
+  useFocusEffect(
+    useCallback(() => {
+      checkAndReloadUser();
+    }, [checkAndReloadUser])
+  );
+
+  // Priority: nickname > first name from fullName > 'there'
+  const displayName = user?.nickname || user?.fullName.split(' ')[0] || 'there';
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+
+      <View style={styles.header}>
+        <GreetingsCard
+        title={`Hello, ${displayName}🖐️`}
+        subtitle={'What do you want to learn today?'}
+        onPress={() => console.log('Notifications pressed')}
+        />
+      </View>
 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <GreetingsCard
-          title={'Hello, Habdil🖐️'}
-          subtitle={'What do you want to learn today?'}
-          onPress={() => console.log('Notifications pressed')}
-        />
 
         {/* Hero Banner - Large with Gradient */}
         <View style={styles.heroSection}>
@@ -112,6 +166,11 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  header: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.md,
+  },
   scrollContent: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: 30,
@@ -123,10 +182,10 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   personalizationSection: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   section: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.xs,
   },
   sectionTitle: {
     fontSize: 20,

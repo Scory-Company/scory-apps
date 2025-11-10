@@ -23,3 +23,8 @@ export {
   learningStats,
   readingInsights,
 } from './learn';
+
+export {
+  quickStats,
+  settingsMenu,
+} from './profile';
