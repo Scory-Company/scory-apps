@@ -6,140 +6,81 @@ import {
   SectionHeader,
   TopRatedCard,
   TrendingTopicCard,
-  PersonalizationPrompt
+  PersonalizationPrompt,
+  FilteredContentView
 } from '@/features/explore/components';
-import { CardArticle } from '@/features/shared/CardArticle';
-import React, { useState } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { CardArticle } from '@/features/shared/components/CardArticle';
+import { ViewAllPrompt } from '@/features/shared/components/ViewAllPrompt';
+import React, { useState, useMemo, useEffect } from 'react';
+import { ScrollView, StatusBar, StyleSheet, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from 'expo-router';
+import { filterContent } from '@/utils/filterContent';
+import {
+  trendingTopics,
+  forYouArticles,
+  recentlyAddedArticles,
+  topRatedArticles,
+  categoryList
+} from '@/data/mock';
 
 export default function ExploreScreen() {
   const colors = Colors.light;
+  const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const hasPersonalizationData = false;
 
-  const categories = [
-    'All',
-    'Science',
-    'Health',
-    'Technology',
-    'Business',
-    'Finance',
-    'Education',
-    'Environment',
-  ];
+  // Check if filters are active
+  const hasActiveFilters = searchQuery.trim() !== '' || selectedCategory !== 'All';
+  const hasActiveKeyboard = searchQuery.trim() !== '';
 
-  const trendingTopics = [
-    {
-      id: 1,
-      keyword: 'AI in Healthcare',
-      count: '234 articles',
-      icon: 'medical' as const,
-      gradientColors: ['#667eea', '#764ba2'] as [string, string]
-    },
-    {
-      id: 2,
-      keyword: 'Climate Change',
-      count: '189 articles',
-      icon: 'leaf' as const,
-      gradientColors: ['#f093fb', '#f5576c'] as [string, string]
-    },
-    {
-      id: 3,
-      keyword: 'Blockchain',
-      count: '156 articles',
-      icon: 'cube' as const,
-      gradientColors: ['#4facfe', '#00f2fe'] as [string, string]
-    },
-    {
-      id: 4,
-      keyword: 'Mental Health',
-      count: '142 articles',
-      icon: 'heart' as const,
-      gradientColors: ['#43e97b', '#38f9d7'] as [string, string]
-    },
-  ];
+  // Hide TabBar when search/filter is active (for CustomTabBar)
+  useEffect(() => {
+    navigation.setOptions({
+      tabBarVisible: !hasActiveKeyboard
+    });
+  }, [hasActiveKeyboard, navigation]);
 
-  const forYouData = [
-    {
-      id: 1,
-      image: require('@/assets/images/dummy/news/education.png'),
-      title: 'The Future of Artificial Intelligence in Medical Diagnosis',
-      author: 'Dr. Sarah Johnson',
-      category: 'Health',
-      rating: 4.8,
-      reads: '12k',
-    },
-    {
-      id: 2,
-      image: require('@/assets/images/dummy/news/blockchain.png'),
-      title: 'Sustainable Energy Solutions for Developing Countries',
-      author: 'Prof. Michael Chen',
-      category: 'Environment',
-      rating: 4.6,
-      reads: '8.5k',
-    },
-    {
-      id: 3,
-      image: require('@/assets/images/dummy/news/mental-health.png'),
-      title: 'Understanding Quantum Computing: A Beginner Guide',
-      author: 'Dr. Emily Rodriguez',
-      category: 'Technology',
-      rating: 4.9,
-      reads: '15k',
-    },
-  ];
+  // Combine all data for filtering - using centralized mock data
+  const allArticlesData = useMemo(() => {
+    return [...forYouArticles, ...recentlyAddedArticles];
+  }, []);
 
-  const recentlyAddedData = [
-    {
-      id: 1,
-      image: require('@/assets/images/dummy/news/education.png'),
-      title: 'Machine Learning in Finance',
-      author: 'Alex Thompson',
-      category: 'Finance',
-      rating: 4.5,
-      date: '2 days ago',
-    },
-    {
-      id: 2,
-      image: require('@/assets/images/dummy/news/blockchain.png'),
-      title: 'Neuroplasticity and Learning',
-      author: 'Dr. Lisa Wang',
-      category: 'Education',
-      rating: 4.7,
-      date: '3 days ago',
-    },
-  ];
+  // Filter results based on search and category
+  const filteredResults = useMemo(() => {
+    if (!hasActiveFilters) return [];
 
-  const topRatedData = [
-    {
-      id: 1,
-      title: 'The Impact of Social Media on Mental Health',
-      author: 'Dr. James Wilson',
-      rating: 4.9,
-      category: 'Health',
-    },
-    {
-      id: 2,
-      title: 'Cryptocurrency and the Future of Finance',
-      author: 'Sarah Martinez',
-      rating: 4.8,
-      category: 'Finance',
-    },
-    {
-      id: 3,
-      title: 'Renewable Energy Technologies',
-      author: 'Prof. David Lee',
-      rating: 4.8,
-      category: 'Science',
-    },
-  ];
+    return filterContent({
+      searchQuery,
+      selectedCategory,
+      allData: allArticlesData,
+    });
+  }, [searchQuery, selectedCategory, allArticlesData, hasActiveFilters]);
+
+  // Handlers
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('All');
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+  };
+
+  const handleClearCategory = () => {
+    setSelectedCategory('All');
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={0}
+      >
 
       {/* Header */}
       <View style={styles.header}>
@@ -165,13 +106,27 @@ export default function ExploreScreen() {
       >
         {/* Category Filter Chips */}
         <CategoryFilterChips
-          categories={categories}
+          categories={categoryList}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
         />
 
-        {/* Trending Topics */}
-        <View style={styles.section}>
+        {/* CONDITIONAL RENDERING: Filtered View vs Default View */}
+        {hasActiveFilters ? (
+          // ========== FILTERED VIEW ==========
+          <FilteredContentView
+            results={filteredResults}
+            searchQuery={searchQuery}
+            selectedCategory={selectedCategory}
+            onClearFilters={handleClearFilters}
+            onClearSearch={handleClearSearch}
+            onClearCategory={handleClearCategory}
+          />
+        ) : (
+          // ========== DEFAULT VIEW ==========
+          <>
+            {/* Trending Topics */}
+            <View style={styles.section}>
           <SectionHeader
             title="Trending Now"
             icon="flame"
@@ -208,7 +163,7 @@ export default function ExploreScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.forYouScrollContent}
             >
-              {forYouData.map((item) => (
+              {forYouArticles.map((item) => (
                 <CardArticle
                   key={item.id}
                   image={item.image}
@@ -240,7 +195,7 @@ export default function ExploreScreen() {
           />
 
           <View style={styles.topRatedList}>
-            {topRatedData.map((item, index) => (
+            {topRatedArticles.slice(0, 3).map((item, index) => (
               <TopRatedCard
                 key={item.id}
                 rank={index + 1}
@@ -252,6 +207,14 @@ export default function ExploreScreen() {
               />
             ))}
           </View>
+
+          {topRatedArticles.length > 3 && (
+            <ViewAllPrompt
+              count={topRatedArticles.length - 3}
+              label="article"
+              onPress={() => console.log('View all top rated')}
+            />
+          )}
         </View>
 
         {/* Recently Added */}
@@ -264,7 +227,7 @@ export default function ExploreScreen() {
           />
 
           <View style={styles.recentlyAddedList}>
-            {recentlyAddedData.map((item) => (
+            {recentlyAddedArticles.slice(0, 3).map((item) => (
               <RecentlyAddedCard
                 key={item.id}
                 image={item.image}
@@ -277,11 +240,20 @@ export default function ExploreScreen() {
               />
             ))}
           </View>
-        </View>
 
-        {/* Bottom Padding */}
-        <View style={{ height: 100 }} />
+          {recentlyAddedArticles.length > 3 && (
+            <ViewAllPrompt
+              count={recentlyAddedArticles.length - 3}
+              label="article"
+              onPress={() => console.log('View all recently added')}
+            />
+          )}
+        </View>
+            <View style={{ height: 100 }} />
+          </>
+        )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -3,6 +3,15 @@ import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  // Check if current screen wants to hide tabBar
+  const currentRoute = state.routes[state.index];
+  const currentOptions = descriptors[currentRoute.key].options;
+  const isTabBarVisible = currentOptions.tabBarVisible !== false;
+
+  // Hide TabBar if current screen set tabBarVisible to false
+  if (!isTabBarVisible) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>

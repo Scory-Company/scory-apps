@@ -5,3 +5,6 @@ export { SectionHeader } from './SectionHeader';
 export { TopRatedCard } from './TopRatedCard';
 export { TrendingTopicCard } from './TrendingTopicCard';
 export { PersonalizationPrompt } from './PersonalizationPrompt';
+export { FilteredContentView } from './FilteredContentView';
+export { SearchResultCard } from './SearchResultCard';
+export { FilterChip } from './FilterChip';

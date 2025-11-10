@@ -21,7 +21,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.habdilali.scoryapps"
+      "package": "com.habdilali.scoryapps",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "output": "static",

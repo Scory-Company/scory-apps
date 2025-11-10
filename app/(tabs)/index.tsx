@@ -5,53 +5,12 @@ import {
   PersonalizationCard,
   SectionHeader
 } from '@/features/home/components';
-import { CardArticle } from '@/features/shared/CardArticle';
+import { CardArticle } from '@/features/shared/components/CardArticle';
 import React from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GreetingsCard } from '@/features/home/components/GreetingsCard';
-
-const categories = [
-  { id: 1, icon: require('@/assets/images/icon-categories/finance.png'), label: 'Finance' },
-  { id: 2, icon: require('@/assets/images/icon-categories/health.png'), label: 'Health' },
-  { id: 3, icon: require('@/assets/images/icon-categories/business.png'), label: 'Business' },
-  { id: 4, icon: require('@/assets/images/icon-categories/science.png'), label: 'Science' },
-  { id: 5, icon: require('@/assets/images/icon-categories/technology.png'), label: 'Technology' },
-  { id: 6, icon: require('@/assets/images/icon-categories/education.png'), label: 'Education' },
-  { id: 7, icon: require('@/assets/images/icon-categories/environment.png'), label: 'Environment' },
-  { id: 8, icon: require('@/assets/images/icon-categories/social.png'), label: 'Social' },
-];
-
-const popularArticles = [
-    {
-      id: 1,
-      image: require('@/assets/images/dummy/news/education.png'),
-      title: 'The Future of Artificial Intelligence in Medical Diagnosis',
-      author: 'Dr. Sarah Johnson',
-      category: 'Health',
-      rating: 4.8,
-      badge: 'Trending',
-      reads: '12k',
-    },
-    {
-      id: 2,
-      image: require('@/assets/images/dummy/news/blockchain.png'),
-      title: 'Sustainable Energy Solutions for Developing Countries',
-      author: 'Prof. Michael Chen',
-      category: 'Environment',
-      rating: 4.6,
-      reads: '8.5k',
-    },
-    {
-      id: 3,
-      image: require('@/assets/images/dummy/news/mental-health.png'),
-      title: 'Understanding Quantum Computing: A Beginner Guide',
-      author: 'Dr. Emily Rodriguez',
-      category: 'Technology',
-      rating: 4.9,
-      reads: '15k',
-    },
-];
+import { categoryCards, popularArticles } from '@/data/mock';
 
 export default function HomeScreen() {
   const colors = Colors.light;
@@ -90,7 +49,7 @@ export default function HomeScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Categories</Text>
 
           <View style={styles.categoryGrid}>
-            {categories.map((category) => (
+            {categoryCards.map((category) => (
               <CategoryCard
                 key={category.id}
                 icon={category.icon}

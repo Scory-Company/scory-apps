@@ -11,6 +11,7 @@ interface EmptyStateProps {
   style?: ViewStyle;
   actionLabel?: string;
   onActionPress?: () => void;
+  actionIcon?: keyof typeof Ionicons.glyphMap;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
@@ -21,6 +22,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   style,
   actionLabel,
   onActionPress,
+  actionIcon = 'add-circle',
 }) => {
   const colors = Colors.light;
 
@@ -39,7 +41,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           activeOpacity={0.8}
           onPress={onActionPress}
         >
-          <Ionicons name="add-circle" size={20} color={colors.textwhite} />
+          <Ionicons name={actionIcon} size={20} color={colors.textwhite} />
           <Text style={[styles.actionButtonText, { color: colors.textwhite }]}>
             {actionLabel}
           </Text>

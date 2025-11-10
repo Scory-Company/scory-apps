@@ -5,10 +5,15 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 interface ViewAllPromptProps {
   count: number;
+  label?: string;
   onPress?: () => void;
 }
 
-export const ViewAllPrompt: React.FC<ViewAllPromptProps> = ({ count, onPress }) => {
+export const ViewAllPrompt: React.FC<ViewAllPromptProps> = ({
+  count,
+  label = 'item',
+  onPress
+}) => {
   const colors = Colors.light;
 
   return (
@@ -20,7 +25,7 @@ export const ViewAllPrompt: React.FC<ViewAllPromptProps> = ({ count, onPress }) 
       <View style={styles.content}>
         <Ionicons name="arrow-forward-circle-outline" size={20} color={colors.textMuted} />
         <Text style={[styles.text, { color: colors.textSecondary }]}>
-          View all to see {count} more insight{count > 1 ? 's' : ''}
+          View all to see {count} more {label}{count > 1 ? 's' : ''}
         </Text>
       </View>
     </TouchableOpacity>
