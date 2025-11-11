@@ -135,13 +135,21 @@ export default function ProfileScreen() {
       >
         {/* Profile Header */}
         {userData && (
-          <ProfileHeader
-            name={userData.fullName}
-            email={userData.email}
-            avatar={userData.avatarUrl ? { uri: userData.avatarUrl } : require('@/assets/images/dummy/news/education.png')}
-            onEditPress={() => setShowEditModal(true)}
-            onAvatarEditPress={() => setShowEditModal(true)}
-          />
+        <ProfileHeader
+          name={userData.fullName}
+          email={userData.email}
+          avatar={
+            userData.avatarUrl
+              ? { uri: userData.avatarUrl }
+              : {
+                  uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    userData.fullName
+                  )}&background=random`,
+                }
+          }
+          onEditPress={() => setShowEditModal(true)}
+          onAvatarEditPress={() => setShowEditModal(true)}
+        />
         )}
 
         {/* Quick Stats */}

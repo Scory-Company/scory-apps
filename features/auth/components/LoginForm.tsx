@@ -2,7 +2,6 @@ import { Colors, Spacing } from '@/constants/theme';
 import { Button, ButtonLink } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Body } from '@/shared/components/ui/Typography';
-import { signInWithGoogle } from '@/services/googleAuth';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -18,23 +17,11 @@ export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: Logi
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = () => {
     onSubmit(email, password, rememberMe);
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true);
-      await signInWithGoogle();
-      onGoogleSignIn?.();
-    } catch (error: any) {
-      alert(error.message || 'Unable to sign in with Google');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <View style={styles.formSection}>
@@ -91,7 +78,7 @@ export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: Logi
           Don&apos;t have an account?{' '}
         </Body>
         <ButtonLink onPress={onSwitchToRegister}>
-          <Body size="sm" color={colors.primary} weight="semibold">
+          <Body size="sm" color={colors.primary} weight="semiBold">
             Sign Up
           </Body>
         </ButtonLink>

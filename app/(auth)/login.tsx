@@ -19,7 +19,7 @@ export default function LoginScreen() {
   const toast = useToast();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
-  const [authLoading, setAuthLoading] = useState(false);
+  const [, setAuthLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleLogin = async (email: string, password: string, _rememberMe: boolean) => {
