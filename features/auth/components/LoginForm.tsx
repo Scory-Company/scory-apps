@@ -85,35 +85,6 @@ export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: Logi
         Sign In
       </Button>
 
-      {/* Divider */}
-      <View style={styles.divider}>
-        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-        <Body size="sm" color={colors.textSecondary}>
-          OR
-        </Body>
-        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-      </View>
-
-      {/* Google Sign In Button */}
-      <TouchableOpacity
-        style={[
-          styles.googleButton,
-          { borderColor: colors.border },
-          loading && styles.googleButtonDisabled,
-        ]}
-        onPress={handleGoogleSignIn}
-        disabled={loading}
-      >
-        <Ionicons
-          name="logo-google"
-          size={20}
-          color={loading ? colors.textSecondary : colors.text}
-        />
-        <Body weight="semibold" color={loading ? colors.textSecondary : colors.text}>
-          {loading ? 'Signing in...' : 'Continue with Google'}
-        </Body>
-      </TouchableOpacity>
-
       {/* Switch to Register */}
       <View style={styles.switchAuth}>
         <Body size="sm" color={colors.textSecondary}>

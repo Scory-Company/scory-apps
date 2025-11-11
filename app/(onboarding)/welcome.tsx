@@ -2,6 +2,7 @@ import { Colors, Spacing } from '@/constants/theme';
 import { onboardingSlides } from '@/features/onboarding/data/slides';
 import { Button, ButtonLink } from '@/shared/components/ui/Button';
 import { Body, Heading } from '@/shared/components/ui/Typography';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
@@ -24,7 +25,9 @@ export default function OnboardingScreen() {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
+    // Mark onboarding as completed
+    await AsyncStorage.setItem('onboarding_completed', 'true');
     router.replace('/(auth)/login');
   };
 
@@ -96,7 +99,12 @@ export default function OnboardingScreen() {
           {isLastSlide ? 'Get Started' : 'Next'}
         </Button>
         {currentSlide?.isIntro && (
-          <ButtonLink onPress={() => router.replace('/(auth)/login')}>
+          <ButtonLink
+            onPress={async () => {
+              await AsyncStorage.setItem('onboarding_completed', 'true');
+              router.replace('/(auth)/login');
+            }}
+          >
             Already have an account? <Body color={colors.primary}>Sign In</Body>
           </ButtonLink>
         )}

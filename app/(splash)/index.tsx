@@ -1,5 +1,7 @@
 import { Colors } from '@/constants/theme';
 import { Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { checkSession } from '@/services/auth';
 import { useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
@@ -23,9 +25,27 @@ export default function SplashScreenPage() {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
 
-      // Auto navigate to onboarding after 2 seconds
-      const timer = setTimeout(() => {
-        router.replace('/(onboarding)/welcome');
+      // Initialize app and navigate accordingly
+      const timer = setTimeout(async () => {
+        // Step 1: Check if user has valid session (auto-login)
+        const hasValidSession = await checkSession();
+
+        if (hasValidSession) {
+          // User is logged in, go directly to home
+          router.replace('/(tabs)');
+          return;
+        }
+
+        // Step 2: No valid session, check onboarding status
+        const hasCompletedOnboarding = await AsyncStorage.getItem('onboarding_completed');
+
+        if (hasCompletedOnboarding === 'true') {
+          // User has completed onboarding, go to login
+          router.replace('/(auth)/login');
+        } else {
+          // First-time user, show onboarding
+          router.replace('/(onboarding)/welcome');
+        }
       }, 2000);
 
       return () => clearTimeout(timer);

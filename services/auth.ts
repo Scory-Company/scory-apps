@@ -276,6 +276,36 @@ export const loginWithEmail = async (
 };
 
 /**
+ * Check if user has valid session (token exists and valid)
+ */
+export const checkSession = async (): Promise<boolean> => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+
+    if (!token) {
+      return false;
+    }
+
+    // Validate token by fetching profile
+    const profile = await getProfile();
+
+    if (profile) {
+      // Token valid, update stored user data
+      await AsyncStorage.setItem('user', JSON.stringify(profile));
+      return true;
+    }
+
+    // Token invalid, clear storage
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    return false;
+  } catch {
+    // Network error or other issues, assume invalid
+    return false;
+  }
+};
+
+/**
  * Logout user (call backend to delete session)
  */
 export const logout = async (): Promise<void> => {
