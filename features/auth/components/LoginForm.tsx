@@ -2,6 +2,7 @@ import { Colors, Spacing } from '@/constants/theme';
 import { Button, ButtonLink } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Body } from '@/shared/components/ui/Typography';
+import { signInWithGoogle } from '@/services/googleAuth';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -9,16 +10,30 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 interface LoginFormProps {
   onSubmit: (email: string, password: string, rememberMe: boolean) => void;
   onSwitchToRegister: () => void;
+  onGoogleSignIn?: () => void;
 }
 
-export function LoginForm({ onSubmit, onSwitchToRegister }: LoginFormProps) {
+export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: LoginFormProps) {
   const colors = Colors.light;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = () => {
     onSubmit(email, password, rememberMe);
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      await signInWithGoogle();
+      onGoogleSignIn?.();
+    } catch (error: any) {
+      alert(error.message || 'Unable to sign in with Google');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,7 +73,7 @@ export function LoginForm({ onSubmit, onSwitchToRegister }: LoginFormProps) {
           </View>
           <Body size="sm">Remember me</Body>
         </TouchableOpacity>
-        <ButtonLink onPress={() => console.log('Forgot password')}>
+        <ButtonLink onPress={() => {/* TODO: Implement forgot password */}}>
           <Body size="sm" color={colors.primary}>
             Forgot Password?
           </Body>
@@ -69,6 +84,35 @@ export function LoginForm({ onSubmit, onSwitchToRegister }: LoginFormProps) {
       <Button variant="primary" size="lg" fullWidth onPress={handleSubmit}>
         Sign In
       </Button>
+
+      {/* Divider */}
+      <View style={styles.divider}>
+        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+        <Body size="sm" color={colors.textSecondary}>
+          OR
+        </Body>
+        <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+      </View>
+
+      {/* Google Sign In Button */}
+      <TouchableOpacity
+        style={[
+          styles.googleButton,
+          { borderColor: colors.border },
+          loading && styles.googleButtonDisabled,
+        ]}
+        onPress={handleGoogleSignIn}
+        disabled={loading}
+      >
+        <Ionicons
+          name="logo-google"
+          size={20}
+          color={loading ? colors.textSecondary : colors.text}
+        />
+        <Body weight="semibold" color={loading ? colors.textSecondary : colors.text}>
+          {loading ? 'Signing in...' : 'Continue with Google'}
+        </Body>
+      </TouchableOpacity>
 
       {/* Switch to Register */}
       <View style={styles.switchAuth}>
@@ -106,6 +150,30 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginVertical: Spacing.sm,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+  },
+  googleButtonDisabled: {
+    opacity: 0.5,
   },
   switchAuth: {
     flexDirection: 'row',

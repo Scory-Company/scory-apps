@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Base URL configuration
 const API_URL = __DEV__
-  ? 'http://10.110.81.16:5000/api/v1' // ⚠️ GANTI dengan IP backend Anda
+  ? 'http://192.168.1.30:5000/api/v1' // ⚠️ GANTI dengan IP backend Anda
   : 'https://api.scory.app/api/v1';
 
 // Create axios instance
@@ -23,8 +23,8 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-    } catch (error) {
-      console.error('Error getting token from storage:', error);
+    } catch {
+      // Ignore errors getting token
     }
     return config;
   },
@@ -42,9 +42,8 @@ api.interceptors.response.use(
       try {
         await AsyncStorage.removeItem('token');
         await AsyncStorage.removeItem('user');
-        console.log('Token expired, cleared storage');
-      } catch (storageError) {
-        console.error('Error clearing storage:', storageError);
+      } catch {
+        // Ignore errors clearing storage
       }
     }
     return Promise.reject(error);

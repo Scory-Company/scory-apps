@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import Constants from 'expo-constants';
 import { useEffect, useState } from 'react';
 import api from './api';
 
@@ -8,11 +9,26 @@ import api from './api';
 WebBrowser.maybeCompleteAuthSession();
 
 // Google OAuth Configuration
-// For Expo Go: MUST use Web Client ID with Expo's auth proxy
+// Web Client ID: For Expo Go development only
+// Android/iOS Client IDs: For production & development builds
 const GOOGLE_CONFIG = {
   webClientId: '302081173028-tb9ekj8f1er45vmgehre61mvjk48hi2o.apps.googleusercontent.com',
   androidClientId: '302081173028-3dn1kpvih879h52k9bcq0ib4hk5ue7c5.apps.googleusercontent.com',
   iosClientId: '302081173028-r9s2p6nku4djqigqr4al352ujl989a9v.apps.googleusercontent.com',
+};
+
+// Detect if running in Expo Go vs Standalone/Development Build
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
+
+// Get appropriate redirect URI based on environment
+const getRedirectUri = () => {
+  if (isExpoGo) {
+    // Expo Go: use Expo's auth proxy
+    return 'https://auth.expo.io/@habdil_ali/scory-apps';
+  }
+  // Production/Development Build: use custom scheme
+  // Android/iOS Client IDs handle this automatically
+  return undefined; // Let expo-auth-session auto-generate
 };
 
 // User type from backend
@@ -44,57 +60,55 @@ export const useGoogleAuth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Setup Google OAuth with explicit redirect URI for Expo
+  // Setup Google OAuth with environment-aware configuration
+  // Expo Go: Web Client ID + Expo auth proxy
+  // Production/Dev Build: Android/iOS Client ID + auto redirect
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     clientId: GOOGLE_CONFIG.webClientId,
     iosClientId: GOOGLE_CONFIG.iosClientId,
     androidClientId: GOOGLE_CONFIG.androidClientId,
-    // Use Expo's auth proxy - backend must whitelist this URL
-    redirectUri: 'https://auth.expo.io/@habdil_ali/scory-apps',
+    redirectUri: getRedirectUri(),
   });
+
 
   // Handle Google OAuth response
   useEffect(() => {
-    handleGoogleResponse();
-  }, [response]);
+    const handleGoogleResponse = async () => {
+      if (response?.type === 'success') {
+        setLoading(true);
+        setError(null);
 
-  const handleGoogleResponse = async () => {
-    if (response?.type === 'success') {
-      setLoading(true);
-      setError(null);
+        try {
+          const { id_token } = response.params;
 
-      try {
-        const { id_token } = response.params;
+          // Send idToken to backend
+          const { data } = await api.post<AuthResponse>('/auth/google', {
+            idToken: id_token,
+          });
 
-        // Send idToken to backend
-        const { data } = await api.post<AuthResponse>('/auth/google', {
-          idToken: id_token,
-        });
+          if (data.success) {
+            // Save token and user data
+            await AsyncStorage.setItem('token', data.data.token);
+            await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
 
-        if (data.success) {
-          // Save token and user data
-          await AsyncStorage.setItem('token', data.data.token);
-          await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
-
-          setUser(data.data.user);
-          console.log('✅ Login successful:', data.data.user.email);
-        } else {
-          setError(data.message || 'Login failed');
-          console.error('❌ Login failed:', data.message);
+            setUser(data.data.user);
+          } else {
+            setError(data.message || 'Unable to sign in. Please try again.');
+          }
+        } catch (err: any) {
+          const errorMessage =
+            err.response?.data?.message || 'Unable to connect. Please check your internet connection.';
+          setError(errorMessage);
+        } finally {
+          setLoading(false);
         }
-      } catch (err: any) {
-        const errorMessage =
-          err.response?.data?.message || 'Network error. Please check your connection.';
-        setError(errorMessage);
-        console.error('❌ Auth error:', err);
-      } finally {
-        setLoading(false);
+      } else if (response?.type === 'error') {
+        setError('Unable to sign in with Google. Please try again.');
       }
-    } else if (response?.type === 'error') {
-      setError('Google authentication failed');
-      console.error('❌ Google auth error:', response.error);
-    }
-  };
+    };
+
+    handleGoogleResponse();
+  }, [response, request]);
 
   /**
    * Trigger Google Sign In
@@ -103,9 +117,8 @@ export const useGoogleAuth = () => {
     try {
       setError(null);
       await promptAsync();
-    } catch (err) {
-      setError('Failed to open Google sign-in');
-      console.error('❌ Prompt error:', err);
+    } catch {
+      setError('Unable to open Google sign-in. Please try again.');
     }
   };
 
@@ -117,9 +130,8 @@ export const useGoogleAuth = () => {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('user');
       setUser(null);
-      console.log('✅ Signed out successfully');
-    } catch (err) {
-      console.error('❌ Sign out error:', err);
+    } catch {
+      // Ignore errors during sign out
     }
   };
 
@@ -132,8 +144,8 @@ export const useGoogleAuth = () => {
       if (userJson) {
         setUser(JSON.parse(userJson));
       }
-    } catch (err) {
-      console.error('Error loading user:', err);
+    } catch {
+      // Ignore errors during user load
     }
   };
 
@@ -158,8 +170,7 @@ export const getProfile = async (): Promise<User | null> => {
       return data.data;
     }
     return null;
-  } catch (error) {
-    console.error('Error fetching profile:', error);
+  } catch {
     return null;
   }
 };
@@ -188,8 +199,6 @@ export const updateProfile = async (profileData: {
       payload.avatarUrl = profileData.avatarUrl.trim();
     }
 
-    console.log('Sending update profile payload:', payload);
-
     const { data } = await api.patch<{ success: boolean; message: string; data: User }>(
       '/profile',
       payload
@@ -202,9 +211,7 @@ export const updateProfile = async (profileData: {
     }
     return null;
   } catch (error: any) {
-    console.error('Error updating profile:', error);
-    console.error('Error response:', error.response?.data);
-    throw new Error(error.response?.data?.message || 'Failed to update profile');
+    throw new Error(error.response?.data?.message || 'Unable to update profile. Please try again.');
   }
 };
 
@@ -230,14 +237,12 @@ export const registerWithEmail = async (
       await AsyncStorage.setItem('token', data.data.token);
       await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
 
-      console.log('✅ Registration successful:', data.data.user.email);
       return data.data;
     }
 
-    throw new Error(data.message || 'Registration failed');
+    throw new Error('Unable to create account. Please try again.');
   } catch (error: any) {
-    console.error('❌ Registration error:', error);
-    const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
+    const errorMessage = error.response?.data?.message || 'Unable to create account. Please try again.';
     throw new Error(errorMessage);
   }
 };
@@ -260,14 +265,12 @@ export const loginWithEmail = async (
       await AsyncStorage.setItem('token', data.data.token);
       await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
 
-      console.log('✅ Login successful:', data.data.user.email);
       return data.data;
     }
 
-    throw new Error(data.message || 'Login failed');
+    throw new Error('Unable to sign in. Please check your credentials.');
   } catch (error: any) {
-    console.error('❌ Login error:', error);
-    const errorMessage = error.response?.data?.message || error.message || 'Login failed';
+    const errorMessage = error.response?.data?.message || 'Unable to sign in. Please check your credentials.';
     throw new Error(errorMessage);
   }
 };
@@ -279,14 +282,19 @@ export const logout = async (): Promise<void> => {
   try {
     // Call backend to delete session
     await api.post('/auth/logout');
-    console.log('✅ Logged out from backend');
-  } catch (error) {
-    console.error('❌ Backend logout error:', error);
+  } catch {
     // Continue anyway to clear local data
   } finally {
+    // Sign out from Google if signed in
+    try {
+      const { signOutFromGoogle } = await import('./googleAuth');
+      await signOutFromGoogle();
+    } catch {
+      // User might not be signed in with Google, ignore error
+    }
+
     // Clear local storage
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('user');
-    console.log('✅ Local storage cleared');
   }
 };

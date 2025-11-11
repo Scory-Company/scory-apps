@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "scory-apps",
+    "name": "Scory",
     "slug": "scory-apps",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -42,7 +42,13 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.302081173028-r9s2p6nku4djqigqr4al352ujl989a9v"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

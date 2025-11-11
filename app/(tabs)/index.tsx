@@ -45,14 +45,13 @@ export default function HomeScreen() {
           user.nickname !== parsedUser.nickname ||
           user.avatarUrl !== parsedUser.avatarUrl
         ) {
-          console.log('✅ User data changed, reloading...');
           setUser(parsedUser);
         } else {
-          console.log('ℹ️ No changes detected, skipping reload');
+          // No changes detected, skipping reload
         }
       }
-    } catch (error) {
-      console.error('Error checking user data:', error);
+    } catch {
+      // Ignore errors checking user data
     }
   }, [user]);
 

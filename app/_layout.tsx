@@ -1,10 +1,15 @@
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { configureGoogleSignIn } from '@/services/googleAuth';
 import 'react-native-reanimated';
 
 export default function RootLayout() {
-  // Force light mode
+  // Configure Google Sign In on app start
+  useEffect(() => {
+    configureGoogleSignIn();
+  }, []);
 
   return (
     <ThemeProvider value={DefaultTheme}>

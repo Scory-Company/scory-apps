@@ -5,9 +5,10 @@ import { Body, Heading } from '@/shared/components/ui/Typography';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useGoogleAuth, loginWithEmail, registerWithEmail } from '@/services/auth';
+import { loginWithEmail, registerWithEmail } from '@/services/auth';
+import { signInWithGoogle } from '@/services/googleAuth';
 import { useToast } from '@/features/shared/hooks/useToast';
 
 type AuthMode = 'login' | 'register';
@@ -18,25 +19,8 @@ export default function LoginScreen() {
   const toast = useToast();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
-
-  // Google Auth hook
-  const { loading, error, signIn, isAuthenticated } = useGoogleAuth();
-
-  // Auto-navigate when authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated]);
-
-  // Show error toast
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
-
   const [authLoading, setAuthLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleLogin = async (email: string, password: string, _rememberMe: boolean) => {
     setAuthLoading(true);
@@ -67,7 +51,16 @@ export default function LoginScreen() {
   };
 
   const handleGoogleSignIn = async () => {
-    await signIn();
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+      toast.success('Google Sign In successful!');
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      toast.error(error.message || 'Google Sign In failed');
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   const openAuthModal = (mode: AuthMode) => {
@@ -129,11 +122,11 @@ export default function LoginScreen() {
           size="md"
           fullWidth
           onPress={handleGoogleSignIn}
-          disabled={loading}
+          disabled={googleLoading}
         >
           <View style={styles.googleButtonContent}>
             <Ionicons name="logo-google" size={20} color={colors.text} />
-            <Body>{loading ? 'Signing in...' : 'Continue with Google'}</Body>
+            <Body>{googleLoading ? 'Signing in...' : 'Continue with Google'}</Body>
           </View>
         </Button>
       </View>
