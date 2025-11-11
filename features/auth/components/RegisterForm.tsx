@@ -79,7 +79,7 @@ export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps) {
           Already have an account?{' '}
         </Body>
         <ButtonLink onPress={onSwitchToLogin}>
-          <Body size="sm" color={colors.primary} weight="semibold">
+          <Body size="sm" color={colors.primary} weight="semiBold">
             Sign In
           </Body>
         </ButtonLink>
