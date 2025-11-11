@@ -30,7 +30,7 @@ export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const hasPersonalizationData = false;
+  const hasPersonalizationData = true;
 
   // Check if filters are active
   const hasActiveFilters = searchQuery.trim() !== '' || selectedCategory !== 'All';
@@ -180,6 +180,7 @@ export default function ExploreScreen() {
         ) : (
           <View style={styles.section}>
             <PersonalizationPrompt
+              showIndicator={true}
               onSetupPress={() => console.log('Setup personalization')}
             />
           </View>

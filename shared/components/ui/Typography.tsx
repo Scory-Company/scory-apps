@@ -3,7 +3,7 @@ import React from 'react';
 import { StyleSheet, Text, TextProps } from 'react-native';
 
 type FontSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
-type FontWeight = 'regular' | 'medium' | 'semibold' | 'bold';
+type FontWeight = 'regular' | 'medium' | 'semiBold' | 'bold';
 
 interface BaseTextProps extends TextProps {
   children: React.ReactNode;
@@ -51,7 +51,7 @@ export function Heading({ children, style, color, align = 'left', size, weight, 
 export function Title({ children, style, color, align = 'left', size, weight, ...props }: BaseTextProps) {
   const colors = Colors.light;
   const fontSize = getFontSize(size, '2xl');
-  const fontFamily = getFontFamily(weight, 'semibold');
+  const fontFamily = getFontFamily(weight, 'semiBold');
 
   return (
     <Text

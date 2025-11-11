@@ -1,18 +1,54 @@
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Animated } from 'react-native';
 
 interface PersonalizationPromptProps {
   onSetupPress?: () => void;
+  showIndicator?: boolean;
 }
 
-export const PersonalizationPrompt: React.FC<PersonalizationPromptProps> = ({ onSetupPress }) => {
+export const PersonalizationPrompt: React.FC<PersonalizationPromptProps> = ({
+  onSetupPress,
+  showIndicator = false
+}) => {
   const colors = Colors.light;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (showIndicator) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [showIndicator, pulseAnim]);
 
   return (
-    <View style={[styles.wrapper, Shadows.md]}>
-      <View style={styles.container}>
+    <Animated.View
+      style={[
+        showIndicator && {
+          transform: [{ scale: pulseAnim }],
+        },
+      ]}
+    >
+      <View style={[styles.wrapper, Shadows.md, showIndicator && styles.wrapperHighlight]}>
+        {showIndicator && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>👉 Start Here!</Text>
+          </View>
+        )}
+        <View style={styles.container}>
         {/* Dot Pattern Overlay */}
         <View style={styles.dotPattern} />
 
@@ -45,7 +81,8 @@ export const PersonalizationPrompt: React.FC<PersonalizationPromptProps> = ({ on
           <Ionicons name="arrow-forward" size={18} color={colors.primaryDark} />
         </TouchableOpacity>
       </View>
-    </View>
+      </View>
+    </Animated.View>
   );
 };
 
@@ -54,6 +91,36 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.lg,
     borderRadius: Radius.lg,
     overflow: 'hidden',
+  },
+  wrapperHighlight: {
+    borderWidth: 3,
+    borderColor: '#FFC107',
+    shadowColor: '#FFC107',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  badge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#FFC107',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#000',
+
   },
   container: {
     backgroundColor: '#1A1A1A',

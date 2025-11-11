@@ -7,7 +7,7 @@ import {
 } from '@/features/home/components';
 import { CardArticle } from '@/features/shared/components/CardArticle';
 import React, { useEffect, useState, useCallback } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, Text, View, ActivityIndicator, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GreetingsCard } from '@/features/home/components/GreetingsCard';
 import { categoryCards, popularArticles } from '@/data/mock';
@@ -19,10 +19,46 @@ export default function HomeScreen() {
   const colors = Colors.light;
   const [user, setUser] = useState<User | null>(null);
 
+  // Lazy loading state for popular articles
+  const INITIAL_LOAD = 5; // Load 5 items first for fast initial render
+  const [displayedArticles, setDisplayedArticles] = useState(popularArticles.slice(0, INITIAL_LOAD));
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreArticles, setHasMoreArticles] = useState(popularArticles.length > INITIAL_LOAD);
+
+  // First-time user indicator state
+  const [showPersonalizationIndicator, setShowPersonalizationIndicator] = useState(false);
+
   // Load user on initial mount
   useEffect(() => {
     loadUser();
+    checkFirstTimeUser();
   }, []);
+
+  // Check if this is first-time user
+  const checkFirstTimeUser = async () => {
+    try {
+      // TEMPORARY: Show for ALL users (for testing)
+      // TODO: Uncomment line below to enable first-time user detection
+      // const hasSeenTutorial = await AsyncStorage.getItem('hasSeenPersonalizationTutorial');
+      // if (!hasSeenTutorial) {
+        setShowPersonalizationIndicator(true);
+      // }
+    } catch (error) {
+      console.error('Error checking first-time user:', error);
+    }
+  };
+
+  // Handle personalization card click
+  const handlePersonalizationClick = async () => {
+    setShowPersonalizationIndicator(false);
+    try {
+      await AsyncStorage.setItem('hasSeenPersonalizationTutorial', 'true');
+      // Execute personalization action
+      console.log('Start personalization');
+    } catch (error) {
+      console.error('Error saving tutorial state:', error);
+    }
+  };
 
   const loadUser = async () => {
     const profile = await getProfile();
@@ -62,6 +98,39 @@ export default function HomeScreen() {
     }, [checkAndReloadUser])
   );
 
+  // Simulate lazy loading - load more articles
+  const loadMoreArticles = useCallback(() => {
+    if (isLoadingMore || !hasMoreArticles) return;
+
+    setIsLoadingMore(true);
+
+    // Simulate API delay (300ms untuk UX yang smooth)
+    setTimeout(() => {
+      const currentLength = displayedArticles.length;
+      const nextBatch = popularArticles.slice(currentLength, currentLength + 5);
+
+      if (nextBatch.length > 0) {
+        setDisplayedArticles(prev => [...prev, ...nextBatch]);
+        setHasMoreArticles(currentLength + nextBatch.length < popularArticles.length);
+      } else {
+        setHasMoreArticles(false);
+      }
+
+      setIsLoadingMore(false);
+    }, 300);
+  }, [isLoadingMore, hasMoreArticles, displayedArticles.length]);
+
+  // Detect when user scrolls near the end of horizontal ScrollView
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const paddingToEnd = 100; // Trigger sebelum sampai ujung
+
+    // Check if scrolled near the end
+    if (layoutMeasurement.width + contentOffset.x >= contentSize.width - paddingToEnd) {
+      loadMoreArticles();
+    }
+  };
+
   // Priority: nickname > first name from fullName > 'there'
   const displayName = user?.nickname || user?.fullName.split(' ')[0] || 'there';
 
@@ -93,9 +162,12 @@ export default function HomeScreen() {
         </View>
 
         {/* Personalization Card */}
-        <View style={styles.personalizationSection}>
-          <PersonalizationCard onPress={() => console.log('Start personalization')} />
-        </View>
+        <PersonalizationCard
+          showIndicator={showPersonalizationIndicator}
+          onPress={handlePersonalizationClick}
+          style={styles.personalizationSection}
+        />
+
 
         {/* Categories Section */}
         <View style={styles.section}>
@@ -113,7 +185,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Most Popular Section */}
+        {/* Most Popular Section - Optimized with Lazy Loading */}
         <View style={styles.section}>
           <SectionHeader
             title="Most Popular"
@@ -126,8 +198,10 @@ export default function HomeScreen() {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.popularScrollContent}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
             >
-              {popularArticles.map((article) => (
+              {displayedArticles.map((article) => (
                 <View key={article.id} style={styles.popularCardWrapper}>
                   {article.badge && (
                     <View style={[styles.bestSellerBadge, { backgroundColor: colors.primary }]}>
@@ -147,6 +221,20 @@ export default function HomeScreen() {
                   />
                 </View>
               ))}
+
+              {/* Loading indicator saat load more */}
+              {isLoadingMore && (
+                <View style={styles.loadingWrapper}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                </View>
+              )}
+
+              {/* Placeholder skeleton untuk artikel yang belum di-load */}
+              {!isLoadingMore && hasMoreArticles && (
+                <View style={styles.skeletonWrapper}>
+                  <View style={[styles.skeletonCard, { backgroundColor: colors.border }]} />
+                </View>
+              )}
             </ScrollView>
           </View>
         </View>
@@ -154,6 +242,7 @@ export default function HomeScreen() {
         {/* Bottom Padding */}
         <View style={{ height: 100 }} />
       </ScrollView>
+
     </SafeAreaView>
   );
 }
@@ -188,7 +277,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700' as const,
+  fontWeight: '700' as const,
     marginBottom: Spacing.md,
   },
   categoryGrid: {
@@ -222,5 +311,21 @@ const styles = StyleSheet.create({
   bestSellerText: {
     fontSize: 10,
     fontWeight: '600' as const,
+  },
+  // Loading & Skeleton Styles
+  loadingWrapper: {
+    width: 240,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  skeletonWrapper: {
+    width: 240,
+  },
+  skeletonCard: {
+    width: 240,
+    height: 320,
+    borderRadius: 16,
+    opacity: 0.3,
   },
 });
