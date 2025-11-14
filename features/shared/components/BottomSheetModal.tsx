@@ -10,6 +10,7 @@ import {
   View,
   PanResponder,
   DimensionValue,
+  Keyboard,
 } from 'react-native';
 
 interface BottomSheetModalProps {
@@ -53,6 +54,23 @@ export function BottomSheetModal({
       dragY.setValue(0);
     }
   }, [visible, slideAnim, dragY]);
+
+  // Listen to keyboard events and reset modal position when keyboard dismisses
+  useEffect(() => {
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      // Reset drag position when keyboard is dismissed
+      Animated.spring(dragY, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 80,
+        friction: 10,
+      }).start();
+    });
+
+    return () => {
+      keyboardDidHideListener.remove();
+    };
+  }, [dragY]);
 
   // Pan Responder for swipe down gesture
   const panResponder = useRef(

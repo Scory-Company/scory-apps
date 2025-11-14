@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 type AuthMode = 'login' | 'register';
 
@@ -31,6 +32,7 @@ export function AuthModal({
   onLogin,
   onRegister,
 }: AuthModalProps) {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   return (
@@ -44,7 +46,7 @@ export function AuthModal({
       >
         {/* Modal Header */}
         <View style={styles.modalHeader}>
-          <Title>{mode === 'login' ? 'Sign In' : 'Create Account'}</Title>
+          <Title>{mode === 'login' ? t('auth.login') : t('auth.createAccount')}</Title>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>

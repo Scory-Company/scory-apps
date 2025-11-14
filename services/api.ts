@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Base URL configuration
 const API_URL = __DEV__
-  ? 'http://192.168.1.30:5000/api/v1' // ⚠️ GANTI dengan IP backend Anda
+  ? 'http://192.168.1.18:5000/api/v1' // ⚠️ GANTI dengan IP backend Anda
   : 'https://api.scory.app/api/v1';
 
 // Create axios instance

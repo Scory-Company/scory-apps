@@ -2,12 +2,15 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface LogoutButtonProps {
   onPress?: () => void;
 }
 
+
 export const LogoutButton: React.FC<LogoutButtonProps> = ({ onPress }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   return (
@@ -17,7 +20,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({ onPress }) => {
       onPress={onPress}
     >
       <Ionicons name="log-out-outline" size={20} color={colors.error} />
-      <Text style={[styles.logoutText, { color: colors.error }]}>Logout</Text>
+      <Text style={[styles.logoutText, { color: colors.error }]}>{t('auth.logout')}</Text>
     </TouchableOpacity>
   );
 };

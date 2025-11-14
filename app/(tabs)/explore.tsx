@@ -30,7 +30,7 @@ export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const hasPersonalizationData = true;
+  const hasPersonalizationData = false;
 
   // Check if filters are active
   const hasActiveFilters = searchQuery.trim() !== '' || selectedCategory !== 'All';

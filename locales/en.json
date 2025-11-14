@@ -1,0 +1,187 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "saveChanges": "Save Changes",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Sign Up",
+    "logout": "Logout",
+    "logoutConfirm": "Are you sure you want to logout?",
+    "logoutError": "Failed to logout",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "createAccount": "Create Account",
+    "signInWithEmail": "Sign In with Email",
+    "signInWithGoogle": "Sign in with Google",
+    "signUpWithGoogle": "Sign up with Google",
+    "orContinueWith": "or continue with",
+    "continueWithGoogle": "Continue with Google",
+    "signingIn": "Signing in...",
+    "welcomeBack": "Welcome Back",
+    "welcomeToScory": "Welcome to Scory",
+    "tagline": "Bringing knowledge closer to everyone.",
+    "getStarted": "Get Started",
+    "enterEmail": "Enter your email",
+    "enterPassword": "Enter your password",
+    "enterName": "Enter your name",
+    "createPassword": "Create a password",
+    "confirmYourPassword": "Confirm your password",
+    "passwordsNotMatch": "Passwords do not match",
+    "weakPassword": "Please use a stronger password",
+    "loginSuccess": "Login successful!",
+    "loginError": "Invalid email or password",
+    "registerSuccess": "Account created successfully!",
+    "registerError": "Failed to create account",
+    "googleSignInSuccess": "Google Sign In successful!",
+    "googleSignInError": "Google Sign In failed",
+    "passwordStrength": {
+      "veryWeak": "Very Weak",
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong"
+    },
+    "passwordCriteria": {
+      "minLength": "At least 8 characters",
+      "uppercase": "Include uppercase letter",
+      "lowercase": "Include lowercase letter",
+      "number": "Include a number",
+      "special": "Include special character (!@#$%^&*)"
+    }
+  },
+  "home": {
+    "title": "Home",
+    "welcome": "Welcome",
+    "greeting": "Hello, {{name}}!",
+    "recentScores": "Recent Scores",
+    "noScores": "No scores yet",
+    "startScoring": "Start Scoring"
+  },
+  "explore": {
+    "title": "Explore",
+    "searchPlaceholder": "Search sports, events...",
+    "categories": "Categories",
+    "featured": "Featured",
+    "popular": "Popular"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "settings": "Settings",
+    "about": "About",
+    "help": "Help",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "version": "Version",
+    "quickStats": "Quick Stats",
+    "stats": {
+      "articlesRead": "Articles Read",
+      "dayStreak": "Day Streak",
+      "minutes": "Minutes"
+    },
+    "menu": {
+      "accountSettings": "Account Settings",
+      "editProfile": "Edit Profile",
+      "changePassword": "Change Password",
+      "emailPreferences": "Email Preferences",
+      "preferences": "Preferences",
+      "readingGoals": "Reading Goals",
+      "topicInterests": "Topic Interests",
+      "notifications": "Notifications",
+      "language": "Language",
+      "about": "About",
+      "helpSupport": "Help & Support",
+      "privacyPolicy": "Privacy Policy",
+      "termsService": "Terms of Service",
+      "aboutScory": "About Scory"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Enter your full name",
+      "fullNameRequired": "Full name is required",
+      "nickname": "Nickname",
+      "nicknamePlaceholder": "Enter a nickname (optional)",
+      "nicknameLength": "Nickname must be between 2–20 characters",
+      "nicknameInfo": "Your nickname is optional and can be used as a display name.",
+      "avatarUrl": "Avatar URL",
+      "avatarUrlPlaceholder": "Enter avatar image URL (optional)",
+      "updateError": "Failed to update profile"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select Language",
+    "notifications": "Notifications",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "account": "Account",
+    "preferences": "Preferences"
+  },
+  "score": {
+    "title": "Score",
+    "newScore": "New Score",
+    "editScore": "Edit Score",
+    "deleteScore": "Delete Score",
+    "team": "Team",
+    "points": "Points",
+    "time": "Time",
+    "date": "Date",
+    "sport": "Sport",
+    "event": "Event",
+    "notes": "Notes"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "tooShort": "Too short",
+    "tooLong": "Too long",
+    "invalidFormat": "Invalid format"
+  },
+  "onboarding": {
+    "getStarted": "Get Started",
+    "slide1": {
+      "title": "Welcome to Scory",
+      "description": "Unlock academic journals easily.\nTransform complex research papers into engaging stories and interactive quizzes"
+    },
+    "slide2": {
+      "title": "Read Journals\nWithout Headaches",
+      "description": "Complex academic papers simplified into easy-to-understand content"
+    },
+    "slide3": {
+      "title": "AI Storyteller\nfor Research",
+      "description": "Transform rigid academic language into engaging stories with AI"
+    },
+    "slide4": {
+      "title": "Learn While\nPlaying Quizzes",
+      "description": "Collect points, unlock badges, and climb the leaderboard!"
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "network": "Network error. Please check your connection.",
+    "unauthorized": "Unauthorized. Please login again.",
+    "notFound": "Not found",
+    "serverError": "Server error. Please try again later."
+  }
+}

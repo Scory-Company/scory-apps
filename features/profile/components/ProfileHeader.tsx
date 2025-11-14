@@ -2,6 +2,7 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileHeaderProps {
   name: string;
@@ -19,6 +20,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onAvatarEditPress,
 }) => {
   const colors = Colors.light;
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.profileHeader, { backgroundColor: colors.surface }]}>
@@ -44,7 +46,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         onPress={onEditPress}
       >
         <Ionicons name="create-outline" size={18} color={colors.text} />
-        <Text style={[styles.editProfileText, { color: colors.text }]}>Edit Profile</Text>
+        <Text style={[styles.editProfileText, { color: colors.text }]}>{t('profile.menu.editProfile')}</Text>
       </TouchableOpacity>
     </View>
   );

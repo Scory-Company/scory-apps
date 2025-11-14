@@ -14,13 +14,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlert } from '@/features/shared/hooks/useAlert';
 import { useToast } from '@/features/shared/hooks/useToast';
+import { LanguageModal } from '@/features/settings/components/LanguageModal';
+import { useTranslation } from 'react-i18next';
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const router = useRouter();
   const alert = useAlert();
   const toast = useToast();
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -61,14 +65,14 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     alert.confirm(
-      'Logout',
-      'Are you sure you want to logout?',
+      t('auth.logout'),
+      t('auth.logoutConfirm'),
       async () => {
         try {
           await logout();
           router.replace('/(auth)/login');
         } catch (error) {
-          alert.error('Error', 'Failed to logout');
+          alert.error(t('common.error'), t('auth.logoutError'));
         }
       }
     );
@@ -96,7 +100,7 @@ export default function ProfileScreen() {
         console.log('Notifications');
         break;
       case 'LANGUAGE':
-        console.log('Language');
+        setShowLanguageModal(true);
         break;
       case 'HELP_SUPPORT':
         console.log('Help & Support');
@@ -154,14 +158,14 @@ export default function ProfileScreen() {
 
         {/* Quick Stats */}
         <View style={styles.statsSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Stats</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('profile.quickStats')}</Text>
           <View style={styles.statsGrid}>
             {quickStats.map((stat) => (
               <StatCard
                 key={stat.id}
                 icon={stat.icon}
                 value={stat.value}
-                label={stat.label}
+                labelKey={stat.labelKey}
                 color={stat.color}
                 bgColor={stat.bgColor}
               />
@@ -174,7 +178,7 @@ export default function ProfileScreen() {
           {settingsMenu.map((section) => (
             <SettingGroup
               key={section.id}
-              title={section.title}
+              titleKey={section.titleKey}
               icon={section.icon}
               items={section.items}
             />
@@ -185,7 +189,7 @@ export default function ProfileScreen() {
         <LogoutButton onPress={handleLogout} />
 
         {/* App Version */}
-        <Text style={[styles.versionText, { color: colors.textMuted }]}>Scory v1.0.0</Text>
+        <Text style={[styles.versionText, { color: colors.textMuted }]}>{t('profile.version')} 1.0.0</Text>
 
         {/* Bottom Padding */}
         <View style={{ height: 100 }} />
@@ -204,6 +208,12 @@ export default function ProfileScreen() {
           }}
         />
       )}
+
+      {/* Language Modal */}
+      <LanguageModal
+        visible={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+      />
 
       {/* Alert Component */}
       <alert.AlertComponent />

@@ -10,10 +10,12 @@ import { StyleSheet, View } from 'react-native';
 import { loginWithEmail, registerWithEmail } from '@/services/auth';
 import { signInWithGoogle } from '@/services/googleAuth';
 import { useToast } from '@/features/shared/hooks/useToast';
+import { useTranslation } from 'react-i18next';
 
 type AuthMode = 'login' | 'register';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const colors = Colors.light;
   const toast = useToast();
@@ -27,10 +29,10 @@ export default function LoginScreen() {
     try {
       await loginWithEmail(email, password);
       closeAuthModal();
-      toast.success('Login successful!');
+      toast.success(t('auth.loginSuccess'));
       router.replace('/(tabs)');
     } catch (error: any) {
-      toast.error(error.message || 'Invalid email or password');
+      toast.error(error.message || t('auth.loginError'));
     } finally {
       setAuthLoading(false);
     }
@@ -41,10 +43,10 @@ export default function LoginScreen() {
     try {
       await registerWithEmail(email, password, name);
       closeAuthModal();
-      toast.success('Account created successfully!');
+      toast.success(t('auth.registerSuccess'));
       router.replace('/(tabs)');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create account');
+      toast.error(error.message || t('auth.registerError'));
     } finally {
       setAuthLoading(false);
     }
@@ -54,10 +56,10 @@ export default function LoginScreen() {
     setGoogleLoading(true);
     try {
       await signInWithGoogle();
-      toast.success('Google Sign In successful!');
+      toast.success(t('auth.googleSignInSuccess'));
       router.replace('/(tabs)');
     } catch (error: any) {
-      toast.error(error.message || 'Google Sign In failed');
+      toast.error(error.message || t('auth.googleSignInError'));
     } finally {
       setGoogleLoading(false);
     }
@@ -90,10 +92,10 @@ export default function LoginScreen() {
       {/* Hero Section */}
       <View style={styles.heroSection}>
         <Heading size="3xl" align="center">
-          Welcome to Scory
+          {t('auth.welcomeToScory')}
         </Heading>
         <Body size="base" align="center" style={styles.heroDescription}>
-          Manage your tasks and boost your productivity
+          {t('auth.tagline')}
         </Body>
       </View>
 
@@ -101,17 +103,17 @@ export default function LoginScreen() {
       <View style={styles.ctaSection}>
         {/* Email Sign In */}
         <Button variant="primary" size="md" fullWidth onPress={() => openAuthModal('login')}>
-          Sign In with Email
+          {t('auth.signInWithEmail')}
         </Button>
         <Button variant="secondary" size="md" fullWidth onPress={() => openAuthModal('register')}>
-          Create Account
+          {t('auth.createAccount')}
         </Button>
 
         {/* Divider */}
         <View style={styles.divider}>
           <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           <Body size="sm" color={colors.textSecondary}>
-            or continue with
+            {t('auth.orContinueWith')}
           </Body>
           <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
         </View>
@@ -126,7 +128,7 @@ export default function LoginScreen() {
         >
           <View style={styles.googleButtonContent}>
             <Ionicons name="logo-google" size={20} color={colors.text} />
-            <Body>{googleLoading ? 'Signing in...' : 'Continue with Google'}</Body>
+            <Body>{googleLoading ? t('auth.signingIn') : t('auth.continueWithGoogle')}</Body>
           </View>
         </Button>
       </View>

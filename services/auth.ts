@@ -39,6 +39,7 @@ export interface User {
   nickname: string | null;
   avatarUrl: string | null;
   authProvider: string;
+  role:string;
   isVerified: boolean;
 }
 

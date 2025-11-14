@@ -1,7 +1,7 @@
 export interface OnboardingSlide {
   id: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   illustration?: any; // Image source (optional for intro slide)
   isIntro?: boolean; // First slide with CTA
 }
@@ -9,27 +9,27 @@ export interface OnboardingSlide {
 export const onboardingSlides: OnboardingSlide[] = [
   {
     id: '0',
-    title: 'Welcome to Scory',
-    description: 'Unlock academic journals easily.\nTransform complex research papers into engaging stories and interactive quizzes',
+    titleKey: 'onboarding.slide1.title',
+    descriptionKey: 'onboarding.slide1.description',
     illustration: require('@/assets/images/onboarding/intro.png'),
     isIntro: true,
   },
   {
     id: '1',
-    title: 'Read Journals\nWithout Headaches',
-    description: 'Complex academic papers simplified into easy-to-understand content',
+    titleKey: 'onboarding.slide2.title',
+    descriptionKey: 'onboarding.slide2.description',
     illustration: require('@/assets/images/onboarding/slide-1.png'),
   },
   {
     id: '2',
-    title: 'AI Storyteller\nfor Research',
-    description: 'Transform rigid academic language into engaging stories with AI',
+    titleKey: 'onboarding.slide3.title',
+    descriptionKey: 'onboarding.slide3.description',
     illustration: require('@/assets/images/onboarding/slide-2.png'),
   },
   {
     id: '3',
-    title: 'Learn While\nPlaying Quizzes',
-    description: 'Collect points, unlock badges, and climb the leaderboard!',
+    titleKey: 'onboarding.slide4.title',
+    descriptionKey: 'onboarding.slide4.description',
     illustration: require('@/assets/images/onboarding/slide-3.png'),
   },
 ];

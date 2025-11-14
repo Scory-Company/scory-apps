@@ -2,20 +2,22 @@ import { Colors, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface SettingItemProps {
-  label: string;
+  labelKey: string;
   icon: keyof typeof Ionicons.glyphMap;
   onPress?: () => void;
   showBorder?: boolean;
 }
 
 export const SettingItem: React.FC<SettingItemProps> = ({
-  label,
+  labelKey,
   icon,
   onPress,
   showBorder = false,
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   return (
@@ -32,7 +34,7 @@ export const SettingItem: React.FC<SettingItemProps> = ({
     >
       <View style={styles.settingItemLeft}>
         <Ionicons name={icon} size={20} color={colors.textSecondary} />
-        <Text style={[styles.settingItemLabel, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.settingItemLabel, { color: colors.text }]}>{t(labelKey)}</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
     </TouchableOpacity>

@@ -2,11 +2,12 @@ import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme'
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface StatCardProps {
   icon: keyof typeof Ionicons.glyphMap;
   value: string;
-  label: string;
+  labelKey: string;
   color?: string;
   bgColor?: string;
 }
@@ -14,10 +15,11 @@ interface StatCardProps {
 export const StatCard: React.FC<StatCardProps> = ({
   icon,
   value,
-  label,
+  labelKey,
   color,
   bgColor,
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   return (
@@ -26,7 +28,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         <Ionicons name={icon} size={24} color={color || colors.primary} />
       </View>
       <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
-      <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{label}</Text>
+      <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t(labelKey)}</Text>
     </View>
   );
 };

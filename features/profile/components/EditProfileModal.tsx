@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -37,6 +38,7 @@ export function EditProfileModal({
   const colors = Colors.light;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   // Form state
   const [fullName, setFullName] = useState("");
@@ -54,12 +56,12 @@ export function EditProfileModal({
 
   const handleSave = async () => {
     if (!fullName.trim()) {
-      setError("Full name is required");
+      setError(t('profile.form.fullNameRequired'));
       return;
     }
 
     if (nickname.trim() && (nickname.length < 2 || nickname.length > 20)) {
-      setError("Nickname must be between 2–20 characters");
+      setError(t('profile.form.nicknameLength'));
       return;
     }
 
@@ -74,7 +76,7 @@ export function EditProfileModal({
       });
       onClose();
     } catch (err: any) {
-      setError(err.message || "Failed to update profile");
+      setError(err.message || t('profile.form.updateError'));
     } finally {
       setLoading(false);
     }
@@ -94,7 +96,7 @@ export function EditProfileModal({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Ionicons name="person-circle" size={24} color={colors.primary} />
-            <Heading size="lg">Edit Profile</Heading>
+            <Heading size="lg">{t('profile.menu.editProfile')}</Heading>
           </View>
           <TouchableOpacity
             onPress={handleClose}
@@ -127,9 +129,9 @@ export function EditProfileModal({
 
           {/* Full Name Input */}
           <Input
-            label="Full Name"
+            label={t('profile.form.fullName')}
             icon="person"
-            placeholder="Enter your full name"
+            placeholder={t('profile.form.fullNamePlaceholder')}
             value={fullName}
             onChangeText={setFullName}
             autoCapitalize="words"
@@ -138,9 +140,9 @@ export function EditProfileModal({
 
           {/* Nickname Input */}
           <Input
-            label="Nickname (optional)"
+            label={t('profile.form.nickname')}
             icon="at"
-            placeholder="Enter your nickname"
+            placeholder={t('profile.form.nicknamePlaceholder')}
             value={nickname}
             onChangeText={setNickname}
             autoCapitalize="none"
@@ -149,9 +151,9 @@ export function EditProfileModal({
 
           {/* Avatar URL Input */}
           <Input
-            label="Avatar URL (optional)"
+            label={t('profile.form.avatarUrl')}
             icon="image"
-            placeholder="https://example.com/avatar.jpg"
+            placeholder={t('profile.form.avatarUrlPlaceholder')}
             value={avatarUrl}
             onChangeText={setAvatarUrl}
             autoCapitalize="none"
@@ -163,8 +165,7 @@ export function EditProfileModal({
           <View style={styles.infoBox}>
             <Ionicons name="information-circle" size={16} color={colors.info} />
             <Body size="xs" color={colors.textMuted} style={styles.infoText}>
-              Nickname will be displayed publicly. Avatar URL should be a direct
-              link to an image.
+              {t('profile.form.nicknameInfo')}
             </Body>
           </View>
         </ScrollView>
@@ -180,7 +181,7 @@ export function EditProfileModal({
                 onPress={handleClose}
                 disabled={loading}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </View>
             <View style={styles.buttonHalf}>
@@ -194,7 +195,7 @@ export function EditProfileModal({
                 {loading ? (
                   <ActivityIndicator color={colors.textwhite} size="small" />
                 ) : (
-                  "Save Changes"
+                  t('common.saveChanges')
                 )}
               </Button>
             </View>

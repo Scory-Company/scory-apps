@@ -1,0 +1,187 @@
+{
+  "common": {
+    "loading": "Memuat...",
+    "error": "Kesalahan",
+    "success": "Berhasil",
+    "cancel": "Batal",
+    "confirm": "Konfirmasi",
+    "save": "Simpan",
+    "saveChanges": "Simpan Perubahan",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "close": "Tutup",
+    "back": "Kembali",
+    "next": "Selanjutnya",
+    "done": "Selesai",
+    "search": "Cari",
+    "filter": "Filter",
+    "sort": "Urutkan"
+  },
+  "auth": {
+    "login": "Masuk",
+    "register": "Daftar",
+    "logout": "Keluar",
+    "logoutConfirm": "Apakah Anda yakin ingin keluar?",
+    "logoutError": "Gagal keluar",
+    "email": "Email",
+    "password": "Kata Sandi",
+    "confirmPassword": "Konfirmasi Kata Sandi",
+    "fullName": "Nama Lengkap",
+    "forgotPassword": "Lupa Kata Sandi?",
+    "noAccount": "Belum punya akun?",
+    "haveAccount": "Sudah punya akun?",
+    "createAccount": "Buat Akun",
+    "signInWithEmail": "Masuk dengan Email",
+    "signInWithGoogle": "Masuk dengan Google",
+    "signUpWithGoogle": "Daftar dengan Google",
+    "orContinueWith": "atau lanjutkan dengan",
+    "continueWithGoogle": "Lanjutkan dengan Google",
+    "signingIn": "Sedang masuk...",
+    "welcomeBack": "Selamat Datang Kembali",
+    "welcomeToScory": "Selamat Datang di Scory",
+    "tagline": "Mendekatkan ilmu pengetahuan ke seluruh lapisan masyarakat.",
+    "getStarted": "Mulai",
+    "enterEmail": "Masukkan email Anda",
+    "enterPassword": "Masukkan kata sandi Anda",
+    "enterName": "Masukkan nama Anda",
+    "createPassword": "Buat kata sandi",
+    "confirmYourPassword": "Konfirmasi kata sandi Anda",
+    "passwordsNotMatch": "Kata sandi tidak cocok",
+    "weakPassword": "Gunakan kata sandi yang lebih kuat",
+    "loginSuccess": "Login berhasil!",
+    "loginError": "Email atau kata sandi salah",
+    "registerSuccess": "Akun berhasil dibuat!",
+    "registerError": "Gagal membuat akun",
+    "googleSignInSuccess": "Login Google berhasil!",
+    "googleSignInError": "Login Google gagal",
+    "passwordStrength": {
+      "veryWeak": "Sangat Lemah",
+      "weak": "Lemah",
+      "fair": "Cukup",
+      "good": "Baik",
+      "strong": "Kuat"
+    },
+    "passwordCriteria": {
+      "minLength": "Minimal 8 karakter",
+      "uppercase": "Sertakan huruf besar",
+      "lowercase": "Sertakan huruf kecil",
+      "number": "Sertakan angka",
+      "special": "Sertakan karakter spesial (!@#$%^&*)"
+    }
+  },
+  "home": {
+    "title": "Beranda",
+    "welcome": "Selamat Datang",
+    "greeting": "Halo, {{name}}!",
+    "recentScores": "Skor Terbaru",
+    "noScores": "Belum ada skor",
+    "startScoring": "Mulai Skor"
+  },
+  "explore": {
+    "title": "Jelajahi",
+    "searchPlaceholder": "Cari olahraga, acara...",
+    "categories": "Kategori",
+    "featured": "Unggulan",
+    "popular": "Populer"
+  },
+  "profile": {
+    "title": "Profil",
+    "editProfile": "Edit Profil",
+    "settings": "Pengaturan",
+    "about": "Tentang",
+    "help": "Bantuan",
+    "privacy": "Kebijakan Privasi",
+    "terms": "Syarat Layanan",
+    "version": "Versi",
+    "quickStats": "Statistik Cepat",
+    "stats": {
+      "articlesRead": "Artikel Dibaca",
+      "dayStreak": "Hari Beruntun",
+      "minutes": "Menit"
+    },
+    "menu": {
+      "accountSettings": "Pengaturan Akun",
+      "editProfile": "Edit Profil",
+      "changePassword": "Ubah Kata Sandi",
+      "emailPreferences": "Preferensi Email",
+      "preferences": "Preferensi",
+      "readingGoals": "Target Membaca",
+      "topicInterests": "Minat Topik",
+      "notifications": "Notifikasi",
+      "language": "Bahasa",
+      "about": "Tentang",
+      "helpSupport": "Bantuan & Dukungan",
+      "privacyPolicy": "Kebijakan Privasi",
+      "termsService": "Syarat Layanan",
+      "aboutScory": "Tentang Scory"
+    },
+    "form": {
+      "fullName": "Nama Lengkap",
+      "fullNamePlaceholder": "Masukkan nama lengkap Anda",
+      "fullNameRequired": "Nama lengkap wajib diisi",
+      "nickname": "Nama Panggilan",
+      "nicknamePlaceholder": "Masukkan nama panggilan (opsional)",
+      "nicknameLength": "Nama panggilan harus antara 2–20 karakter",
+      "nicknameInfo": "Nama panggilan bersifat opsional dan dapat digunakan sebagai nama tampilan.",
+      "avatarUrl": "URL Avatar",
+      "avatarUrlPlaceholder": "Masukkan URL gambar avatar (opsional)",
+      "updateError": "Gagal memperbarui profil"
+    }
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "language": "Bahasa",
+    "selectLanguage": "Pilih Bahasa",
+    "notifications": "Notifikasi",
+    "theme": "Tema",
+    "darkMode": "Mode Gelap",
+    "account": "Akun",
+    "preferences": "Preferensi"
+  },
+  "score": {
+    "title": "Skor",
+    "newScore": "Skor Baru",
+    "editScore": "Edit Skor",
+    "deleteScore": "Hapus Skor",
+    "team": "Tim",
+    "points": "Poin",
+    "time": "Waktu",
+    "date": "Tanggal",
+    "sport": "Olahraga",
+    "event": "Acara",
+    "notes": "Catatan"
+  },
+  "validation": {
+    "required": "Kolom ini wajib diisi",
+    "invalidEmail": "Alamat email tidak valid",
+    "tooShort": "Terlalu pendek",
+    "tooLong": "Terlalu panjang",
+    "invalidFormat": "Format tidak valid"
+  },
+  "onboarding": {
+    "getStarted": "Mulai",
+    "slide1": {
+      "title": "Selamat Datang di Scory",
+      "description": "Buka jurnal akademik dengan mudah.\nUbah makalah penelitian kompleks menjadi cerita menarik dan kuis interaktif"
+    },
+    "slide2": {
+      "title": "Baca Jurnal\nTanpa Pusing",
+      "description": "Makalah akademik kompleks disederhanakan menjadi konten yang mudah dipahami"
+    },
+    "slide3": {
+      "title": "Pendongeng AI\nuntuk Penelitian",
+      "description": "Ubah bahasa akademik yang kaku menjadi cerita menarik dengan AI"
+    },
+    "slide4": {
+      "title": "Belajar Sambil\nMain Kuis",
+      "description": "Kumpulkan poin, buka lencana, dan naik peringkat!"
+    }
+  },
+  "errors": {
+    "generic": "Terjadi kesalahan",
+    "network": "Kesalahan jaringan. Periksa koneksi Anda.",
+    "unauthorized": "Tidak terotorisasi. Silakan login kembali.",
+    "notFound": "Tidak ditemukan",
+    "serverError": "Kesalahan server. Silakan coba lagi nanti."
+  }
+}

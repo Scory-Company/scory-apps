@@ -8,10 +8,12 @@ import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const colors = Colors.light;
   const pagerRef = useRef<PagerView>(null);
@@ -68,9 +70,9 @@ export default function OnboardingScreen() {
 
             {/* Content */}
             <View style={styles.contentSection}>
-              <Heading align="center">{item.title}</Heading>
+              <Heading align="center">{t(item.titleKey)}</Heading>
               <Body align="center" style={styles.description}>
-                {item.description}
+                {t(item.descriptionKey)}
               </Body>
             </View>
           </View>
@@ -96,7 +98,7 @@ export default function OnboardingScreen() {
       {/* Fixed Bottom CTA */}
       <View style={styles.bottomSection}>
         <Button variant="primary" size="lg" fullWidth onPress={handleNext}>
-          {isLastSlide ? 'Get Started' : 'Next'}
+          {isLastSlide ? t('onboarding.getStarted') : t('common.next')}
         </Button>
         {currentSlide?.isIntro && (
           <ButtonLink
@@ -105,7 +107,7 @@ export default function OnboardingScreen() {
               router.replace('/(auth)/login');
             }}
           >
-            Already have an account? <Body color={colors.primary}>Sign In</Body>
+            {t('auth.haveAccount')} <Body color={colors.primary}>{t('auth.login')}</Body>
           </ButtonLink>
         )}
       </View>

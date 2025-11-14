@@ -5,6 +5,7 @@ import { Body } from '@/shared/components/ui/Typography';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string, rememberMe: boolean) => void;
@@ -13,6 +14,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: LoginFormProps) {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,9 +29,9 @@ export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: Logi
     <View style={styles.formSection}>
       {/* Email Input */}
       <Input
-        label="Email"
+        label={t('auth.email')}
         icon="mail-outline"
-        placeholder="Enter your email"
+        placeholder={t('auth.enterEmail')}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -38,9 +40,9 @@ export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: Logi
 
       {/* Password Input */}
       <Input
-        label="Password"
+        label={t('auth.password')}
         icon="lock-closed-outline"
-        placeholder="Enter your password"
+        placeholder={t('auth.enterPassword')}
         value={password}
         onChangeText={setPassword}
         isPassword
@@ -62,24 +64,24 @@ export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: Logi
         </TouchableOpacity>
         <ButtonLink onPress={() => {/* TODO: Implement forgot password */}}>
           <Body size="sm" color={colors.primary}>
-            Forgot Password?
+            {t('auth.forgotPassword')}
           </Body>
         </ButtonLink>
       </View>
 
       {/* Sign In Button */}
       <Button variant="primary" size="lg" fullWidth onPress={handleSubmit}>
-        Sign In
+        {t('auth.login')}
       </Button>
 
       {/* Switch to Register */}
       <View style={styles.switchAuth}>
         <Body size="sm" color={colors.textSecondary}>
-          Don&apos;t have an account?{' '}
+          {t('auth.noAccount')}{' '}
         </Body>
         <ButtonLink onPress={onSwitchToRegister}>
           <Body size="sm" color={colors.primary} weight="semiBold">
-            Sign Up
+            {t('auth.register')}
           </Body>
         </ButtonLink>
       </View>
