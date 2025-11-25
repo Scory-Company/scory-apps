@@ -8,6 +8,7 @@ interface SectionHeaderProps {
   icon?: keyof typeof Ionicons.glyphMap;
   iconColor?: string;
   onViewAllPress?: () => void;
+  offViewAll?: boolean;
 }
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({
@@ -15,6 +16,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   icon,
   iconColor,
   onViewAllPress,
+  offViewAll = false,
 }) => {
   const colors = Colors.light;
 
@@ -26,7 +28,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
       </View>
       {onViewAllPress && (
         <TouchableOpacity onPress={onViewAllPress}>
-          <Text style={[styles.viewAllText, { color: colors.textSecondary }]}>View All</Text>
+          <Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{offViewAll || 'View All'}</Text>
         </TouchableOpacity>
       )}
     </View>

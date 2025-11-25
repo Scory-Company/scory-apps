@@ -1,7 +1,8 @@
 import { ImageSourcePropType } from 'react-native';
 
 export interface Article {
-  id: number;
+  id: number | string;
+  slug?: string;
   image: ImageSourcePropType;
   title: string;
   author: string;

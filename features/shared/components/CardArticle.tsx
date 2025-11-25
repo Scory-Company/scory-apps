@@ -57,7 +57,7 @@ export const CardArticle: React.FC<CardArticleProps> = ({
 
 const styles = StyleSheet.create({
   forYouCard: {
-    width: 260,
+    width: '100%',
     borderRadius: Radius.xl,
     overflow: 'hidden',
   },

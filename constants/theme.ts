@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 export const Colors = {
   light: {
     primary: '#26EE5A',
+    primaryLight: '#74E99D',
     primaryDark: '#000000',
     secondary: '#282828',
     third: '#19A03DFF',
@@ -133,6 +134,40 @@ export const Shadows = {
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
+  },
+};
+
+// Personalization Quiz Theme
+export const PersonalizationTheme = {
+  light: {
+    bg: '#F8FAFB',
+    surface: '#FFFFFF',
+    primary: '#20B548',
+    primaryLight: '#74E99D',
+    primarySoft: '#70BF8E',
+    text: '#1A1D1F',
+    textSecondary: '#383839',
+    textMuted: '#9CA3AF',
+    border: '#E8ECEF',
+    progressBg: '#F0F2F4',
+    accent: '#7C3AED',
+    accentLight: '#EDE9FE',
+    buttonText: '#FFFFFF',
+  },
+  dark: {
+    bg: '#0F0F0F',
+    surface: '#1A1A1A',
+    primary: '#26EE5A',
+    primaryLight: '#1E3A2C',
+    primarySoft: '#2D5A43',
+    text: '#F9FAFB',
+    textSecondary: '#D1D5DB',
+    textMuted: '#9CA3AF',
+    border: '#2A2A2A',
+    progressBg: '#1E1E1E',
+    accent: '#9D6CFF',
+    accentLight: '#2D1F4A',
+    buttonText: '#000000',
   },
 };
 

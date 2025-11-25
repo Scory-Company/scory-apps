@@ -10,27 +10,94 @@ import {
   FilteredContentView
 } from '@/features/explore/components';
 import { CardArticle } from '@/features/shared/components/CardArticle';
-import { ViewAllPrompt } from '@/features/shared/components/ViewAllPrompt';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from 'expo-router';
+import { useNavigation, router } from 'expo-router';
 import { filterContent } from '@/utils/filterContent';
+import { articlesApi } from '@/services';
 import {
   trendingTopics,
   forYouArticles,
-  recentlyAddedArticles,
-  topRatedArticles,
+  recentlyAddedArticles as mockRecentlyAdded,
+  topRatedArticles as mockTopRated,
   categoryList
 } from '@/data/mock';
+
+// Display article type
+interface DisplayArticle {
+  id: string | number;
+  slug?: string;
+  image: any;
+  title: string;
+  author: string;
+  category: string;
+  rating: number;
+  reads?: string;
+  date?: string;
+  badge?: string;
+}
 
 export default function ExploreScreen() {
   const colors = Colors.light;
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [topRatedArticles, setTopRatedArticles] = useState<DisplayArticle[]>(mockTopRated);
+  const [recentlyAddedArticles, setRecentlyAddedArticles] = useState<DisplayArticle[]>(mockRecentlyAdded);
 
   const hasPersonalizationData = false;
+
+  // Fetch data from API on mount
+  useEffect(() => {
+    fetchTopRated();
+    fetchRecentlyAdded();
+  }, []);
+
+  const fetchTopRated = async () => {
+    try {
+      const response = await articlesApi.getTopRated({ page: 1, limit: 5 });
+      const apiData = response.data?.data;
+      if (apiData?.articles?.length > 0) {
+        const transformed = apiData.articles.map((article: any) => ({
+          id: article.id,
+          slug: article.slug,
+          image: { uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' },
+          title: article.title,
+          author: article.authorName,
+          category: article.category?.name || 'General',
+          rating: article.rating,
+        }));
+        setTopRatedArticles(transformed);
+        console.log('Loaded top rated from API:', transformed.length);
+      }
+    } catch {
+      console.log('Top rated API unavailable, using mock');
+    }
+  };
+
+  const fetchRecentlyAdded = async () => {
+    try {
+      const response = await articlesApi.getRecent({ page: 1, limit: 5 });
+      const apiData = response.data?.data;
+      if (apiData?.articles?.length > 0) {
+        const transformed = apiData.articles.map((article: any) => ({
+          id: article.id,
+          slug: article.slug,
+          image: { uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' },
+          title: article.title,
+          author: article.authorName,
+          category: article.category?.name || 'General',
+          rating: article.rating,
+          date: new Date(article.publishedAt).toLocaleDateString(),
+        }));
+        setRecentlyAddedArticles(transformed);
+        console.log('Loaded recently added from API:', transformed.length);
+      }
+    } catch {
+      console.log('Recently added API unavailable, using mock');
+    }
+  };
 
   // Check if filters are active
   const hasActiveFilters = searchQuery.trim() !== '' || selectedCategory !== 'All';
@@ -43,21 +110,64 @@ export default function ExploreScreen() {
     });
   }, [hasActiveKeyboard, navigation]);
 
-  // Combine all data for filtering - using centralized mock data
+  // Combine all data for filtering
   const allArticlesData = useMemo(() => {
     return [...forYouArticles, ...recentlyAddedArticles];
-  }, []);
+  }, [recentlyAddedArticles]);
+
+  // Fetch filtered articles from API
+  const [filteredArticles, setFilteredArticles] = useState<DisplayArticle[]>([]);
+
+  const fetchFilteredArticles = useCallback(async () => {
+    try {
+      const params: any = { page: 1, limit: 20 };
+      if (searchQuery.trim()) params.search = searchQuery.trim();
+      if (selectedCategory !== 'All') params.category = selectedCategory;
+
+      const response = await articlesApi.getArticles(params);
+      const apiData = response.data?.data;
+
+      if (apiData?.articles) {
+        const transformed = apiData.articles.map((article: any) => ({
+          id: article.id,
+          slug: article.slug,
+          image: { uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' },
+          title: article.title,
+          author: article.authorName,
+          category: article.category?.name || 'General',
+          rating: article.rating,
+          reads: `${(article.viewCount / 1000).toFixed(1)}k reads`,
+        }));
+        setFilteredArticles(transformed);
+        console.log('Filtered articles from API:', transformed.length);
+      } else {
+        setFilteredArticles([]);
+      }
+    } catch {
+      console.log('Search/filter API failed, using local filter');
+      // Fallback to local filtering
+      const localResults = filterContent({
+        searchQuery,
+        selectedCategory,
+        allData: allArticlesData,
+      });
+      setFilteredArticles(localResults);
+    }
+  }, [searchQuery, selectedCategory, allArticlesData]);
+
+  useEffect(() => {
+    if (hasActiveFilters) {
+      fetchFilteredArticles();
+    } else {
+      setFilteredArticles([]);
+    }
+  }, [hasActiveFilters, fetchFilteredArticles]);
 
   // Filter results based on search and category
   const filteredResults = useMemo(() => {
     if (!hasActiveFilters) return [];
-
-    return filterContent({
-      searchQuery,
-      selectedCategory,
-      allData: allArticlesData,
-    });
-  }, [searchQuery, selectedCategory, allArticlesData, hasActiveFilters]);
+    return filteredArticles;
+  }, [hasActiveFilters, filteredArticles]);
 
   // Handlers
   const handleClearFilters = () => {
@@ -131,6 +241,7 @@ export default function ExploreScreen() {
             title="Trending Now"
             icon="flame"
             iconColor={colors.error}
+            offViewAll={true}
             onViewAllPress={() => console.log('View all trending')}
           />
 
@@ -142,7 +253,7 @@ export default function ExploreScreen() {
                 count={topic.count}
                 icon={topic.icon}
                 gradientColors={topic.gradientColors}
-                onPress={() => console.log('Trending topic pressed:', topic.keyword)}
+                onPress={() => setSearchQuery(topic.keyword)}
               />
             ))}
           </View>
@@ -172,7 +283,7 @@ export default function ExploreScreen() {
                   category={item.category}
                   rating={item.rating}
                   reads={item.reads}
-                  onPress={() => console.log('For you card pressed:', item.title)}
+                  onPress={() => router.push(`/article/${(item as any).slug || item.id}` as any)}
                 />
               ))}
             </ScrollView>
@@ -181,7 +292,7 @@ export default function ExploreScreen() {
           <View style={styles.section}>
             <PersonalizationPrompt
               showIndicator={true}
-              onSetupPress={() => console.log('Setup personalization')}
+              onSetupPress={() => router.push('/personalization')}
             />
           </View>
         )}
@@ -192,7 +303,6 @@ export default function ExploreScreen() {
             title="Top Rated This Week"
             icon="trophy"
             iconColor={colors.warning}
-            onViewAllPress={() => console.log('View all top rated')}
           />
 
           <View style={styles.topRatedList}>
@@ -204,18 +314,10 @@ export default function ExploreScreen() {
                 author={item.author}
                 category={item.category}
                 rating={item.rating}
-                onPress={() => console.log('Top rated card pressed:', item.title)}
+                onPress={() => router.push(`/article/${item.slug || item.id}` as any)}
               />
             ))}
           </View>
-
-          {topRatedArticles.length > 3 && (
-            <ViewAllPrompt
-              count={topRatedArticles.length - 3}
-              label="article"
-              onPress={() => console.log('View all top rated')}
-            />
-          )}
         </View>
 
         {/* Recently Added */}
@@ -224,7 +326,6 @@ export default function ExploreScreen() {
             title="Recently Added"
             icon="time"
             iconColor={colors.info}
-            onViewAllPress={() => console.log('View all recently added')}
           />
 
           <View style={styles.recentlyAddedList}>
@@ -236,19 +337,19 @@ export default function ExploreScreen() {
                 author={item.author}
                 category={item.category}
                 rating={item.rating}
-                date={item.date}
-                onPress={() => console.log('Recently added card pressed:', item.title)}
+                date={item.date || ''}
+                onPress={() => router.push(`/article/${item.slug || item.id}` as any)}
               />
             ))}
           </View>
 
-          {recentlyAddedArticles.length > 3 && (
+          {/* {recentlyAddedArticles.length > 3 && (
             <ViewAllPrompt
               count={recentlyAddedArticles.length - 3}
               label="article"
               onPress={() => console.log('View all recently added')}
             />
-          )}
+          )} */}
         </View>
             <View style={{ height: 100 }} />
           </>

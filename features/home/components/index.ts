@@ -6,3 +6,4 @@ export { ContinueLearningCard } from './ContinueLearningCard';
 export { TopicCard } from './TopicCard';
 export { SectionHeader } from './SectionHeader';
 export { CategoryCard } from './CategoryCard';
+export { ForYouSection } from './ForYouSection';

@@ -1,8 +1,8 @@
 # Progress Report - Scory Apps Development
 
-**Date:** November 11, 2025
+**Date:** November 21, 2025
 **Project Manager:** Habdil
-**Sprint:** Performance Optimization & User Onboarding
+**Sprint:** API Integration Sprint 1
 
 ---
 
@@ -59,10 +59,17 @@
 |----------|--------|--------|
 | `/api/v1/auth/register` | POST | ✅ Working |
 | `/api/v1/auth/login` | POST | ✅ Working |
-| `/api/v1/auth/google` | POST | ⏳ Pending (redirect URI issue) |
+| `/api/v1/auth/google` | POST | ✅ Working |
 | `/api/v1/auth/logout` | POST | ✅ Working |
 | `/api/v1/profile` | GET | ✅ Working |
 | `/api/v1/profile` | PATCH | ✅ Working |
+| `/api/v1/articles` | GET | ✅ Working |
+| `/api/v1/articles?sort=popular` | GET | ✅ Working |
+| `/api/v1/articles?sort=recent` | GET | ✅ Working |
+| `/api/v1/articles/:slug` | GET | ✅ Working |
+| `/api/v1/articles?sort=top_rated` | GET | ✅ Working |
+| `/api/v1/articles?search=query` | GET | ✅ Working |
+| `/api/v1/articles?category=name` | GET | ✅ Working |
 
 ### Files Modified Today (November 11, 2025)
 - `app/(tabs)/index.tsx` - Added lazy loading for popular articles, first-time user indicator
@@ -125,3 +132,143 @@
 
 **Generated:** 2025-11-11
 **Version:** v1.1.0
+
+---
+
+## 📆 November 21, 2025 - API Integration Sprint 1
+
+### ✅ Completed Today
+
+#### Backend API Integration - Articles
+- ✅ **Modular Services Architecture** - Separated API services into individual files:
+  - `services/api.ts` - Base axios instance with JWT interceptors
+  - `services/articles.ts` - Articles API (getPopular, getTopRated, getForYou, etc.)
+  - `services/categories.ts` - Categories API
+  - `services/topics.ts` - Topics API
+  - `services/personalization.ts` - Personalization API
+  - `services/index.ts` - Barrel export for all services
+
+- ✅ **Popular Articles API Integration** - Home screen now fetches from real API
+  - Endpoint: `GET /articles?sort=popular`
+  - Fallback to mock data when API unavailable
+  - Fixed API response structure parsing (`response.data.data.articles` + `pagination`)
+
+### 🔧 Integration Workflow (Best Practice)
+
+**Step-by-step approach yang digunakan:**
+
+1. **Console Log First** - Tambah `console.log()` untuk verify API response structure
+   ```typescript
+   console.log('Fetching popular articles...');
+   const response = await articlesApi.getPopular({ page: 1, limit: 5 });
+   console.log('API Response:', response.data);
+   ```
+
+2. **Verify Response Structure** - Check actual response vs expected type
+   - Expected: `response.data.data` (array)
+   - Actual: `response.data.data.articles` (nested)
+
+3. **Fix Type Definitions** - Update `PaginatedResponse<T>` to match actual API
+   ```typescript
+   export interface PaginatedResponse<T> {
+     data: {
+       articles: T[];
+       pagination: { page, limit, total, totalPages };
+     };
+     message: string;
+     success: boolean;
+   }
+   ```
+
+4. **Implement with Fallback** - Always have mock data fallback
+   ```typescript
+   try {
+     const response = await api.getPopular();
+     // use API data
+   } catch {
+     // fallback to mock data
+   }
+   ```
+
+### 📋 API Response Structure Reference
+
+```json
+{
+  "data": {
+    "articles": [
+      {
+        "id": "uuid",
+        "title": "...",
+        "slug": "...",
+        "imageUrl": "...",
+        "authorName": "...",
+        "category": { "id": "...", "name": "...", "slug": "..." },
+        "rating": 4.5,
+        "viewCount": 1234,
+        "readTimeMinutes": 5
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 5,
+      "total": 8,
+      "totalPages": 2
+    }
+  },
+  "message": "Articles retrieved successfully",
+  "success": true
+}
+```
+
+### ✅ More Completed Integrations
+
+#### Article Detail API Integration
+- ✅ **Renamed route** - Changed from `/article/[id]` to `/article/[slug]`
+- ✅ **Integrated articlesApi.getBySlug()** - Fetch article metadata by slug
+- ✅ **Updated all navigation** - All `router.push` now use `slug` with fallback to `id`
+- ✅ **Added slug to transformations** - All API responses include `slug` property
+- ✅ **Fixed response parsing** - Created `SingleResponse<T>` interface for single article
+
+#### Explore Page API Integrations
+- ✅ **Recently Added** - `articlesApi.getRecent()` working
+- ✅ **Top Rated** - `articlesApi.getTopRated()` working
+- ✅ **Search & Category Filter** - Integrated with backend API
+  - Endpoint: `GET /articles?search=query&category=categoryName`
+  - Real-time filtering with API calls
+  - Fallback to local filtering if API unavailable
+  - Updated `FilteredContentView.tsx` to use slug-based navigation
+
+#### Popular Articles Page
+- ✅ **API Integration** - Fetches up to 50 popular articles from API
+
+### 📝 Files Modified (November 21, 2025 - Sprint 1)
+- `services/articles.ts` - Added `SingleResponse<T>` interface, updated `PaginatedResponse<T>` structure
+- `app/article/[id].tsx` → `app/article/[slug].tsx` - Renamed and integrated slug-based API
+- `app/(tabs)/index.tsx` - Integrated popular articles API, added slug to transformations
+- `app/(tabs)/explore.tsx` - Integrated top rated, recently added, search & filter APIs
+- `app/popular-articles.tsx` - Integrated popular articles API (up to 50 items)
+- `app/top-rated-articles.tsx` - Updated navigation to use slug
+- `features/explore/components/FilteredContentView.tsx` - Updated navigation to use slug
+- `utils/filterContent.ts` - Added `slug?: string` to Article interface
+
+### ✅ Sprint 1 Summary - Articles API Integration Complete
+
+All article-related endpoints have been successfully integrated:
+- ✅ Popular articles (Home screen + dedicated page)
+- ✅ Top rated articles (Explore page)
+- ✅ Recently added articles (Explore page)
+- ✅ Article detail by slug
+- ✅ Search functionality (real-time API calls)
+- ✅ Category filtering (real-time API calls)
+- ✅ Slug-based routing across entire app
+
+**Navigation Pattern**: All article cards now consistently use `router.push(\`/article/\${article.slug || article.id}\`)` for SEO-friendly URLs with fallback support.
+
+### ⏳ Pending API Integrations (Future Sprints)
+- ⏳ Categories API - Dynamic category list for Explore page filters
+- ⏳ Topics API - Topic selection for personalization
+- ⏳ Personalization API - Save user preferences from quiz
+- ⏳ Article Content API - `getContent()` for reading levels (Easy/Medium/Hard)
+- ⏳ For You Feed API - Personalized recommendations based on user preferences
+
+---

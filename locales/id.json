@@ -6,7 +6,7 @@
     "cancel": "Batal",
     "confirm": "Konfirmasi",
     "save": "Simpan",
-    "saveChanges": "Simpan Perubahan",
+    "saveChanges": "Simpan",
     "delete": "Hapus",
     "edit": "Edit",
     "close": "Tutup",
@@ -120,7 +120,7 @@
       "fullNamePlaceholder": "Masukkan nama lengkap Anda",
       "fullNameRequired": "Nama lengkap wajib diisi",
       "nickname": "Nama Panggilan",
-      "nicknamePlaceholder": "Masukkan nama panggilan (opsional)",
+      "nicknamePlaceholder": "Masukkan nama panggilan",
       "nicknameLength": "Nama panggilan harus antara 2–20 karakter",
       "nicknameInfo": "Nama panggilan bersifat opsional dan dapat digunakan sebagai nama tampilan.",
       "avatarUrl": "URL Avatar",
@@ -183,5 +183,124 @@
     "unauthorized": "Tidak terotorisasi. Silakan login kembali.",
     "notFound": "Tidak ditemukan",
     "serverError": "Kesalahan server. Silakan coba lagi nanti."
+  },
+  "article": {
+    "notFound": "Artikel Tidak Ditemukan",
+    "notFoundMessage": "Artikel yang kamu cari tidak ada.",
+    "goBack": "Kembali",
+    "insightNote": {
+      "title": "Tambah Catatan Insight",
+      "placeholder": "Insight apa yang kamu dapat dari artikel ini?",
+      "cancel": "Batal",
+      "save": "Simpan"
+    },
+    "comprehension": {
+      "title": "Cek Pemahamanmu",
+      "quizTitle": "Kuis Singkat",
+      "quizSubtitle": "Uji apa yang kamu pelajari dari artikel ini",
+      "question": "Pertanyaan {{number}}",
+      "checkAnswers": "Cek Jawaban",
+      "tryAgain": "Coba Lagi",
+      "correct": "{{count}}/{{total}} Benar",
+      "perfectScore": "Sempurna! Kamu memahami artikel dengan baik!",
+      "goodScore": "Bagus! Tinjau bagian yang disorot untuk perbaikan.",
+      "lowScore": "Pertimbangkan untuk membaca ulang artikel untuk pemahaman yang lebih baik.",
+      "reflectionTitle": "Refleksi",
+      "reflectionSubtitle": "Apa insight utama yang kamu dapat dari artikel ini?",
+      "reflectionPlaceholder": "Tulis poin penting di sini...",
+      "saveAsInsight": "Simpan sebagai Catatan Insight",
+      "reflectionSaved": "Refleksi disimpan ke catatanmu!"
+    }
+  },
+  "personalization": {
+    "header": {
+      "questionLabel": "Pertanyaan {{current}} dari {{total}}",
+      "back": "← Kembali",
+      "skip": "Nanti saja"
+    },
+    "questions": {
+      "q1": {
+        "title": "Apa tujuanmu menggunakan Scory?",
+        "subtitle": "Bantu kami memahami kebutuhanmu",
+        "options": {
+          "simple": "Penasaran ingin belajar hal baru",
+          "student": "Saya mahasiswa yang sedang riset",
+          "academic": "Pengembangan profesional",
+          "expert": "Saya peneliti/akademisi"
+        }
+      },
+      "q2": {
+        "title": "Bagaimana kamu suka belajar?",
+        "subtitle": "Pilih gaya yang kamu sukai",
+        "options": {
+          "simple": "Penjelasan sederhana & bahasa sehari-hari",
+          "student": "Penjelasan jelas dengan detail secukupnya",
+          "academic": "Istilah yang tepat & info terstruktur",
+          "expert": "Kedalaman teknis & presisi penuh"
+        }
+      },
+      "q3": {
+        "title": "Contoh singkat!",
+        "subtitle": "\"Bagaimana olahraga meningkatkan daya ingat\"",
+        "options": {
+          "simple": "Olahraga membantu otak bekerja lebih baik dan mengingat hal-hal",
+          "student": "Olahraga meningkatkan aliran darah dan pertumbuhan otak",
+          "academic": "Olahraga aerobik meningkatkan neuroplastisitas dan kognisi",
+          "expert": "Latihan kardiovaskular meningkatkan ekspresi BDNF"
+        }
+      }
+    },
+    "results": {
+      "title": "Cocok Untukmu!",
+      "ctaButton": "Mulai Baca! 🚀",
+      "retakeButton": "Ulangi kuis",
+      "featuresTitle": "Yang akan kamu dapatkan:",
+      "simple": {
+        "title": "Sederhana & Jelas",
+        "description": "Sempurna untuk pembelajar yang ingin tahu! Penelitian dijelaskan dengan bahasa sehari-hari.",
+        "features": [
+          "Penjelasan mudah dipahami",
+          "Contoh & analogi dari kehidupan nyata",
+          "Tanpa jargon atau istilah rumit"
+        ]
+      },
+      "student": {
+        "title": "Detail Seimbang",
+        "description": "Bagus untuk mahasiswa! Penjelasan jelas dengan konsep kunci yang disorot.",
+        "features": [
+          "Bahasa akademik yang disederhanakan",
+          "Istilah penting dijelaskan",
+          "Fokus pada temuan utama"
+        ]
+      },
+      "academic": {
+        "title": "Gaya Akademis",
+        "description": "Ideal untuk profesional! Terminologi yang tepat dengan informasi terstruktur.",
+        "features": [
+          "Terminologi akademis lengkap",
+          "Metodologi & konteks disertakan",
+          "Penjelasan mendetail"
+        ]
+      },
+      "expert": {
+        "title": "Level Ahli",
+        "description": "Untuk peneliti! Kedalaman teknis dan kekakuan akademis yang lengkap.",
+        "features": [
+          "Bahasa penelitian asli",
+          "Semua detail teknis dipertahankan",
+          "Analisis statistik disertakan"
+        ]
+      },
+      "infoCards": {
+        "adaptive": "Semua artikel disesuaikan dengan levelmu",
+        "flexible": "Ubah kapan saja di pengaturan"
+      }
+    },
+    "topics": {
+      "stepLabel": "Langkah Terakhir",
+      "title": "Topik apa yang kamu minati?",
+      "subtitle": "Pilih minimal {{min}} topik untuk personalisasi feed",
+      "continue": "Lanjutkan"
+    }
   }
 }

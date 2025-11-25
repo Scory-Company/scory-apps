@@ -6,7 +6,7 @@ import { Image } from 'expo-image';
 interface PersonalizationCardProps {
   onPress?: () => void;
   style?: ViewStyle;
-  showIndicator?: boolean; // Show "Start Here" indicator for first-time users
+  showIndicator?: boolean;
 }
 
 export const PersonalizationCard = forwardRef<View, PersonalizationCardProps>(
@@ -65,8 +65,8 @@ export const PersonalizationCard = forwardRef<View, PersonalizationCardProps>(
 
           <View style={styles.content}>
             <View style={styles.textContainer}>
-              <Text style={styles.title}>Personalize Journal Recommendations</Text>
-              <Text style={styles.subtitle}>Choose your interests for better results</Text>
+              <Text style={styles.title}>Personalize Your Reading Level</Text>
+              <Text style={styles.subtitle}>Choose how you want to read research</Text>
             </View>
             <View>
               <Image
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   containerHighlight: {
     borderWidth: 3,
-    borderColor: '#FFC107', // Yellow/gold border for attention
+    borderColor: '#FFC107',
     shadowColor: '#FFC107',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
@@ -136,10 +136,5 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     fontWeight: '400',
     color: 'rgba(255, 255, 255, 0.75)',
-  },
-  arrow: {
-    fontSize: 20,
-    fontWeight: '400',
-    color: '#FFFFFF',
   },
 });

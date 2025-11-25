@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { FilterChip } from './FilterChip';
 import { SearchResultCard } from './SearchResultCard';
 import { Article } from '@/utils/filterContent';
+import { router } from 'expo-router';
 
 interface FilteredContentViewProps {
   results: Article[];
@@ -96,7 +97,7 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
             rating={article.rating}
             reads={article.reads}
             highlightText={searchQuery}
-            onPress={() => console.log('Article pressed:', article.title)}
+            onPress={() => router.push(`/article/${article.slug || article.id}` as any)}
           />
         ))}
       </View>

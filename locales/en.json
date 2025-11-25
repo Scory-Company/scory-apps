@@ -183,5 +183,124 @@
     "unauthorized": "Unauthorized. Please login again.",
     "notFound": "Not found",
     "serverError": "Server error. Please try again later."
+  },
+  "article": {
+    "notFound": "Article Not Found",
+    "notFoundMessage": "The article you're looking for doesn't exist.",
+    "goBack": "Go Back",
+    "insightNote": {
+      "title": "Add Insight Note",
+      "placeholder": "What insight did you get from this article?",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "comprehension": {
+      "title": "Check Your Understanding",
+      "quizTitle": "Quick Quiz",
+      "quizSubtitle": "Test what you learned from this article",
+      "question": "Question {{number}}",
+      "checkAnswers": "Check Answers",
+      "tryAgain": "Try Again",
+      "correct": "{{count}}/{{total}} Correct",
+      "perfectScore": "Perfect! You understood the article well!",
+      "goodScore": "Good job! Review the highlighted sections for improvement.",
+      "lowScore": "Consider re-reading the article for better understanding.",
+      "reflectionTitle": "Reflection",
+      "reflectionSubtitle": "What is the main insight you got from this article?",
+      "reflectionPlaceholder": "Write your key takeaway here...",
+      "saveAsInsight": "Save as Insight Note",
+      "reflectionSaved": "Reflection saved to your notes!"
+    }
+  },
+  "personalization": {
+    "header": {
+      "questionLabel": "Question {{current}} of {{total}}",
+      "back": "← Back",
+      "skip": "Maybe later"
+    },
+    "questions": {
+      "q1": {
+        "title": "What brings you to Scory?",
+        "subtitle": "Help us understand your goal",
+        "options": {
+          "simple": "Just curious to learn new things",
+          "student": "I'm a student doing research",
+          "academic": "Professional development",
+          "expert": "I'm a researcher/academic"
+        }
+      },
+      "q2": {
+        "title": "How do you like to learn?",
+        "subtitle": "Pick your preferred style",
+        "options": {
+          "simple": "Simple explanations & everyday words",
+          "student": "Clear explanations with some detail",
+          "academic": "Proper terms & structured info",
+          "expert": "Full technical depth & precision"
+        }
+      },
+      "q3": {
+        "title": "Quick example!",
+        "subtitle": "\"How exercise improves memory\"",
+        "options": {
+          "simple": "Exercise helps your brain work better and remember things",
+          "student": "Exercise increases blood flow and helps brain growth",
+          "academic": "Aerobic exercise enhances neuroplasticity and cognition",
+          "expert": "Cardiovascular training upregulates BDNF expression"
+        }
+      }
+    },
+    "results": {
+      "title": "Your Perfect Match!",
+      "ctaButton": "Start Reading! 🚀",
+      "retakeButton": "Retake quiz",
+      "featuresTitle": "What you'll get:",
+      "simple": {
+        "title": "Simple & Clear",
+        "description": "Perfect for curious learners! Research explained in everyday language.",
+        "features": [
+          "Easy-to-understand explanations",
+          "Real-world examples & analogies",
+          "No jargon or complex terms"
+        ]
+      },
+      "student": {
+        "title": "Balanced Detail",
+        "description": "Great for students! Clear explanations with key concepts highlighted.",
+        "features": [
+          "Simplified academic language",
+          "Important terms explained",
+          "Focus on main findings"
+        ]
+      },
+      "academic": {
+        "title": "Academic Style",
+        "description": "Ideal for professionals! Proper terminology with structured information.",
+        "features": [
+          "Full academic terminology",
+          "Methodology & context included",
+          "Detailed explanations"
+        ]
+      },
+      "expert": {
+        "title": "Expert Level",
+        "description": "For researchers! Complete technical depth and academic rigor.",
+        "features": [
+          "Original research language",
+          "All technical details preserved",
+          "Statistical analysis included"
+        ]
+      },
+      "infoCards": {
+        "adaptive": "All articles adapted to your level",
+        "flexible": "Change anytime in settings"
+      }
+    },
+    "topics": {
+      "stepLabel": "Final Step",
+      "title": "What topics interest you?",
+      "subtitle": "Pick at least {{min}} topics to personalize your feed",
+      "continue": "Continue"
+    }
   }
 }
