@@ -9,19 +9,20 @@ import {
   PersonalizationPrompt,
   FilteredContentView
 } from '@/features/explore/components';
-import { CardArticle } from '@/features/shared/components/CardArticle';
+import { ForYouSection } from '@/features/home/components';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { filterContent } from '@/utils/filterContent';
-import { articlesApi } from '@/services';
+import { articlesApi, categoriesApi, personalizationApi } from '@/services';
+import { ReadingLevel } from '@/constants/readingLevels';
 import {
   trendingTopics,
-  forYouArticles,
   recentlyAddedArticles as mockRecentlyAdded,
   topRatedArticles as mockTopRated,
-  categoryList
+  categoryList as mockCategoryList
 } from '@/data/mock';
 
 // Display article type
@@ -45,14 +46,71 @@ export default function ExploreScreen() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [topRatedArticles, setTopRatedArticles] = useState<DisplayArticle[]>(mockTopRated);
   const [recentlyAddedArticles, setRecentlyAddedArticles] = useState<DisplayArticle[]>(mockRecentlyAdded);
+  const [categoryList, setCategoryList] = useState<string[]>(mockCategoryList);
 
-  const hasPersonalizationData = false;
+  // Dynamic personalization state - fetched from API
+  const [hasPersonalizationData, setHasPersonalizationData] = useState(false);
+  const [userReadingLevel, setUserReadingLevel] = useState<ReadingLevel>('student');
+
+  // Check personalization status from API
+  const checkPersonalizationStatus = useCallback(async () => {
+    try {
+      console.log('[Explore - Personalization] Checking status...');
+      const response = await personalizationApi.getSettings();
+
+      if (response.data?.data && response.data.data.readingLevel) {
+        // User has completed personalization
+        const readingLevel = response.data.data.readingLevel.toLowerCase() as ReadingLevel;
+        setUserReadingLevel(readingLevel);
+        setHasPersonalizationData(true);
+        console.log('[Explore - Personalization] ✅ User has personalization data, level:', readingLevel);
+      } else {
+        // User hasn't completed personalization
+        setHasPersonalizationData(false);
+        console.log('[Explore - Personalization] ❌ No personalization data');
+      }
+    } catch (error) {
+      // API error - assume not completed
+      setHasPersonalizationData(false);
+      console.log('[Explore - Personalization] ❌ Error checking, using mock');
+    }
+  }, []);
 
   // Fetch data from API on mount
   useEffect(() => {
+    fetchCategories();
     fetchTopRated();
     fetchRecentlyAdded();
+    checkPersonalizationStatus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-check personalization when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      checkPersonalizationStatus();
+    }, [checkPersonalizationStatus])
+  );
+
+  const fetchCategories = async () => {
+    try {
+      console.log('Fetching categories...');
+      const response = await categoriesApi.getAll();
+      console.log('Categories API Response:', response.data);
+
+      // Check if response has nested data structure
+      const categoriesData = response.data?.data || response.data;
+
+      if (categoriesData && Array.isArray(categoriesData)) {
+        // Transform API response to category names array
+        const categoryNames = ['All', ...categoriesData.map((cat: any) => cat.name)];
+        setCategoryList(categoryNames);
+        console.log('Loaded categories from API:', categoryNames);
+      }
+    } catch {
+      console.log('Categories API unavailable, using mock');
+    }
+  };
 
   const fetchTopRated = async () => {
     try {
@@ -110,19 +168,22 @@ export default function ExploreScreen() {
     });
   }, [hasActiveKeyboard, navigation]);
 
-  // Combine all data for filtering
+  // Combine all data for filtering (fallback data for search)
   const allArticlesData = useMemo(() => {
-    return [...forYouArticles, ...recentlyAddedArticles];
-  }, [recentlyAddedArticles]);
+    return [...recentlyAddedArticles, ...topRatedArticles];
+  }, [recentlyAddedArticles, topRatedArticles]);
 
-  // Fetch filtered articles from API
-  const [filteredArticles, setFilteredArticles] = useState<DisplayArticle[]>([]);
+  // Fetch ALL articles from API (no category filter - backend doesn't support it)
+  const [allFetchedArticles, setAllFetchedArticles] = useState<DisplayArticle[]>([]);
 
-  const fetchFilteredArticles = useCallback(async () => {
+  const fetchAllArticles = useCallback(async () => {
     try {
-      const params: any = { page: 1, limit: 20 };
+      console.log('[Explore] Fetching ALL articles for filtering...');
+
+      // Fetch ALL articles without category filter (backend doesn't work properly)
+      const params: any = { page: 1, limit: 50 };
+      // Only add search parameter if search query exists
       if (searchQuery.trim()) params.search = searchQuery.trim();
-      if (selectedCategory !== 'All') params.category = selectedCategory;
 
       const response = await articlesApi.getArticles(params);
       const apiData = response.data?.data;
@@ -138,36 +199,43 @@ export default function ExploreScreen() {
           rating: article.rating,
           reads: `${(article.viewCount / 1000).toFixed(1)}k reads`,
         }));
-        setFilteredArticles(transformed);
-        console.log('Filtered articles from API:', transformed.length);
+        setAllFetchedArticles(transformed);
+        console.log(`[Explore] ✅ Loaded ${transformed.length} articles from API`);
       } else {
-        setFilteredArticles([]);
+        setAllFetchedArticles([]);
       }
     } catch {
-      console.log('Search/filter API failed, using local filter');
-      // Fallback to local filtering
-      const localResults = filterContent({
-        searchQuery,
-        selectedCategory,
-        allData: allArticlesData,
-      });
-      setFilteredArticles(localResults);
+      console.log('[Explore] ❌ API failed, using local data');
+      // Fallback to local mock data
+      setAllFetchedArticles(allArticlesData);
     }
-  }, [searchQuery, selectedCategory, allArticlesData]);
+  }, [searchQuery, allArticlesData]);
 
+  // Fetch articles when filters are active
   useEffect(() => {
     if (hasActiveFilters) {
-      fetchFilteredArticles();
-    } else {
-      setFilteredArticles([]);
+      fetchAllArticles();
     }
-  }, [hasActiveFilters, fetchFilteredArticles]);
+  }, [hasActiveFilters, fetchAllArticles]);
 
-  // Filter results based on search and category
+  // Apply client-side filtering to fetched articles
   const filteredResults = useMemo(() => {
     if (!hasActiveFilters) return [];
-    return filteredArticles;
-  }, [hasActiveFilters, filteredArticles]);
+
+    console.log(`[Explore Filter] Total articles: ${allFetchedArticles.length}`);
+    console.log(`[Explore Filter] Selected category: "${selectedCategory}"`);
+    console.log(`[Explore Filter] Search query: "${searchQuery}"`);
+
+    // Use filterContent utility for client-side filtering
+    const filtered = filterContent({
+      searchQuery,
+      selectedCategory,
+      allData: allFetchedArticles,
+    });
+
+    console.log(`[Explore Filter] ✅ Filtered to ${filtered.length} articles`);
+    return filtered;
+  }, [hasActiveFilters, allFetchedArticles, searchQuery, selectedCategory]);
 
   // Handlers
   const handleClearFilters = () => {
@@ -261,33 +329,12 @@ export default function ExploreScreen() {
 
         {/* For You Section - Conditional based on personalization */}
         {hasPersonalizationData ? (
-          <View style={styles.section}>
-            <SectionHeader
-              title="For You"
-              icon="sparkles"
-              iconColor={colors.warning}
-              onViewAllPress={() => console.log('View all for you')}
-            />
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.forYouScrollContent}
-            >
-              {forYouArticles.map((item) => (
-                <CardArticle
-                  key={item.id}
-                  image={item.image}
-                  title={item.title}
-                  author={item.author}
-                  category={item.category}
-                  rating={item.rating}
-                  reads={item.reads}
-                  onPress={() => router.push(`/article/${(item as any).slug || item.id}` as any)}
-                />
-              ))}
-            </ScrollView>
-          </View>
+        <View style={styles.sectionWrapper}>
+          <ForYouSection
+            readingLevel={userReadingLevel}
+            onChangeLevel={() => router.push('/personalization')}
+          />
+        </View>
         ) : (
           <View style={styles.section}>
             <PersonalizationPrompt
@@ -397,12 +444,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: Spacing.sm,
   },
-  forYouScrollContent: {
-    paddingLeft: Spacing.lg,
-    paddingRight: Spacing.xl,
-    gap: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
   topRatedList: {
     paddingHorizontal: Spacing.lg,
     gap: Spacing.sm,
@@ -410,5 +451,8 @@ const styles = StyleSheet.create({
   recentlyAddedList: {
     paddingHorizontal: Spacing.lg,
     gap: Spacing.sm,
+  },
+  sectionWrapper: { 
+    paddingHorizontal: Spacing.lg,
   },
 });

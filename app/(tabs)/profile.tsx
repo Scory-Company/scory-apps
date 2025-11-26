@@ -7,9 +7,11 @@ import {
   EditProfileModal,
 } from '@/features/profile/components';
 import { getProfile, updateProfile, logout, User } from '@/services/auth';
+import { personalizationApi } from '@/services';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { quickStats, settingsMenu as settingsMenuData } from '@/data/mock';
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlert } from '@/features/shared/hooks/useAlert';
@@ -73,6 +75,77 @@ export default function ProfileScreen() {
           router.replace('/(auth)/login');
         } catch (error) {
           alert.error(t('common.error'), t('auth.logoutError'));
+        }
+      }
+    );
+  };
+
+  // Debug: Reset personalization (deletes backend data)
+  const handleResetPersonalization = () => {
+    alert.confirm(
+      'Reset Personalization',
+      'This will delete all your personalization data (reading level & topic interests). You will need to complete the onboarding quiz again. Continue?',
+      async () => {
+        try {
+          console.log('[Debug] Resetting personalization...');
+
+          // 1. Call backend API to delete personalization
+          await personalizationApi.resetPersonalization();
+          console.log('[Debug] ✅ Backend personalization deleted');
+
+          // 2. Clear local AsyncStorage flag
+          await AsyncStorage.removeItem('hasSeenPersonalizationTutorial');
+          console.log('[Debug] ✅ Local tutorial flag cleared');
+
+          toast.success('Personalization reset! Navigate to Home to see PersonalizationCard.');
+        } catch (error: any) {
+          console.error('[Debug] ❌ Error resetting personalization:', error);
+          alert.error('Error', `Failed to reset: ${error?.message || 'Unknown error'}`);
+        }
+      }
+    );
+  };
+
+  // Debug: Show onboarding again (keeps backend data)
+  const handleShowOnboarding = async () => {
+    try {
+      console.log('[Debug] Triggering onboarding display...');
+
+      // Clear only local flag (backend data stays intact)
+      await AsyncStorage.removeItem('hasSeenPersonalizationTutorial');
+      console.log('[Debug] ✅ Tutorial flag cleared');
+
+      toast.success('Onboarding triggered! Navigate to Home to see PersonalizationCard.');
+    } catch (error: any) {
+      console.error('[Debug] ❌ Error triggering onboarding:', error);
+      alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
+    }
+  };
+
+  // Debug: Reset welcome screen and logout
+  const handleResetWelcomeScreen = () => {
+    alert.confirm(
+      'Reset Welcome Screen',
+      'This will reset the welcome onboarding screen and logout. You will see the 3-slide carousel when you restart the app. Continue?',
+      async () => {
+        try {
+          console.log('[Debug] Resetting welcome screen...');
+
+          // 1. Clear welcome onboarding flag
+          await AsyncStorage.removeItem('onboarding_completed');
+          console.log('[Debug] ✅ Welcome onboarding flag cleared');
+
+          // 2. Logout user
+          await logout();
+          console.log('[Debug] ✅ User logged out');
+
+          // 3. Navigate to login (Welcome will show on next app start)
+          router.replace('/(auth)/login');
+
+          toast.success('Welcome screen reset! Restart app to see welcome onboarding.');
+        } catch (error: any) {
+          console.error('[Debug] ❌ Error resetting welcome screen:', error);
+          alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
         }
       }
     );
@@ -188,6 +261,44 @@ export default function ProfileScreen() {
         {/* Logout Button */}
         <LogoutButton onPress={handleLogout} />
 
+        {/* Debug: Reset Personalization Button */}
+        {__DEV__ && (
+          <View style={styles.debugSection}>
+            <Text style={[styles.debugLabel, { color: colors.textMuted }]}>
+              🐛 Debug Tools
+            </Text>
+            <TouchableOpacity
+              style={[styles.debugButton, { backgroundColor: colors.error + '20', borderColor: colors.error }]}
+              onPress={handleResetPersonalization}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.debugButtonText, { color: colors.error }]}>
+                Reset Personalization
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.debugButton, { backgroundColor: colors.third + '20', borderColor: colors.third, marginTop: Spacing.sm }]}
+              onPress={handleShowOnboarding}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.debugButtonText, { color: colors.third }]}>
+                Trigger Onboarding
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.debugButton, { backgroundColor: '#FF9500' + '20', borderColor: '#FF9500', marginTop: Spacing.sm }]}
+              onPress={handleResetWelcomeScreen}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.debugButtonText, { color: '#FF9500' }]}>
+                Reset Welcome Screen + Logout
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* App Version */}
         <Text style={[styles.versionText, { color: colors.textMuted }]}>{t('profile.version')} 1.0.0</Text>
 
@@ -255,5 +366,27 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     textAlign: 'center',
     marginTop: Spacing.md,
+  },
+  debugSection: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  debugLabel: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  debugButton: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  debugButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
   },
 });

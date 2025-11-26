@@ -1,8 +1,9 @@
 import { Spacing, Typography, Radius, Shadows, PersonalizationTheme } from '@/constants/theme';
 import { ReadingLevel } from '@/constants/readingLevels';
 import { PERSONALIZATION_QUIZ, LEVEL_EMOJIS, QuizOption } from '@/data/mock/personalization';
-import { categoryCards } from '@/data/mock/categories';
-import React, { useState, useRef } from 'react';
+import { categoryCards as mockCategoryCards } from '@/data/mock/categories';
+import { categoriesApi, personalizationApi } from '@/services';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,9 +21,19 @@ import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 
-// Filter out 'All' category and get selectable topics
-const TOPIC_OPTIONS = categoryCards;
 const MIN_TOPICS = 3;
+
+// Icon mapping for categories (same as Home screen)
+const categoryIconMap: { [key: string]: any } = {
+  Finance: require('@/assets/images/icon-categories/finance.png'),
+  Health: require('@/assets/images/icon-categories/health.png'),
+  Business: require('@/assets/images/icon-categories/business.png'),
+  Science: require('@/assets/images/icon-categories/science.png'),
+  Technology: require('@/assets/images/icon-categories/technology.png'),
+  Education: require('@/assets/images/icon-categories/education.png'),
+  Environment: require('@/assets/images/icon-categories/environment.png'),
+  Social: require('@/assets/images/icon-categories/social.png'),
+};
 
 export default function PersonalizationScreen() {
   const { t } = useTranslation();
@@ -32,8 +43,11 @@ export default function PersonalizationScreen() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<ReadingLevel[]>([]);
   const [showTopicSelection, setShowTopicSelection] = useState(false);
-  const [selectedTopics, setSelectedTopics] = useState<number[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]); // Changed to string[] for UUIDs
   const [showResult, setShowResult] = useState(false);
+
+  // Categories state - fetch from API
+  const [topicOptions, setTopicOptions] = useState<any[]>(mockCategoryCards);
 
   const currentQuestion = PERSONALIZATION_QUIZ[currentQuestionIndex];
   const totalQuestions = PERSONALIZATION_QUIZ.length;
@@ -43,6 +57,35 @@ export default function PersonalizationScreen() {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value((1 / totalQuestions) * 100)).current;
+
+  // Fetch categories from API on mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    try {
+      console.log('[Personalization] Fetching categories...');
+      const response = await categoriesApi.getAll();
+      const categoriesData = response.data?.data || response.data;
+
+      if (categoriesData && Array.isArray(categoriesData)) {
+        // Transform API response to match UI structure
+        const transformedCategories = categoriesData.map((cat: any) => ({
+          id: cat.id, // UUID from API
+          slug: cat.slug,
+          icon: categoryIconMap[cat.name] || categoryIconMap['Science'],
+          label: cat.name,
+        }));
+        setTopicOptions(transformedCategories);
+        console.log('[Personalization] ✅ Loaded categories:', transformedCategories.length);
+      }
+    } catch (error) {
+      console.log('[Personalization] ❌ API unavailable, using mock');
+      // Keep mockCategoryCards as fallback
+    }
+  };
 
   // Calculate recommended level based on answers
   const calculateLevel = (userAnswers: ReadingLevel[]): ReadingLevel => {
@@ -145,7 +188,7 @@ export default function PersonalizationScreen() {
   };
 
   // Handle topic selection
-  const handleTopicToggle = (topicId: number) => {
+  const handleTopicToggle = (topicId: string) => {
     setSelectedTopics((prev) =>
       prev.includes(topicId)
         ? prev.filter((id) => id !== topicId)
@@ -167,18 +210,38 @@ export default function PersonalizationScreen() {
   // Handle final confirmation
   const handleConfirm = async () => {
     const recommendedLevel = calculateLevel(answers);
-    const selectedTopicLabels = categoryCards
-      .filter((cat) => selectedTopics.includes(cat.id))
-      .map((cat) => cat.label);
+    // Convert to uppercase for backend (backend expects UPPERCASE)
+    const readingLevelUppercase = recommendedLevel.toUpperCase();
 
     try {
-      await AsyncStorage.setItem('userReadingLevel', recommendedLevel);
-      await AsyncStorage.setItem('userTopicInterests', JSON.stringify(selectedTopicLabels));
+      console.log('=================================');
+      console.log('[Personalization API] 💾 Saving personalization...');
+      console.log('[Personalization API] Reading level (lowercase):', recommendedLevel);
+      console.log('[Personalization API] Reading level (UPPERCASE):', readingLevelUppercase);
+      console.log('[Personalization API] Selected topic IDs:', selectedTopics);
+
+      // Save reading level to backend (must be UPPERCASE)
+      await personalizationApi.saveSettings(readingLevelUppercase);
+      console.log('[Personalization API] ✅ Reading level saved');
+
+      // Save topic interests to backend
+      await personalizationApi.saveTopicInterests(selectedTopics);
+      console.log('[Personalization API] ✅ Topic interests saved');
+
+      // Mark tutorial as seen locally
       await AsyncStorage.setItem('hasSeenPersonalizationTutorial', 'true');
-      console.log('Personalization completed. Level:', recommendedLevel, 'Topics:', selectedTopicLabels);
+      console.log('[Personalization API] ✅ Tutorial flag saved locally');
+
+      console.log('[Personalization API] 🎉 All personalization saved successfully!');
+      console.log('=================================');
+
       router.back();
-    } catch (error) {
-      console.error('Error saving personalization:', error);
+    } catch (error: any) {
+      console.log('=================================');
+      console.error('[Personalization API] ❌ Error saving personalization');
+      console.error('[Personalization API] Error:', error?.message || error);
+      console.log('=================================');
+      // TODO: Show error toast to user
     }
   };
 
@@ -228,7 +291,7 @@ export default function PersonalizationScreen() {
               </Text>
 
               <View style={styles.topicsGrid}>
-                {TOPIC_OPTIONS.map((topic) => {
+                {topicOptions.map((topic: any) => {
                   const isSelected = selectedTopics.includes(topic.id);
                   return (
                     <Pressable

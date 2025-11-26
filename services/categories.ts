@@ -12,11 +12,23 @@ export interface CategoryResponse {
   articleCount: number;
 }
 
+export interface CategoriesListResponse {
+  data: CategoryResponse[];
+  message: string;
+  success: boolean;
+}
+
+export interface SingleCategoryResponse {
+  data: CategoryResponse;
+  message: string;
+  success: boolean;
+}
+
 // ============================================
 // API FUNCTIONS
 // ============================================
 
 export const categoriesApi = {
-  getAll: () => api.get<CategoryResponse[]>('/categories'),
-  getBySlug: (slug: string) => api.get<CategoryResponse>(`/categories/${slug}`),
+  getAll: () => api.get<CategoriesListResponse>('/categories'),
+  getBySlug: (slug: string) => api.get<SingleCategoryResponse>(`/categories/${slug}`),
 };

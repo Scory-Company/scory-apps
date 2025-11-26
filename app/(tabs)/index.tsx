@@ -12,9 +12,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, View, ActivityIndicator, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GreetingsCard } from '@/features/home/components/GreetingsCard';
-import { categoryCards, popularArticles, notifications, getUnreadCount } from '@/data/mock';
+import { categoryCards as mockCategoryCards, popularArticles, notifications, getUnreadCount } from '@/data/mock';
 import { getProfile, User } from '@/services/auth';
-import { articlesApi } from '@/services/articles';
+import { articlesApi, categoriesApi, personalizationApi } from '@/services';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -45,23 +45,114 @@ export default function HomeScreen() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isUsingApi, setIsUsingApi] = useState(false);
 
+  // Categories state
+  const [categoryCards, setCategoryCards] = useState(mockCategoryCards);
+
   // First-time user indicator state
   const [showPersonalizationIndicator, setShowPersonalizationIndicator] = useState(false);
 
-  // Personalization state - simple toggle for testing
-  // Change to true to see ForYouSection, false to see PersonalizationCard
-  const hasCompletedPersonalization = false;
-  const userReadingLevel: ReadingLevel = 'student';
+  // Personalization state - dynamically fetched from API
+  const [hasCompletedPersonalization, setHasCompletedPersonalization] = useState(false);
+  const [userReadingLevel, setUserReadingLevel] = useState<ReadingLevel>('student');
 
   // Notification modal state
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const unreadCount = getUnreadCount();
 
+  // Icon mapping for categories
+  const categoryIconMap: { [key: string]: any } = {
+    Finance: require('@/assets/images/icon-categories/finance.png'),
+    Health: require('@/assets/images/icon-categories/health.png'),
+    Business: require('@/assets/images/icon-categories/business.png'),
+    Science: require('@/assets/images/icon-categories/science.png'),
+    Technology: require('@/assets/images/icon-categories/technology.png'),
+    Education: require('@/assets/images/icon-categories/education.png'),
+    Environment: require('@/assets/images/icon-categories/environment.png'),
+    Social: require('@/assets/images/icon-categories/social.png'),
+  };
+
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    try {
+      console.log('=================================');
+      console.log('[Categories API] 🚀 Starting fetch...');
+      console.log('[Categories API] Current state:', categoryCards.length, 'categories');
+
+      const response = await categoriesApi.getAll();
+      console.log('[Categories API] 📦 Raw response received');
+      console.log('[Categories API] Response structure:', {
+        hasData: !!response.data,
+        dataKeys: response.data ? Object.keys(response.data) : [],
+      });
+
+      const categoriesData = response.data?.data || response.data;
+      console.log('[Categories API] Categories data:', {
+        isArray: Array.isArray(categoriesData),
+        length: categoriesData?.length,
+      });
+
+      if (categoriesData && Array.isArray(categoriesData)) {
+        console.log('[Categories API] First raw category:', categoriesData[0]);
+
+        // Transform API response to match mock structure with icons
+        const transformedCategories = categoriesData.map((cat: any) => ({
+          id: cat.id, // Use UUID from API
+          slug: cat.slug, // Keep slug for routing
+          icon: categoryIconMap[cat.name] || categoryIconMap['Science'], // fallback icon
+          label: cat.name,
+        }));
+
+        console.log('[Categories API] 🔄 Transformed categories:', transformedCategories.length);
+        console.log('[Categories API] First transformed:', transformedCategories[0]);
+
+        setCategoryCards(transformedCategories);
+        console.log('[Categories API] ✅ State updated successfully!');
+      } else {
+        console.log('[Categories API] ⚠️ Invalid data structure, keeping mock');
+      }
+      console.log('=================================');
+    } catch (error: any) {
+      console.log('=================================');
+      console.log('[Categories API] ❌ API unavailable, using mock data');
+      console.log('[Categories API] Error message:', error?.message || 'Unknown error');
+      console.log('[Categories API] Error details:', error);
+      console.log('=================================');
+    }
+  };
+
+  // Check personalization status from API
+  const checkPersonalizationStatus = async () => {
+    try {
+      console.log('[Personalization Status] Checking...');
+      const response = await personalizationApi.getSettings();
+      console.log('[Personalization Status] Response:', response.data);
+
+      if (response.data?.data && response.data.data.readingLevel) {
+        // User has completed personalization
+        const readingLevel = response.data.data.readingLevel.toLowerCase() as ReadingLevel;
+        setUserReadingLevel(readingLevel);
+        setHasCompletedPersonalization(true);
+        console.log('[Personalization Status] ✅ Completed - Level:', readingLevel);
+      } else {
+        // User hasn't completed personalization
+        setHasCompletedPersonalization(false);
+        console.log('[Personalization Status] ❌ Not completed');
+      }
+    } catch (error) {
+      // API error or user not found - assume not completed
+      setHasCompletedPersonalization(false);
+      console.log('[Personalization Status] ❌ Error or not found, showing PersonalizationCard');
+    }
+  };
+
   // Load user and popular articles on initial mount
   useEffect(() => {
     loadUser();
     checkFirstTimeUser();
+    checkPersonalizationStatus();
+    fetchCategories();
     fetchPopularArticles();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch popular articles from API with fallback to mock
@@ -140,10 +231,12 @@ export default function HomeScreen() {
     }
   }, [user]);
 
-  // Reload user data only when screen is focused AND data might have changed
+  // Reload user data and personalization status when screen is focused
   useFocusEffect(
     useCallback(() => {
       checkAndReloadUser();
+      // Re-check personalization status when returning from personalization screen
+      checkPersonalizationStatus();
     }, [checkAndReloadUser])
   );
 
@@ -268,7 +361,12 @@ export default function HomeScreen() {
                 key={category.id}
                 icon={category.icon}
                 label={category.label}
-                onPress={() => router.push(`/category/${category.label}` as any)}
+                onPress={() => {
+                  const routePath = (category as any).slug
+                    ? `/category/${(category as any).slug}`
+                    : `/category/${category.label}`;
+                  router.push(routePath as any);
+                }}
               />
             ))}
           </View>
