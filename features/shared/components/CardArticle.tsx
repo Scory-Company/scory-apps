@@ -57,13 +57,14 @@ export const CardArticle: React.FC<CardArticleProps> = ({
 
 const styles = StyleSheet.create({
   forYouCard: {
-    width: '100%',
+    width: 285,
     borderRadius: Radius.xl,
     overflow: 'hidden',
+    height: 350,
   },
   forYouImage: {
     width: '100%',
-    height: 140,
+    height: 170,
   },
   forYouContent: {
     padding: Spacing.md,
@@ -102,4 +103,5 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     fontWeight: '500',
   },
+
 });

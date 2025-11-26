@@ -475,16 +475,17 @@ const styles = StyleSheet.create({
   // Popular Section Styles
   popularScrollWrapper: {
     marginHorizontal: -Spacing.lg,
+    
   },
   popularScrollContent: {
     paddingLeft: Spacing.lg,
     paddingRight: Spacing.xl,
     paddingVertical: Spacing.sm,
-    gap: Spacing['2xl'],
+    gap: Spacing.lg,
   },
   popularCardWrapper: {
     position: 'relative',
-    width: 240,
+    width: 280,
   },
   bestSellerBadge: {
     position: 'absolute' as const,
