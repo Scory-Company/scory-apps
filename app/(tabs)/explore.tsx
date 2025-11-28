@@ -175,8 +175,10 @@ export default function ExploreScreen() {
 
   // Fetch ALL articles from API (no category filter - backend doesn't support it)
   const [allFetchedArticles, setAllFetchedArticles] = useState<DisplayArticle[]>([]);
+  const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
 
   const fetchAllArticles = useCallback(async () => {
+    setIsLoadingFiltered(true);
     try {
       console.log('[Explore] Fetching ALL articles for filtering...');
 
@@ -208,6 +210,8 @@ export default function ExploreScreen() {
       console.log('[Explore] ❌ API failed, using local data');
       // Fallback to local mock data
       setAllFetchedArticles(allArticlesData);
+    } finally {
+      setIsLoadingFiltered(false);
     }
   }, [searchQuery, allArticlesData]);
 
@@ -299,6 +303,7 @@ export default function ExploreScreen() {
             onClearFilters={handleClearFilters}
             onClearSearch={handleClearSearch}
             onClearCategory={handleClearCategory}
+            isLoading={isLoadingFiltered}
           />
         ) : (
           // ========== DEFAULT VIEW ==========

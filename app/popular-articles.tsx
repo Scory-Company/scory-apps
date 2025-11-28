@@ -9,10 +9,12 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { filterContent } from '@/utils/filterContent';
 import { articlesApi } from '@/services';
+import { SkeletonListArticle } from '@/features/shared/components';
 
 // Display article type for UI compatibility
 interface DisplayArticle {
   id: string | number;
+  slug?: string;
   image: any;
   title: string;
   author: string;
@@ -26,7 +28,7 @@ export default function PopularArticlesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [articles, setArticles] = useState<DisplayArticle[]>(popularArticles);
-  const [_isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch articles from API
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function PopularArticlesScreen() {
   const fetchArticles = async () => {
     setIsLoading(true);
     try {
-      const response = await articlesApi.getPopular({ page: 1, limit: 50 });
+      const response = await articlesApi.getPopular({ page: 1, limit: 50, timeframe: 'all' });
       const apiData = response.data?.data;
       if (apiData?.articles?.length > 0) {
         const transformed = apiData.articles.map((article: any) => ({
@@ -105,7 +107,11 @@ export default function PopularArticlesScreen() {
             onSelectCategory={setSelectedCategory}
           />
         </View>
-        {filteredArticles.length > 0 ? (
+
+        {/* Loading State */}
+        {isLoading ? (
+          <SkeletonListArticle count={5} />
+        ) : filteredArticles.length > 0 ? (
           <View style={styles.listContainer}>
             {filteredArticles.map((article) => (
               <TouchableOpacity

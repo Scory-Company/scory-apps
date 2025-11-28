@@ -12,3 +12,6 @@ export { topicsApi } from './topics';
 export type { TopicResponse } from './topics';
 
 export { personalizationApi } from './personalization';
+
+export { scholarApi } from './scholar';
+export type { ScholarArticle, ScholarSearchResponse } from './scholar';

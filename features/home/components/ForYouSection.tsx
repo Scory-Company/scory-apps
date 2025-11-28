@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Colors, Spacing, Typography, Radius } from '@/constants/theme';
-import { CardArticle } from '@/features/shared/components/CardArticle';
+import { CardArticle, SkeletonCardArticle } from '@/features/shared/components';
 import { ReadingLevel, getReadingLevel } from '@/constants/readingLevels';
 import { router } from 'expo-router';
 import { articlesApi } from '@/services';
@@ -26,11 +26,13 @@ export function ForYouSection({ readingLevel, onChangeLevel }: ForYouSectionProp
   const colors = Colors.light;
   const levelInfo = getReadingLevel(readingLevel);
 
-  // State for articles
+  // State for articles and loading
   const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch For You articles from API
   const fetchForYouArticles = useCallback(async () => {
+    setIsLoading(true);
     try {
       console.log('[For You Feed] Fetching personalized articles...');
       console.log('[For You Feed] Reading level:', readingLevel);
@@ -67,6 +69,8 @@ export function ForYouSection({ readingLevel, onChangeLevel }: ForYouSectionProp
       console.log('[For You Feed] ❌ API error');
       console.error('[For You Feed] Error:', error?.message || error);
       setArticles([]);
+    } finally {
+      setIsLoading(false);
     }
   }, [readingLevel]);
 
@@ -75,11 +79,11 @@ export function ForYouSection({ readingLevel, onChangeLevel }: ForYouSectionProp
     fetchForYouArticles();
   }, [fetchForYouArticles]);
 
-  // Show empty state if no articles
-  if (articles.length === 0) {
+  // Show loading skeleton
+  if (isLoading) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, styles.contentPadding]}>
           <View style={styles.titleRow}>
             <Text style={[styles.title, { color: colors.text }]}>For You</Text>
             <View style={[styles.levelBadge, { backgroundColor: colors.primary + '20' }]}>
@@ -90,7 +94,43 @@ export function ForYouSection({ readingLevel, onChangeLevel }: ForYouSectionProp
             </View>
           </View>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Loading personalized articles...
+            Curating articles for you...
+          </Text>
+        </View>
+
+        {/* Skeleton Loader */}
+        <View style={styles.scrollWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            scrollEnabled={false}
+          >
+            <SkeletonCardArticle />
+            <SkeletonCardArticle />
+            <SkeletonCardArticle />
+          </ScrollView>
+        </View>
+      </View>
+    );
+  }
+
+  // Show empty state if no articles after loading
+  if (!isLoading && articles.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.header, styles.contentPadding]}>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, { color: colors.text }]}>For You</Text>
+            <View style={[styles.levelBadge, { backgroundColor: colors.primary + '20' }]}>
+              <Text style={styles.levelEmoji}>{levelInfo?.emoji}</Text>
+              <Text style={[styles.levelText, { color: colors.third }]}>
+                {levelInfo?.label}
+              </Text>
+            </View>
+          </View>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            No articles available at the moment
           </Text>
         </View>
       </View>
@@ -139,7 +179,7 @@ export function ForYouSection({ readingLevel, onChangeLevel }: ForYouSectionProp
       </View>
 
       {/* Change level link */}
-      {onChangeLevel && (
+      {/* {onChangeLevel && (
         <TouchableOpacity
           style={[styles.changeLevelButton, styles.contentPadding]}
           onPress={onChangeLevel}
@@ -149,7 +189,7 @@ export function ForYouSection({ readingLevel, onChangeLevel }: ForYouSectionProp
             Adjust your reading level
           </Text>
         </TouchableOpacity>
-      )}
+      )} */}
     </View>
   );
 }

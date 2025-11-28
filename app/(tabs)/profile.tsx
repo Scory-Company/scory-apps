@@ -277,7 +277,7 @@ export default function ProfileScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[styles.debugButton, { backgroundColor: colors.third + '20', borderColor: colors.third, marginTop: Spacing.sm }]}
               onPress={handleShowOnboarding}
               activeOpacity={0.7}
@@ -285,7 +285,7 @@ export default function ProfileScreen() {
               <Text style={[styles.debugButtonText, { color: colors.third }]}>
                 Trigger Onboarding
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <TouchableOpacity
               style={[styles.debugButton, { backgroundColor: '#FF9500' + '20', borderColor: '#FF9500', marginTop: Spacing.sm }]}

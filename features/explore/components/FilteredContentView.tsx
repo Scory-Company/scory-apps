@@ -1,5 +1,5 @@
 import { Colors, Spacing, Typography } from '@/constants/theme';
-import { EmptyState } from '@/features/shared/components';
+import { EmptyState, SkeletonSearchResult } from '@/features/shared/components';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { FilterChip } from './FilterChip';
@@ -14,6 +14,7 @@ interface FilteredContentViewProps {
   onClearFilters: () => void;
   onClearSearch?: () => void;
   onClearCategory?: () => void;
+  isLoading?: boolean;
 }
 
 export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
@@ -23,8 +24,18 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
   onClearFilters,
   onClearSearch,
   onClearCategory,
+  isLoading = false,
 }) => {
   const colors = Colors.light;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <SkeletonSearchResult count={5} />
+      </View>
+    );
+  }
 
   // No results case
   if (results.length === 0) {

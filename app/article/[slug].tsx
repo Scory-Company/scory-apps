@@ -2,7 +2,7 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState, useCallback, useEffect } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, NativeScrollEvent, NativeSyntheticEvent, LayoutChangeEvent, ActivityIndicator } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, NativeScrollEvent, NativeSyntheticEvent, LayoutChangeEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ArticleHero,
@@ -14,6 +14,7 @@ import {
   ComprehensionSection,
 } from '@/features/article/components';
 import { articlesApi, ArticleResponse } from '@/services';
+import { SkeletonArticleDetail } from '@/features/shared/components';
 
 export default function ArticleDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -83,17 +84,18 @@ export default function ArticleDetailScreen() {
     // TODO: Save to storage/API
   };
 
-  // Loading state
+  // Loading state with skeleton
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.errorContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.errorSubtitle, { color: colors.textSecondary, marginTop: Spacing.lg }]}>
-            Loading article...
-          </Text>
-        </View>
-      </SafeAreaView>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <SkeletonArticleDetail />
+        </ScrollView>
+      </View>
     );
   }
 

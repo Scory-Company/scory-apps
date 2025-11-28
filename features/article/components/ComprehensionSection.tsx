@@ -87,6 +87,7 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
   const [reflection, setReflection] = useState('');
   const [reflectionSaved, setReflectionSaved] = useState(false);
   const [selectedInsight, setSelectedInsight] = useState<number | null>(null);
+  const [inputHeight, setInputHeight] = useState(60); // Initial height
 
   const handleSelectAnswer = (questionId: number, optionIndex: number) => {
     const question = questions.find((q) => q.id === questionId);
@@ -134,6 +135,7 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
   const handleSelectInsight = (index: number) => {
     setSelectedInsight(index);
     setReflection(keyInsights[index]);
+    // Reset height will happen automatically via onContentSizeChange
   };
 
   const handleSaveReflection = () => {
@@ -168,7 +170,7 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
             <View style={[styles.wrongFeedback, { backgroundColor: '#FF4444' + '15' }]}>
               <Ionicons name="close-circle" size={24} color="#FF4444" />
               <Text style={[styles.wrongText, { color: '#FF4444' }]}>
-                Oops! That's not correct.
+                Oops! That&apos;s not correct.
               </Text>
             </View>
             <TouchableOpacity
@@ -368,12 +370,12 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
                   backgroundColor: colors.background,
                   color: colors.text,
                   borderColor: colors.border,
+                  height: Math.max(60, inputHeight), // Auto-expand with minimum height
                 },
               ]}
               placeholder="Or write your own insight..."
               placeholderTextColor={colors.textMuted}
               multiline
-              numberOfLines={2}
               value={reflection}
               onChangeText={(text) => {
                 setReflection(text);
@@ -382,13 +384,17 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
                   setSelectedInsight(null);
                 }
               }}
+              onContentSizeChange={(event) => {
+                // Auto-expand based on content size
+                setInputHeight(event.nativeEvent.contentSize.height);
+              }}
               textAlignVertical="top"
             />
 
             <TouchableOpacity
               style={[
                 styles.saveButton,
-                { backgroundColor: reflection.trim() ? colors.third : colors.border },
+                { backgroundColor: reflection.trim() ? colors.primary : colors.border },
               ]}
               onPress={handleSaveReflection}
               disabled={!reflection.trim()}
@@ -603,8 +609,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.md,
     fontSize: Typography.fontSize.base,
-    minHeight: 60,
     marginBottom: Spacing.md,
+    // Height is controlled dynamically via inline style (auto-expand)
   },
   saveButton: {
     flexDirection: 'row',

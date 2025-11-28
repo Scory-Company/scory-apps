@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { articlesApi, ArticleResponse } from '@/services/articles';
+import { SkeletonListArticle } from '@/features/shared/components';
 
 interface TransformedArticle {
   id: string;
@@ -21,7 +22,11 @@ interface TransformedArticle {
 export default function CategoryDetailScreen() {
   const colors = Colors.light;
   const { name } = useLocalSearchParams();
-  const categoryName = typeof name === 'string' ? name : 'Category';
+
+  // Capitalize first letter of category name (science -> Science)
+  const categoryName = typeof name === 'string'
+    ? name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
+    : 'Category';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [articles, setArticles] = useState<TransformedArticle[]>([]);
@@ -175,14 +180,7 @@ export default function CategoryDetailScreen() {
         scrollEventThrottle={400}
       >
         {/* Loading State (Initial) */}
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.textMuted }]}>
-              Loading {categoryName} articles...
-            </Text>
-          </View>
-        )}
+        {loading && <SkeletonListArticle count={5} />}
 
         {/* Error State */}
         {error && !loading && (

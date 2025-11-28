@@ -10,6 +10,8 @@ export interface Article {
   rating: number;
   reads?: string;
   date?: string;
+  popularityScore?: number;
+  popularityRank?: number;
 }
 
 interface FilterOptions {

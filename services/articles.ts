@@ -25,9 +25,14 @@ export interface ArticleResponse {
   rating: number;
   totalRatings: number;
   viewCount: number;
+  viewCountWeek?: number;
+  readCount?: number;
+  bookmarkCount?: number;
   readTimeMinutes: number;
   publishedAt: string;
   isFeatured?: boolean;
+  popularityScore?: number;
+  popularityRank?: number;
 }
 
 export interface PaginatedResponse<T> {
@@ -38,6 +43,11 @@ export interface PaginatedResponse<T> {
       limit: number;
       total: number;
       totalPages: number;
+    };
+    meta?: {
+      algorithm?: string;
+      timeframe?: string;
+      lastUpdated?: string;
     };
   };
   message: string;
@@ -72,9 +82,9 @@ export const articlesApi = {
     api.get<PaginatedResponse<ArticleResponse>>('/articles/for-you', { params }),
 
   // Get popular articles
-  getPopular: (params?: { page?: number; limit?: number }) =>
-    api.get<PaginatedResponse<ArticleResponse>>('/articles', {
-      params: { ...params, sort: 'popular' }
+  getPopular: (params?: { page?: number; limit?: number; timeframe?: '7d' | '30d' | 'all' }) =>
+    api.get<PaginatedResponse<ArticleResponse>>('/articles/popular', {
+      params
     }),
 
   // Get top rated articles

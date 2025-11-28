@@ -388,8 +388,8 @@ export default function HomeScreen() {
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
               >
-                {displayedArticles.map((article) => (
-                  <View key={article.id} style={styles.popularCardWrapper}>
+                {displayedArticles.map((article, index) => (
+                  <View key={`${article.id}-${index}`} style={styles.popularCardWrapper}>
                     {article.badge && (
                       <View style={[styles.bestSellerBadge, { backgroundColor: colors.primary }]}>
                         <Text style={[styles.bestSellerText, { color: colors.text }]}>
