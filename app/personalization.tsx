@@ -222,7 +222,11 @@ export default function PersonalizationScreen() {
 
       // Save reading level to backend (must be UPPERCASE)
       await personalizationApi.saveSettings(readingLevelUppercase);
-      console.log('[Personalization API] ✅ Reading level saved');
+      console.log('[Personalization API] ✅ Reading level saved to backend');
+
+      // Save reading level to AsyncStorage for article content rendering
+      await AsyncStorage.setItem('preferredReadingLevel', readingLevelUppercase);
+      console.log('[Personalization API] ✅ Reading level saved to AsyncStorage:', readingLevelUppercase);
 
       // Save topic interests to backend
       await personalizationApi.saveTopicInterests(selectedTopics);

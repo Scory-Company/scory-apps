@@ -93,9 +93,9 @@ export default function ProfileScreen() {
           await personalizationApi.resetPersonalization();
           console.log('[Debug] ✅ Backend personalization deleted');
 
-          // 2. Clear local AsyncStorage flag
-          await AsyncStorage.removeItem('hasSeenPersonalizationTutorial');
-          console.log('[Debug] ✅ Local tutorial flag cleared');
+          // 2. Clear local AsyncStorage (tutorial flag + reading level preference)
+          await AsyncStorage.multiRemove(['hasSeenPersonalizationTutorial', 'preferredReadingLevel']);
+          console.log('[Debug] ✅ Local tutorial flag & reading level cleared');
 
           toast.success('Personalization reset! Navigate to Home to see PersonalizationCard.');
         } catch (error: any) {
@@ -118,6 +118,24 @@ export default function ProfileScreen() {
       toast.success('Onboarding triggered! Navigate to Home to see PersonalizationCard.');
     } catch (error: any) {
       console.error('[Debug] ❌ Error triggering onboarding:', error);
+      alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
+    }
+  };
+
+  // Debug: Clear reading level preference only
+  const handleClearReadingLevel = async () => {
+    try {
+      console.log('[Debug] Clearing reading level preference...');
+
+      const currentLevel = await AsyncStorage.getItem('preferredReadingLevel');
+      console.log('[Debug] Current reading level:', currentLevel);
+
+      await AsyncStorage.removeItem('preferredReadingLevel');
+      console.log('[Debug] ✅ Reading level preference cleared');
+
+      toast.success('Reading level cleared! Will use default (SIMPLE) or API sync.');
+    } catch (error: any) {
+      console.error('[Debug] ❌ Error clearing reading level:', error);
       alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
     }
   };
@@ -277,7 +295,17 @@ export default function ProfileScreen() {
               </Text>
             </TouchableOpacity>
 
-            {/* <TouchableOpacity
+            <TouchableOpacity
+              style={[styles.debugButton, { backgroundColor: '#3498db' + '20', borderColor: '#3498db', marginTop: Spacing.sm }]}
+              onPress={handleClearReadingLevel}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.debugButtonText, { color: '#3498db' }]}>
+                Clear Reading Level (AsyncStorage)
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={[styles.debugButton, { backgroundColor: colors.third + '20', borderColor: colors.third, marginTop: Spacing.sm }]}
               onPress={handleShowOnboarding}
               activeOpacity={0.7}
@@ -285,7 +313,7 @@ export default function ProfileScreen() {
               <Text style={[styles.debugButtonText, { color: colors.third }]}>
                 Trigger Onboarding
               </Text>
-            </TouchableOpacity> */}
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.debugButton, { backgroundColor: '#FF9500' + '20', borderColor: '#FF9500', marginTop: Spacing.sm }]}

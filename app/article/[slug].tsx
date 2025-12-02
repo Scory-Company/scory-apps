@@ -1,6 +1,6 @@
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import React, { useState, useCallback, useEffect } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, NativeScrollEvent, NativeSyntheticEvent, LayoutChangeEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,8 +13,9 @@ import {
   InsightNoteFAB,
   ComprehensionSection,
 } from '@/features/article/components';
-import { articlesApi, ArticleResponse } from '@/services';
+import { articlesApi, ArticleResponse, ReadingLevel, ArticleContent as ArticleContentType } from '@/services';
 import { SkeletonArticleDetail } from '@/features/shared/components';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ArticleDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -25,18 +26,37 @@ export default function ArticleDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  // Reading level state
+  const [selectedReadingLevel, setSelectedReadingLevel] = useState<ReadingLevel>(ReadingLevel.SIMPLE);
+
   // Reading progress state
   const [readingProgress, setReadingProgress] = useState(0);
   const [contentHeight, setContentHeight] = useState(0);
 
-  // Fetch article from API
-  useEffect(() => {
-    if (slug) {
-      fetchArticle();
+  // Load user's preferred reading level from storage
+  const loadPreferredReadingLevel = useCallback(async () => {
+    try {
+      const storedLevel = await AsyncStorage.getItem('preferredReadingLevel');
+      console.log('🔍 [DEBUG] Loaded from AsyncStorage:', storedLevel || 'null (default: SIMPLE)');
+      if (storedLevel && Object.values(ReadingLevel).includes(storedLevel as ReadingLevel)) {
+        setSelectedReadingLevel(storedLevel as ReadingLevel);
+        console.log('✅ [DEBUG] Reading level set to:', storedLevel);
+      } else {
+        console.log('⚠️ [DEBUG] Using default reading level: SIMPLE');
+      }
+    } catch (err) {
+      console.error('❌ [DEBUG] Failed to load preferred reading level:', err);
     }
-  }, [slug]);
+  }, []);
 
-  const fetchArticle = async () => {
+  // Re-load reading level preference when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadPreferredReadingLevel();
+    }, [loadPreferredReadingLevel])
+  );
+
+  const fetchArticle = useCallback(async () => {
     if (!slug) return;
 
     setIsLoading(true);
@@ -56,7 +76,51 @@ export default function ArticleDetailScreen() {
     } finally {
       setIsLoading(false);
     }
+  }, [slug]);
+
+  // Fetch article from API
+  useEffect(() => {
+    if (slug) {
+      fetchArticle();
+    }
+  }, [slug, fetchArticle]);
+
+  // Get content for selected reading level with fallback
+  const getDisplayContent = (): ArticleContentType | null => {
+    if (!article?.contents || article.contents.length === 0) {
+      console.log('🔍 [DEBUG] No contents available in article');
+      return null;
+    }
+
+    console.log('🔍 [DEBUG] Selected Reading Level:', selectedReadingLevel);
+    console.log('🔍 [DEBUG] Available Levels:', article.contents.map(c => c.readingLevel));
+
+    // Try to find content for selected reading level
+    const preferredContent = article.contents.find(
+      (content) => content.readingLevel === selectedReadingLevel
+    );
+    if (preferredContent) {
+      console.log('✅ [DEBUG] Using preferred level:', preferredContent.readingLevel);
+      return preferredContent;
+    }
+
+    // Fallback priority: SIMPLE > STUDENT > ACADEMIC > EXPERT > First Available
+    const fallbackOrder = [ReadingLevel.SIMPLE, ReadingLevel.STUDENT, ReadingLevel.ACADEMIC, ReadingLevel.EXPERT];
+
+    for (const level of fallbackOrder) {
+      const fallbackContent = article.contents.find(content => content.readingLevel === level);
+      if (fallbackContent) {
+        console.log(`⚠️ [DEBUG] Fallback to ${level} (${selectedReadingLevel} not found)`);
+        return fallbackContent;
+      }
+    }
+
+    // Last fallback: return first available content
+    console.log('⚠️ [DEBUG] Using first available:', article.contents[0]?.readingLevel);
+    return article.contents[0] || null;
   };
+
+  const displayContent = getDisplayContent();
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -111,7 +175,13 @@ export default function ArticleDetailScreen() {
           </Text>
           <TouchableOpacity
             style={[styles.backButton, { backgroundColor: colors.primary }]}
-            onPress={() => router.back()}
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace('/(tabs)');
+              }
+            }}
           >
             <Text style={[styles.backButtonText, { color: colors.text }]}>Go Back</Text>
           </TouchableOpacity>
@@ -160,7 +230,13 @@ export default function ArticleDetailScreen() {
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           {/* Article Content */}
-          <ArticleContent category={article.category.name} />
+          {displayContent && displayContent.blocks.length > 0 ? (
+            <ArticleContent blocks={displayContent.blocks} />
+          ) : (
+            <Text style={[styles.noContentText, { color: colors.textMuted }]}>
+              No content available for this reading level.
+            </Text>
+          )}
 
           {/* Comprehension Section */}
           <ComprehensionSection
@@ -199,6 +275,23 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginVertical: Spacing.lg,
+  },
+  noContentText: {
+    fontSize: Typography.fontSize.base,
+    textAlign: 'center',
+    marginVertical: Spacing.xl,
+    fontStyle: 'italic',
+  },
+  // Debug Badge (only in dev mode)
+  debugBadge: {
+    padding: Spacing.sm,
+    borderRadius: Radius.md,
+    marginBottom: Spacing.md,
+    alignItems: 'center',
+  },
+  debugText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
   },
   // Error State
   errorContainer: {

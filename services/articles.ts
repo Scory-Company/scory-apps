@@ -13,6 +13,35 @@ export interface ArticleListParams {
   sort?: 'recent' | 'popular' | 'top_rated' | 'trending';
 }
 
+// Reading Level Enum (sync with backend Prisma enum)
+export enum ReadingLevel {
+  SIMPLE = 'SIMPLE',
+  STUDENT = 'STUDENT',
+  ACADEMIC = 'ACADEMIC',
+  EXPERT = 'EXPERT',
+}
+
+// Content Block Types
+export type ContentBlock =
+  | { type: 'text'; data: { text: string } }
+  | { type: 'heading'; data: { text: string; level: 1 | 2 | 3 | 4 | 5 | 6 } }
+  | { type: 'quote'; data: { text: string; author?: string } }
+  | { type: 'list'; data: { style: 'bullet' | 'numbered'; items: string[] } }
+  | { type: 'image'; data: { url: string; caption?: string; alt?: string } }
+  | { type: 'infographic'; data: { url: string; caption?: string; alt?: string } }
+  | { type: 'callout'; data: { text: string; variant: 'info' | 'warning' | 'success' | 'error' } }
+  | { type: 'divider'; data: Record<string, never> };
+
+// Article Content (with blocks)
+export interface ArticleContent {
+  id: string;
+  articleId: string;
+  readingLevel: ReadingLevel;
+  blocks: ContentBlock[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ArticleResponse {
   id: string;
   title: string;
@@ -33,6 +62,7 @@ export interface ArticleResponse {
   isFeatured?: boolean;
   popularityScore?: number;
   popularityRank?: number;
+  contents?: ArticleContent[]; // Array of content for all reading levels
 }
 
 export interface PaginatedResponse<T> {
