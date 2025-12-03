@@ -12,6 +12,7 @@ interface SearchResultCardProps {
   reads?: string;
   highlightText?: string;
   onPress?: () => void;
+  isExternalSource?: boolean;
 }
 
 export const SearchResultCard: React.FC<SearchResultCardProps> = ({
@@ -23,6 +24,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
   reads,
   highlightText,
   onPress,
+  isExternalSource = false,
 }) => {
   const colors = Colors.light;
 
@@ -50,12 +52,24 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.card, Shadows.sm, { backgroundColor: colors.surface }]}
+      style={[
+        styles.card,
+        Shadows.sm,
+        { backgroundColor: colors.surface },
+        isExternalSource && styles.externalCard,
+      ]}
       activeOpacity={0.8}
       onPress={onPress}
     >
       <Image source={image} style={styles.image} resizeMode="cover" />
       <View style={styles.content}>
+        {/* External Source Badge */}
+        {isExternalSource && (
+          <View style={styles.externalBadge}>
+            <Ionicons name="globe-outline" size={10} color="#6366F1" />
+            <Text style={styles.externalBadgeText}>External</Text>
+          </View>
+        )}
         {renderHighlightedTitle()}
         <Text style={[styles.author, { color: colors.textSecondary }]} numberOfLines={1}>
           {author}
@@ -84,6 +98,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: Spacing.sm,
   },
+  externalCard: {
+    borderWidth: 1,
+    borderColor: '#E0E7FF',
+  },
   image: {
     width: 100,
     height: '100%',
@@ -92,6 +110,22 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: Spacing.sm,
     justifyContent: 'space-between',
+  },
+  externalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginBottom: Spacing.xs,
+    gap: 3,
+  },
+  externalBadgeText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#6366F1',
   },
   title: {
     fontSize: Typography.fontSize.base,

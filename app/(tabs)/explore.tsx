@@ -24,6 +24,7 @@ import {
   topRatedArticles as mockTopRated,
   categoryList as mockCategoryList
 } from '@/data/mock';
+import { ScholarArticle, searchScholarMock } from '@/data/mock/scholar/scholar-results';
 
 // Display article type
 interface DisplayArticle {
@@ -177,8 +178,14 @@ export default function ExploreScreen() {
   const [allFetchedArticles, setAllFetchedArticles] = useState<DisplayArticle[]>([]);
   const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
 
+  // Google Scholar fallback state
+  const [scholarResults, setScholarResults] = useState<ScholarArticle[]>([]);
+  const [isSearchingScholar, setIsSearchingScholar] = useState(false);
+
   const fetchAllArticles = useCallback(async () => {
     setIsLoadingFiltered(true);
+    setScholarResults([]); // Reset scholar results when fetching new data
+
     try {
       console.log('[Explore] Fetching ALL articles for filtering...');
 
@@ -190,7 +197,7 @@ export default function ExploreScreen() {
       const response = await articlesApi.getArticles(params);
       const apiData = response.data?.data;
 
-      if (apiData?.articles) {
+      if (apiData?.articles && apiData.articles.length > 0) {
         const transformed = apiData.articles.map((article: any) => ({
           id: article.id,
           slug: article.slug,
@@ -205,6 +212,7 @@ export default function ExploreScreen() {
         console.log(`[Explore] ✅ Loaded ${transformed.length} articles from API`);
       } else {
         setAllFetchedArticles([]);
+        console.log('[Explore] ⚠️ No articles from API');
       }
     } catch {
       console.log('[Explore] ❌ API failed, using local data');
@@ -240,6 +248,40 @@ export default function ExploreScreen() {
     console.log(`[Explore Filter] ✅ Filtered to ${filtered.length} articles`);
     return filtered;
   }, [hasActiveFilters, allFetchedArticles, searchQuery, selectedCategory]);
+
+  // Auto-fallback to Scholar if filtered results are empty
+  useEffect(() => {
+    const shouldSearchScholar =
+      hasActiveFilters &&
+      searchQuery.trim() !== '' &&
+      selectedCategory === 'All' && // Only search Scholar for "All" category
+      filteredResults.length === 0 &&
+      !isLoadingFiltered &&
+      scholarResults.length === 0; // Prevent duplicate searches
+
+    if (shouldSearchScholar) {
+      console.log('[Explore] 🔍 No filtered results, triggering Scholar search...');
+      setIsSearchingScholar(true);
+
+      searchScholarMock(searchQuery.trim())
+        .then((scholarData) => {
+          setScholarResults(scholarData);
+          console.log(`[Explore] ✅ Found ${scholarData.length} Scholar results`);
+        })
+        .catch((error) => {
+          console.log('[Explore] ❌ Scholar search failed', error);
+          setScholarResults([]);
+        })
+        .finally(() => {
+          setIsSearchingScholar(false);
+        });
+    }
+
+    // Reset Scholar results when there are local results
+    if (filteredResults.length > 0 && scholarResults.length > 0) {
+      setScholarResults([]);
+    }
+  }, [filteredResults, hasActiveFilters, searchQuery, selectedCategory, isLoadingFiltered, scholarResults.length]);
 
   // Handlers
   const handleClearFilters = () => {
@@ -278,6 +320,7 @@ export default function ExploreScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search journals, topics, authors..."
+          isSearchingScholar={isSearchingScholar}
         />
       </View>
 
@@ -303,7 +346,9 @@ export default function ExploreScreen() {
             onClearFilters={handleClearFilters}
             onClearSearch={handleClearSearch}
             onClearCategory={handleClearCategory}
-            isLoading={isLoadingFiltered}
+            isLoading={isLoadingFiltered || isSearchingScholar}
+            scholarResults={scholarResults}
+            isSearchingScholar={isSearchingScholar}
           />
         ) : (
           // ========== DEFAULT VIEW ==========

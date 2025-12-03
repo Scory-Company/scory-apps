@@ -1,6 +1,6 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   // Check if current screen wants to hide tabBar
@@ -15,8 +15,8 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
 
   return (
     <View style={styles.container}>
-      {/* Upload Button - positioned above the tab bar */}
-      <TouchableOpacity
+      {/* Upload Button - Removed (moved to Explore page for better UX) */}
+      {/* <TouchableOpacity
         style={styles.uploadButton}
         onPress={() => {
           console.log('Upload pressed');
@@ -26,7 +26,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
           source={require('@/assets/images/icon-tab/upload.png')}
           style={{ width: 24, height: 24, tintColor: '#fff' }}
         />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <View style={styles.tabBar}>
         {state.routes.map((route, index) => {
@@ -51,30 +51,6 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
               target: route.key,
             });
           };
-
-          // Add spacer for upload button before explore (index 1)
-          if (index === 1) {
-            return (
-              <React.Fragment key={route.key}>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityState={isFocused ? { selected: true } : {}}
-                  accessibilityLabel={options.tabBarAccessibilityLabel}
-                  onPress={onPress}
-                  onLongPress={onLongPress}
-                  style={styles.tab}
-                >
-                  {options.tabBarIcon?.({ focused: isFocused, color: '', size: 24 })}
-                  <Text style={[styles.label, isFocused && styles.activeLabel]}>
-                    {options.title}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Spacer for upload button */}
-                <View style={styles.uploadSpacer} />
-              </React.Fragment>
-            );
-          }
 
           return (
             <TouchableOpacity
@@ -139,28 +115,5 @@ const styles = StyleSheet.create({
   activeLabel: {
     color: '#000',
     fontWeight: '600',
-  },
-  uploadButton: {
-    position: 'absolute',
-    top: -10,
-    alignSelf: 'center',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#000',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    zIndex: 10,
-  },
-  uploadSpacer: {
-    width: 50,
   },
 });

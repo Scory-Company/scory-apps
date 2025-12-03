@@ -6,6 +6,8 @@ import { FilterChip } from './FilterChip';
 import { SearchResultCard } from './SearchResultCard';
 import { Article } from '@/utils/filterContent';
 import { router } from 'expo-router';
+import { ScholarArticle } from '@/data/mock/scholar/scholar-results';
+import { ScholarResultCard } from './ScholarResultCard';
 
 interface FilteredContentViewProps {
   results: Article[];
@@ -15,6 +17,8 @@ interface FilteredContentViewProps {
   onClearSearch?: () => void;
   onClearCategory?: () => void;
   isLoading?: boolean;
+  scholarResults?: ScholarArticle[];
+  isSearchingScholar?: boolean;
 }
 
 export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
@@ -25,8 +29,13 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
   onClearSearch,
   onClearCategory,
   isLoading = false,
+  scholarResults = [],
+  isSearchingScholar = false,
 }) => {
   const colors = Colors.light;
+
+  const hasScholarResults = scholarResults.length > 0;
+  const hasLocalResults = results.length > 0;
 
   // Loading state
   if (isLoading) {
@@ -37,8 +46,8 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
     );
   }
 
-  // No results case
-  if (results.length === 0) {
+  // No results in local database
+  if (!hasLocalResults && !hasScholarResults) {
     return (
       <View style={styles.container}>
         <EmptyState
@@ -48,7 +57,7 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
             searchQuery && selectedCategory !== 'All'
               ? `No articles found for "${searchQuery}" in ${selectedCategory}`
               : searchQuery
-              ? `No articles found for "${searchQuery}"`
+              ? `No articles found for "${searchQuery}" in our database or Google Scholar`
               : `No articles found in ${selectedCategory}`
           }
           actionLabel="Clear Filters"
@@ -59,13 +68,15 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
     );
   }
 
-  // Has results
+  // Has results (local or scholar or both)
+  const totalResults = results.length + scholarResults.length;
+
   return (
     <View style={styles.container}>
       {/* Results Header */}
       <View style={styles.resultsHeader}>
         <Text style={[styles.resultCount, { color: colors.text }]}>
-          {results.length} article{results.length > 1 ? 's' : ''} found
+          {totalResults} article{totalResults > 1 ? 's' : ''} found
         </Text>
 
         {/* Active Filters */}
@@ -98,7 +109,8 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
 
       {/* Results List */}
       <View style={styles.resultsList}>
-        {results.map((article) => (
+        {/* Local Database Results */}
+        {hasLocalResults && results.map((article) => (
           <SearchResultCard
             key={article.id}
             image={article.image}
@@ -111,6 +123,31 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
             onPress={() => router.push(`/article/${article.slug || article.id}` as any)}
           />
         ))}
+
+        {/* Scholar Results Section */}
+        {hasScholarResults && (
+          <>
+            {/* Separator if both local and scholar results exist */}
+            {hasLocalResults && (
+              <View style={styles.scholarSeparator}>
+                <View style={[styles.separatorLine, { backgroundColor: colors.border }]} />
+                <Text style={[styles.separatorText, { color: colors.textSecondary }]}>
+                  External Sources (Google Scholar)
+                </Text>
+                <View style={[styles.separatorLine, { backgroundColor: colors.border }]} />
+              </View>
+            )}
+
+            {/* Google Scholar Results */}
+            {scholarResults.map((article) => (
+              <ScholarResultCard
+                key={article.id}
+                article={article}
+                highlightText={searchQuery}
+              />
+            ))}
+          </>
+        )}
       </View>
     </View>
   );
@@ -144,5 +181,20 @@ const styles = StyleSheet.create({
   },
   resultsList: {
     paddingHorizontal: Spacing.lg,
+  },
+  scholarSeparator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: Spacing.xl,
+    gap: Spacing.sm,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+  },
+  separatorText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    paddingHorizontal: Spacing.sm,
   },
 });

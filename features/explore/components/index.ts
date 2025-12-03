@@ -8,3 +8,4 @@ export { PersonalizationPrompt } from './PersonalizationPrompt';
 export { FilteredContentView } from './FilteredContentView';
 export { SearchResultCard } from './SearchResultCard';
 export { FilterChip } from './FilterChip';
+export { ScholarResultCard } from './ScholarResultCard';
