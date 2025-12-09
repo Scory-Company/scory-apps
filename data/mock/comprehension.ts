@@ -27,8 +27,10 @@ export interface UserQuizAttempt {
 
 export interface UserInsightNote {
   id: number;
-  userId: number;
-  articleId: number;
+  userId?: number;
+  articleId?: number;
+  articleTitle: string;
+  articleSlug: string;
   content: string;
   isCustom: boolean; // true if user wrote their own, false if selected from suggestions
   createdAt: string;
@@ -245,6 +247,8 @@ export const userInsightNotes: UserInsightNote[] = [
     id: 1,
     userId: 1,
     articleId: 1,
+    articleTitle: 'AI in Healthcare Research',
+    articleSlug: 'ai-in-healthcare-research-123',
     content: 'Cross-disciplinary collaboration is essential for breakthrough discoveries in AI.',
     isCustom: false,
     createdAt: '2025-11-20T10:35:00Z',
@@ -253,6 +257,8 @@ export const userInsightNotes: UserInsightNote[] = [
     id: 2,
     userId: 1,
     articleId: 2,
+    articleTitle: 'Climate Change Solutions',
+    articleSlug: 'climate-change-solutions-456',
     content: 'I need to reduce my carbon footprint by using public transport more often.',
     isCustom: true,
     createdAt: '2025-11-19T14:20:00Z',

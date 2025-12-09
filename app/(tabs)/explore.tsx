@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { filterContent } from '@/utils/filterContent';
-import { articlesApi, categoriesApi, personalizationApi } from '@/services';
+import { articlesApi, categoriesApi, personalizationApi, searchApi, SearchResult } from '@/services';
 import { ReadingLevel } from '@/constants/readingLevels';
 import {
   trendingTopics,
@@ -24,7 +24,6 @@ import {
   topRatedArticles as mockTopRated,
   categoryList as mockCategoryList
 } from '@/data/mock';
-import { ScholarArticle, searchScholarMock } from '@/data/mock/scholar/scholar-results';
 
 // Display article type
 interface DisplayArticle {
@@ -178,13 +177,13 @@ export default function ExploreScreen() {
   const [allFetchedArticles, setAllFetchedArticles] = useState<DisplayArticle[]>([]);
   const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
 
-  // Google Scholar fallback state
-  const [scholarResults, setScholarResults] = useState<ScholarArticle[]>([]);
-  const [isSearchingScholar, setIsSearchingScholar] = useState(false);
+  // External search results (OpenAlex + Scholar) state
+  const [externalResults, setExternalResults] = useState<SearchResult[]>([]);
+  const [isSearchingExternal, setIsSearchingExternal] = useState(false);
 
   const fetchAllArticles = useCallback(async () => {
     setIsLoadingFiltered(true);
-    setScholarResults([]); // Reset scholar results when fetching new data
+    setExternalResults([]); // Reset external results when fetching new data
 
     try {
       console.log('[Explore] Fetching ALL articles for filtering...');
@@ -249,39 +248,46 @@ export default function ExploreScreen() {
     return filtered;
   }, [hasActiveFilters, allFetchedArticles, searchQuery, selectedCategory]);
 
-  // Auto-fallback to Scholar if filtered results are empty
+  // Auto-fallback to external search (OpenAlex + Scholar) if filtered results are empty
   useEffect(() => {
-    const shouldSearchScholar =
+    const shouldSearchExternal =
       hasActiveFilters &&
       searchQuery.trim() !== '' &&
-      selectedCategory === 'All' && // Only search Scholar for "All" category
+      selectedCategory === 'All' && // Only search external for "All" category
       filteredResults.length === 0 &&
       !isLoadingFiltered &&
-      scholarResults.length === 0; // Prevent duplicate searches
+      externalResults.length === 0; // Prevent duplicate searches
 
-    if (shouldSearchScholar) {
-      console.log('[Explore] 🔍 No filtered results, triggering Scholar search...');
-      setIsSearchingScholar(true);
+    if (shouldSearchExternal) {
+      console.log('[Explore] 🔍 No filtered results, triggering external search (OpenAlex + Scholar)...');
+      setIsSearchingExternal(true);
 
-      searchScholarMock(searchQuery.trim())
-        .then((scholarData) => {
-          setScholarResults(scholarData);
-          console.log(`[Explore] ✅ Found ${scholarData.length} Scholar results`);
+      // Use unified search API
+      searchApi.search(searchQuery.trim(), {
+        sources: 'auto', // Auto fallback: internal → OpenAlex → Scholar
+        limit: 20
+      })
+        .then((response) => {
+          // Filter only external results (exclude internal)
+          const external = response.data.results.filter(r => r.source !== 'internal');
+          setExternalResults(external);
+          console.log(`[Explore] ✅ Found ${external.length} external results`);
+          console.log('[Explore] Sources:', response.data.meta.sources);
         })
         .catch((error) => {
-          console.log('[Explore] ❌ Scholar search failed', error);
-          setScholarResults([]);
+          console.log('[Explore] ❌ External search failed', error);
+          setExternalResults([]);
         })
         .finally(() => {
-          setIsSearchingScholar(false);
+          setIsSearchingExternal(false);
         });
     }
 
-    // Reset Scholar results when there are local results
-    if (filteredResults.length > 0 && scholarResults.length > 0) {
-      setScholarResults([]);
+    // Reset external results when there are local results
+    if (filteredResults.length > 0 && externalResults.length > 0) {
+      setExternalResults([]);
     }
-  }, [filteredResults, hasActiveFilters, searchQuery, selectedCategory, isLoadingFiltered, scholarResults.length]);
+  }, [filteredResults, hasActiveFilters, searchQuery, selectedCategory, isLoadingFiltered, externalResults.length]);
 
   // Handlers
   const handleClearFilters = () => {
@@ -320,7 +326,7 @@ export default function ExploreScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search journals, topics, authors..."
-          isSearchingScholar={isSearchingScholar}
+          isSearchingScholar={isSearchingExternal}
         />
       </View>
 
@@ -346,9 +352,8 @@ export default function ExploreScreen() {
             onClearFilters={handleClearFilters}
             onClearSearch={handleClearSearch}
             onClearCategory={handleClearCategory}
-            isLoading={isLoadingFiltered || isSearchingScholar}
-            scholarResults={scholarResults}
-            isSearchingScholar={isSearchingScholar}
+            isLoading={isLoadingFiltered || isSearchingExternal}
+            externalResults={externalResults}
           />
         ) : (
           // ========== DEFAULT VIEW ==========

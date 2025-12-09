@@ -5,6 +5,7 @@ export { CardArticle } from './CardArticle';
 export { CustomAlert } from './CustomAlert';
 export { Toast } from './Toast';
 export { BottomSheetModal } from './BottomSheetModal';
+export { SimplifyLoadingModal } from './SimplifyLoadingModal';
 export {
   SkeletonLoader,
   SkeletonCardArticle,

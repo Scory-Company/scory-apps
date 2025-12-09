@@ -17,6 +17,7 @@ export const Colors = {
     info: '#3B82F6',
 
     textwhite: '#FFFFFF',
+    accent: '#14B8A6',
 
     background: '#F9FAFB',
     surface: '#FFFFFF',

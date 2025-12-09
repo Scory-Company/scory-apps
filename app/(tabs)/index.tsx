@@ -356,7 +356,7 @@ export default function HomeScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Categories</Text>
 
           <View style={styles.categoryGrid}>
-            {categoryCards.map((category) => (
+            {categoryCards.slice(0, 8).map((category) => (
               <CategoryCard
                 key={category.id}
                 icon={category.icon}

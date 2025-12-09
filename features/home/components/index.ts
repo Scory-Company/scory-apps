@@ -1,5 +1,4 @@
 export { XPBadge } from './XPBadge';
-export { SearchBar } from './SearchBar';
 export { HeroBanner } from './HeroBanner';
 export { PersonalizationCard } from './PersonalizationCard';
 export { ContinueLearningCard } from './ContinueLearningCard';

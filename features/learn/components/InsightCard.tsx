@@ -1,23 +1,35 @@
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { InsightNote } from '@/services';
 
 interface InsightCardProps {
-  articleTitle: string;
-  note: string;
-  date: string;
-  tags: string[];
+  insight: InsightNote;
   onPress?: () => void;
 }
 
-export const InsightCard: React.FC<InsightCardProps> = ({
-  articleTitle,
-  note,
-  date,
-  tags,
-  onPress,
-}) => {
+/**
+ * Format date as relative time (Today, Yesterday, X days ago)
+ */
+const formatRelativeDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  return `${Math.floor(diffDays / 30)} months ago`;
+};
+
+export const InsightCard: React.FC<InsightCardProps> = ({ insight, onPress }) => {
   const colors = Colors.light;
+
+  // Format date
+  const date = formatRelativeDate(insight.createdAt);
 
   return (
     <TouchableOpacity
@@ -27,7 +39,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
     >
       <View style={styles.insightHeader}>
         <Text style={[styles.insightArticleTitle, { color: colors.text }]} numberOfLines={1}>
-          {articleTitle}
+          {insight.articleTitle}
         </Text>
         <Text style={[styles.insightDate, { color: colors.textMuted }]}>
           {date}
@@ -35,15 +47,12 @@ export const InsightCard: React.FC<InsightCardProps> = ({
       </View>
 
       <Text style={[styles.insightNote, { color: colors.textSecondary }]} numberOfLines={3}>
-        {note}
+        {insight.content}
       </Text>
 
-      <View style={styles.insightTags}>
-        {tags.map((tag, index) => (
-          <View key={index} style={[styles.tag, { backgroundColor: colors.primary + '20' }]}>
-            <Text style={[styles.tagText, { color: colors.third }]}>{tag}</Text>
-          </View>
-        ))}
+      <View style={styles.seeDetailContainer}>
+        <Text style={[styles.seeDetailText, { color: colors.third }]}>See Detail</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.third} />
       </View>
     </TouchableOpacity>
   );
@@ -74,18 +83,14 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: Spacing.sm,
   },
-  insightTags: {
+  seeDetailContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.xs,
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: 4,
   },
-  tag: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: Radius.sm,
-  },
-  tagText: {
-    fontSize: Typography.fontSize.xs,
+  seeDetailText: {
+    fontSize: Typography.fontSize.sm,
     fontWeight: '500',
   },
 });

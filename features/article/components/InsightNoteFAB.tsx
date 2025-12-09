@@ -2,33 +2,57 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
+  ActivityIndicator,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useInsights } from '@/hooks/useInsights';
+import { BottomSheetModal, Toast } from '@/features/shared/components';
 
 interface InsightNoteFABProps {
+  articleSlug: string;
   articleTitle: string;
   onSaveNote: (note: string) => void;
 }
 
-export const InsightNoteFAB: React.FC<InsightNoteFABProps> = ({ articleTitle, onSaveNote }) => {
+export const InsightNoteFAB: React.FC<InsightNoteFABProps> = ({
+  articleSlug,
+  articleTitle,
+  onSaveNote,
+}) => {
   const colors = Colors.light;
   const [modalVisible, setModalVisible] = useState(false);
   const [note, setNote] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
-  const handleSave = () => {
-    if (note.trim()) {
+  // Use insights hook for saving
+  const { saveNote: saveNoteApi, isSavingNote } = useInsights(articleSlug);
+
+  const handleSave = async () => {
+    if (!note.trim()) return;
+
+    // Save to API (custom note = true)
+    const success = await saveNoteApi(note.trim(), true);
+
+    if (success) {
       onSaveNote(note.trim());
       setNote('');
       setModalVisible(false);
+
+      // Show success toast
+      setToastType('success');
+      setToastMessage('Note saved successfully!');
+      setToastVisible(true);
+    } else {
+      // Show error toast
+      setToastType('error');
+      setToastMessage('Failed to save note. Please try again.');
+      setToastVisible(true);
     }
   };
 
@@ -45,88 +69,102 @@ export const InsightNoteFAB: React.FC<InsightNoteFABProps> = ({ articleTitle, on
         onPress={() => setModalVisible(true)}
         activeOpacity={0.8}
       >
-        <Ionicons name="bulb-outline" size={24} color={colors.text} />
+        <Ionicons name="create-outline" size={28} color={colors.text} />
       </TouchableOpacity>
 
-      {/* Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
+      {/* Bottom Sheet Modal */}
+      <BottomSheetModal
         visible={modalVisible}
-        onRequestClose={handleClose}
+        onClose={handleClose}
+        height="75%"
+        showHandle={true}
+        enableSwipeToDismiss={true}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.modalOverlay}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.keyboardView}
-            >
-              <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-                {/* Header */}
-                <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: colors.text }]}>Add Insight Note</Text>
-                  <TouchableOpacity onPress={handleClose}>
-                    <Ionicons name="close" size={24} color={colors.textMuted} />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Article Reference */}
-                <View style={[styles.articleRef, { backgroundColor: colors.surface }]}>
-                  <Ionicons name="document-text-outline" size={16} color={colors.primary} />
-                  <Text
-                    style={[styles.articleRefText, { color: colors.textSecondary }]}
-                    numberOfLines={1}
-                  >
-                    {articleTitle}
-                  </Text>
-                </View>
-
-                {/* Note Input */}
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.surface,
-                      color: colors.text,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  placeholder="What insight did you get from this article?"
-                  placeholderTextColor={colors.textMuted}
-                  multiline
-                  numberOfLines={5}
-                  value={note}
-                  onChangeText={setNote}
-                  textAlignVertical="top"
-                />
-
-                {/* Actions */}
-                <View style={styles.actions}>
-                  <TouchableOpacity
-                    style={[styles.cancelButton, { borderColor: colors.border }]}
-                    onPress={handleClose}
-                  >
-                    <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>
-                      Cancel
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.saveButton,
-                      { backgroundColor: note.trim() ? colors.primary : colors.border },
-                    ]}
-                    onPress={handleSave}
-                    disabled={!note.trim()}
-                  >
-                    <Ionicons name="checkmark" size={18} color={colors.text} />
-                    <Text style={[styles.saveButtonText, { color: colors.text }]}>Save</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </KeyboardAvoidingView>
+        <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+          {/* Header */}
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Add Insight Note</Text>
+            <TouchableOpacity onPress={handleClose}>
+              <Ionicons name="close" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
           </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+
+          {/* Article Reference */}
+          <View style={[styles.articleRef, { backgroundColor: colors.surface }]}>
+            <Ionicons name="document-text-outline" size={16} color={colors.primary} />
+            <Text
+              style={[styles.articleRefText, { color: colors.textSecondary }]}
+              numberOfLines={1}
+            >
+              {articleTitle}
+            </Text>
+          </View>
+
+          {/* Note Input */}
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.surface,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
+            placeholder="What insight did you get from this article?"
+            placeholderTextColor={colors.textMuted}
+            multiline
+            numberOfLines={5}
+            value={note}
+            onChangeText={setNote}
+            textAlignVertical="top"
+          />
+
+          {/* Actions */}
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={[styles.cancelButton, { borderColor: colors.border }]}
+              onPress={handleClose}
+            >
+              <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.saveButton,
+                {
+                  backgroundColor: note.trim() ? colors.primary : colors.border,
+                  opacity: isSavingNote ? 0.5 : 1,
+                },
+              ]}
+              onPress={handleSave}
+              disabled={!note.trim() || isSavingNote}
+            >
+              {isSavingNote ? (
+                <>
+                  <ActivityIndicator size="small" color={colors.text} />
+                  <Text style={[styles.saveButtonText, { color: colors.text }]}>Saving...</Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="checkmark" size={18} color={colors.text} />
+                  <Text style={[styles.saveButtonText, { color: colors.text }]}>Save</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </BottomSheetModal>
+
+      {/* Toast Notification */}
+      <Toast
+        visible={toastVisible}
+        type={toastType}
+        message={toastMessage}
+        position="top"
+        duration={3000}
+        onHide={() => setToastVisible(false)}
+      />
     </>
   );
 };
@@ -147,19 +185,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  keyboardView: {
-    width: '100%',
-  },
   modalContent: {
-    borderTopLeftRadius: Radius['2xl'],
-    borderTopRightRadius: Radius['2xl'],
     padding: Spacing.lg,
     paddingBottom: Spacing['3xl'],
+    minHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -188,7 +217,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.md,
     fontSize: Typography.fontSize.base,
-    minHeight: 120,
+    minHeight: 200,
+    maxHeight: 400,
     marginBottom: Spacing.lg,
   },
   actions: {

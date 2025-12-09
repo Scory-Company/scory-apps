@@ -2,7 +2,7 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import React, { useState, useCallback, useEffect } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, NativeScrollEvent, NativeSyntheticEvent, LayoutChangeEvent } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, NativeScrollEvent, NativeSyntheticEvent, LayoutChangeEvent, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ArticleHero,
@@ -12,10 +12,12 @@ import {
   ReadingProgressBar,
   InsightNoteFAB,
   ComprehensionSection,
+  SourceLinks,
 } from '@/features/article/components';
 import { articlesApi, ArticleResponse, ReadingLevel, ArticleContent as ArticleContentType } from '@/services';
-import { SkeletonArticleDetail } from '@/features/shared/components';
+import { SkeletonArticleDetail, SimplifyLoadingModal } from '@/features/shared/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useResimplify } from '@/hooks/useResimplify';
 
 export default function ArticleDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -32,6 +34,9 @@ export default function ArticleDetailScreen() {
   // Reading progress state
   const [readingProgress, setReadingProgress] = useState(0);
   const [contentHeight, setContentHeight] = useState(0);
+
+  // Re-simplify hook
+  const { resimplify, isResimplifying, progress: resimplifyProgress } = useResimplify();
 
   // Load user's preferred reading level from storage
   const loadPreferredReadingLevel = useCallback(async () => {
@@ -57,24 +62,74 @@ export default function ArticleDetailScreen() {
   );
 
   const fetchArticle = useCallback(async () => {
-    if (!slug) return;
+    if (!slug) {
+      console.log('[❌ FETCH] No slug provided');
+      return;
+    }
 
     setIsLoading(true);
-    console.log('Fetching article with slug:', slug);
+    console.log('='.repeat(60));
+    console.log('[📄 ARTICLE PAGE] Fetching article...');
+    console.log('[📄 ARTICLE PAGE] Slug/ID parameter:', slug);
+    console.log('='.repeat(60));
+
     try {
-      const response = await articlesApi.getBySlug(slug as string);
-      console.log('Article API Response:', response.data);
+      // Try fetching by slug first
+      let response;
+      try {
+        console.log('[🔍 ATTEMPT 1] Trying getBySlug...');
+        response = await articlesApi.getBySlug(slug as string);
+        console.log('[✅ SUCCESS] Article fetched by slug!');
+        console.log('[✅ SUCCESS] Article data:', JSON.stringify({
+          id: response.data?.data?.id,
+          slug: response.data?.data?.slug,
+          title: response.data?.data?.title,
+          hasContents: !!response.data?.data?.contents,
+          contentsCount: response.data?.data?.contents?.length,
+        }, null, 2));
+      } catch (slugError: any) {
+        // If slug fails, try by ID (for simplified articles)
+        console.log('[⚠️ ATTEMPT 1 FAILED] Slug fetch failed');
+        console.log('[⚠️ ERROR] Status:', slugError.response?.status);
+        console.log('[⚠️ ERROR] Message:', slugError.message);
+
+        if (slugError.response?.status === 404) {
+          console.log('[🔍 ATTEMPT 2] Trying getById...');
+          response = await articlesApi.getById(slug as string);
+          console.log('[✅ SUCCESS] Article fetched by ID!');
+          console.log('[✅ SUCCESS] Article data:', JSON.stringify({
+            id: response.data?.data?.id,
+            slug: response.data?.data?.slug,
+            title: response.data?.data?.title,
+            hasContents: !!response.data?.data?.contents,
+            contentsCount: response.data?.data?.contents?.length,
+          }, null, 2));
+        } else {
+          throw slugError;
+        }
+      }
+
       if (response.data?.data) {
+        console.log('[✅ FINAL] Setting article state');
         setArticle(response.data.data);
         setError(false);
       } else {
+        console.log('[❌ FINAL] No data in response');
         setError(true);
       }
-    } catch (err) {
-      console.error('Failed to fetch article:', err);
+    } catch (err: any) {
+      console.log('='.repeat(60));
+      console.error('[❌ FETCH FAILED] Failed to fetch article!');
+      console.error('[❌ FETCH FAILED] Error:', err);
+      console.error('[❌ FETCH FAILED] Error message:', err.message);
+      console.error('[❌ FETCH FAILED] Error response:', err.response?.data);
+      console.error('[❌ FETCH FAILED] Error status:', err.response?.status);
+      console.log('='.repeat(60));
       setError(true);
     } finally {
       setIsLoading(false);
+      console.log('[📄 ARTICLE PAGE] Fetch complete');
+      console.log('='.repeat(60));
     }
   }, [slug]);
 
@@ -122,6 +177,14 @@ export default function ArticleDetailScreen() {
 
   const displayContent = getDisplayContent();
 
+  // Check if preferred reading level is available
+  const isPreferredLevelAvailable = article?.contents?.some(
+    (content) => content.readingLevel === selectedReadingLevel
+  );
+
+  // Check if user is viewing a fallback level
+  const isViewingFallback = !isPreferredLevelAvailable && article?.contents && article.contents.length > 0;
+
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
@@ -147,6 +210,24 @@ export default function ArticleDetailScreen() {
     console.log('Reflection saved:', reflection);
     // TODO: Save to storage/API
   };
+
+  // Handle re-simplify
+  const handleResimplify = useCallback(async () => {
+    if (!article?.id) {
+      console.error('[RESIMPLIFY] No article ID available');
+      return;
+    }
+
+    console.log('[RESIMPLIFY] Starting re-simplify for level:', selectedReadingLevel);
+    // Convert to string for API
+    const success = await resimplify(article.id, selectedReadingLevel as string);
+
+    if (success) {
+      console.log('[RESIMPLIFY] Success! Reloading article...');
+      // Reload article to get the new content
+      await fetchArticle();
+    }
+  }, [article?.id, selectedReadingLevel, resimplify, fetchArticle]);
 
   // Loading state with skeleton
   if (isLoading) {
@@ -226,6 +307,53 @@ export default function ArticleDetailScreen() {
             readTime={`${article.readTimeMinutes} min read`}
           />
 
+          {/* Source Links (PDF, DOI) - Only for external articles */}
+          {article.isExternal && article.externalMetadata && (
+            <SourceLinks externalMetadata={article.externalMetadata} />
+          )}
+
+          {/* Reading Level Mismatch Banner */}
+          {isViewingFallback && !isResimplifying && (
+            <View style={[styles.levelMismatchBanner, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
+              <View style={styles.bannerContent}>
+                <Ionicons name="information-circle" size={20} color={colors.primary} />
+                <View style={styles.bannerTextContainer}>
+                  <Text style={[styles.bannerTitle, { color: colors.text }]}>
+                    {selectedReadingLevel.charAt(0).toUpperCase() + selectedReadingLevel.slice(1)} level not available
+                  </Text>
+                  <Text style={[styles.bannerSubtitle, { color: colors.textMuted }]}>
+                    Currently showing {displayContent?.readingLevel} level.
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={[styles.resimplifyButton, { backgroundColor: colors.primary }]}
+                onPress={handleResimplify}
+              >
+                <Text style={[styles.resimplifyButtonText, { color: '#FFFFFF' }]}>
+                  Generate {selectedReadingLevel.charAt(0).toUpperCase() + selectedReadingLevel.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Re-simplifying Loading Banner */}
+          {isResimplifying && (
+            <View style={[styles.levelMismatchBanner, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
+              <View style={styles.bannerContent}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <View style={styles.bannerTextContainer}>
+                  <Text style={[styles.bannerTitle, { color: colors.text }]}>
+                    {resimplifyProgress.message}
+                  </Text>
+                  <Text style={[styles.bannerSubtitle, { color: colors.textMuted }]}>
+                    This may take 20-30 seconds...
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
           {/* Divider */}
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
@@ -240,6 +368,7 @@ export default function ArticleDetailScreen() {
 
           {/* Comprehension Section */}
           <ComprehensionSection
+            articleSlug={article.slug}
             category={article.category.name}
             onSaveReflection={handleSaveReflection}
           />
@@ -253,7 +382,11 @@ export default function ArticleDetailScreen() {
       </ScrollView>
 
       {/* Floating Action Button for Insight Notes */}
-      <InsightNoteFAB articleTitle={article.title} onSaveNote={handleSaveNote} />
+      <InsightNoteFAB
+        articleSlug={article.slug}
+        articleTitle={article.title}
+        onSaveNote={handleSaveNote}
+      />
     </View>
   );
 }
@@ -281,6 +414,40 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: Spacing.xl,
     fontStyle: 'italic',
+  },
+  // Reading Level Mismatch Banner
+  levelMismatchBanner: {
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+  },
+  bannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  bannerTextContainer: {
+    flex: 1,
+    marginLeft: Spacing.sm,
+  },
+  bannerTitle: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  bannerSubtitle: {
+    fontSize: Typography.fontSize.xs,
+  },
+  resimplifyButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+  },
+  resimplifyButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
   },
   // Debug Badge (only in dev mode)
   debugBadge: {

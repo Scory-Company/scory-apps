@@ -63,6 +63,15 @@ export interface ArticleResponse {
   popularityScore?: number;
   popularityRank?: number;
   contents?: ArticleContent[]; // Array of content for all reading levels
+  externalMetadata?: {
+    source: 'openalex' | 'scholar';
+    externalId: string;
+    doi?: string;
+    pdfUrl?: string;
+    landingPageUrl?: string;
+    year: number;
+  };
+  isExternal?: boolean;
 }
 
 export interface PaginatedResponse<T> {
@@ -102,6 +111,10 @@ export const articlesApi = {
   // Get single article by slug
   getBySlug: (slug: string) =>
     api.get<SingleResponse<ArticleResponse>>(`/articles/${slug}`),
+
+  // Get single article by ID (for simplified articles)
+  getById: (id: string) =>
+    api.get<SingleResponse<ArticleResponse>>(`/articles/by-id/${id}`),
 
   // Get article content by reading level
   getContent: (slug: string, readingLevel: string) =>

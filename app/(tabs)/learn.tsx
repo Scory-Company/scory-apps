@@ -3,27 +3,41 @@ import {
   LearningStatCard,
   WeeklyGoalCard,
   StudyCollectionCard,
-  InsightCard,
   SectionHeader,
   AddInsightButton,
+  AddNoteModal,
   ViewAllPrompt,
+  InsightCard,
 } from '@/features/learn/components';
 import { EmptyState } from '@/features/shared/components';
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, StatusBar, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   studyCollections,
   weeklyGoal,
   learningStats as learningStatsData,
-  readingInsights
 } from '@/data/mock';
+import { useUserInsights } from '@/hooks/useUserInsights';
 
 export default function LearnScreen() {
   const colors = Colors.light;
 
-  // Use mock data from centralized location
-  const allInsights = readingInsights;
+  // Fetch user insights from API
+  const {
+    insights: allInsights,
+    isLoading: isLoadingInsights,
+    isRefreshing,
+    error: insightsError,
+    refreshInsights,
+    invalidateCache,
+  } = useUserInsights();
+
+  // Modal state for insight detail
+  const [selectedInsightId, setSelectedInsightId] = useState<number | null>(null);
+
+  // Modal state for adding new note
+  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
 
   // Learning Stats with color config
   const learningStats = learningStatsData.map((stat) => {
@@ -69,6 +83,14 @@ export default function LearnScreen() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={refreshInsights}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
       >
 
         {/* Learning Stats Cards */}
@@ -146,20 +168,33 @@ export default function LearnScreen() {
             iconColor={colors.warning}
             showViewAll={false}
             showAddButton={showHeaderAddButton}
-            onAddPress={() => console.log('Add insight pressed')}
+            onAddPress={() => setShowAddNoteModal(true)}
           />
 
-          {recentInsights.length > 0 ? (
+          {isLoadingInsights ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                Loading your insights...
+              </Text>
+            </View>
+          ) : insightsError ? (
+            <>
+              <EmptyState
+                icon="alert-circle-outline"
+                title="Unable to Load Insights"
+                message={insightsError}
+              />
+              <AddInsightButton onPress={() => setShowAddNoteModal(true)} />
+            </>
+          ) : recentInsights.length > 0 ? (
             <>
               <View style={styles.insightsContainer}>
                 {recentInsights.map((insight) => (
                   <InsightCard
                     key={insight.id}
-                    articleTitle={insight.articleTitle}
-                    note={insight.note}
-                    date={insight.date}
-                    tags={insight.tags}
-                    onPress={() => console.log('Insight pressed:', insight.articleTitle)}
+                    insight={insight}
+                    onPress={() => setSelectedInsightId(insight.id)}
                   />
                 ))}
               </View>
@@ -169,13 +204,13 @@ export default function LearnScreen() {
                 <ViewAllPrompt
                   count={remainingInsightsCount}
                   label="insight"
-                  onPress={() => console.log('View all insights')}
+                  onPress={() => console.log('View all insights - TODO: Navigate to insights page')}
                 />
               )}
 
               {/* Show bottom add button only when insights <= 2 */}
               {showBottomAddButton && (
-                <AddInsightButton onPress={() => console.log('Add insight pressed')} />
+                <AddInsightButton onPress={() => setShowAddNoteModal(true)} />
               )}
             </>
           ) : (
@@ -185,7 +220,7 @@ export default function LearnScreen() {
                 title="Start Capturing Insights"
                 message="Take notes while reading to remember key ideas"
               />
-              <AddInsightButton onPress={() => console.log('Add insight pressed')} />
+              <AddInsightButton onPress={() => setShowAddNoteModal(true)} />
             </>
           )}
         </View>
@@ -193,6 +228,16 @@ export default function LearnScreen() {
         {/* Bottom Padding */}
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Add Note Modal */}
+      <AddNoteModal
+        visible={showAddNoteModal}
+        onClose={() => setShowAddNoteModal(false)}
+        onNoteAdded={() => {
+          invalidateCache();
+          refreshInsights();
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -236,5 +281,15 @@ const styles = StyleSheet.create({
   insightsContainer: {
     paddingHorizontal: Spacing.lg,
     gap: Spacing.md,
+  },
+  loadingContainer: {
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: Spacing.md,
+    fontSize: Typography.fontSize.sm,
   },
 });
