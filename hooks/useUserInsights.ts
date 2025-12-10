@@ -174,18 +174,20 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
   /**
    * Delete an insight note
    *
-   * @param noteId - ID of note to delete
+   * @param noteId - ID of note to delete (UUID string or number for backward compatibility)
    * @returns true if deletion was successful
    */
   const deleteInsight = useCallback(
-    async (noteId: number): Promise<boolean> => {
+    async (noteId: string | number): Promise<boolean> => {
       try {
         console.log('[USER_INSIGHTS] Deleting note:', noteId);
         const response = await insightsApi.deleteInsightNote(noteId);
 
         if (response.success) {
           // Optimistically remove from local state and cache
-          const updatedInsights = insights.filter((note) => note.id !== noteId);
+          // Convert noteId to string for comparison since Note.id is UUID string
+          const noteIdStr = String(noteId);
+          const updatedInsights = insights.filter((note) => note.id !== noteIdStr);
           setInsights(updatedInsights);
 
           // Update cache

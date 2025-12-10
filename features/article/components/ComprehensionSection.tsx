@@ -7,37 +7,28 @@ import {
   FlatList,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   ViewToken,
 } from 'react-native';
 import { useQuiz } from '@/hooks/useQuiz';
-import { useInsights } from '@/hooks/useInsights';
 import { QuizAnswer } from '@/services';
 
 interface ComprehensionSectionProps {
   articleSlug: string;
   category: string;
-  onSaveReflection: (reflection: string) => void;
+  onQuizAvailabilityChange?: (isAvailable: boolean) => void;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - Spacing.lg * 2 - Spacing.lg * 2;
-
-// Icon mapping for insights
-const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
-  lightbulb: 'bulb',
-  rocket: 'rocket',
-  star: 'star',
-};
 
 // Letter mapping for quiz answers
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
 export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
   articleSlug,
-  onSaveReflection,
+  onQuizAvailabilityChange,
 }) => {
   const colors = Colors.light;
   const flatListRef = useRef<FlatList>(null);
@@ -57,17 +48,6 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
     resetQuiz,
   } = useQuiz(articleSlug);
 
-  // Insights hook
-  const {
-    insights: insightsData,
-    userNote,
-    isLoadingInsights,
-    isSavingNote,
-    fetchInsights,
-    fetchUserNote,
-    saveNote: saveNoteApi,
-  } = useInsights(articleSlug);
-
   // ============================================================================
   // Local State
   // ============================================================================
@@ -77,10 +57,10 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string | number, number>>({});
   const [wrongAnswers, setWrongAnswers] = useState<Record<string | number, boolean>>({});
 
-  // Insights state
-  const [reflection, setReflection] = useState('');
-  const [selectedInsightIndex, setSelectedInsightIndex] = useState<number | null>(null);
-  const [inputHeight, setInputHeight] = useState(60);
+  // Computed values
+  const questionsArray = quizData?.questions || [];
+  const correctCount = Object.keys(selectedAnswers).length;
+  const isQuizCompleted = results !== null;
 
   // ============================================================================
   // Effects - Fetch data on mount
@@ -88,16 +68,15 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
 
   useEffect(() => {
     fetchQuestions();
-    fetchInsights();
-    fetchUserNote();
-  }, [fetchQuestions, fetchInsights, fetchUserNote]);
+  }, [fetchQuestions]);
 
-  // Pre-fill reflection if user already has a saved note
+  // Notify parent about quiz availability
   useEffect(() => {
-    if (userNote && !reflection) {
-      setReflection(userNote.content);
+    if (!isLoadingQuestions && !questionsError) {
+      const isAvailable = questionsArray.length > 0;
+      onQuizAvailabilityChange?.(isAvailable);
     }
-  }, [userNote, reflection]);
+  }, [isLoadingQuestions, questionsError, questionsArray.length, onQuizAvailabilityChange]);
 
   // ============================================================================
   // Quiz Handlers
@@ -210,35 +189,6 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
   };
 
   // ============================================================================
-  // Insights Handlers
-  // ============================================================================
-
-  const handleSelectInsight = (index: number) => {
-    if (!insightsData) return;
-
-    setSelectedInsightIndex(index);
-    setReflection(insightsData.insights[index].content);
-  };
-
-  const handleSaveReflection = async () => {
-    if (!reflection.trim()) return;
-
-    // Check if user selected a suggested insight or wrote custom
-    const isCustom =
-      selectedInsightIndex === null ||
-      (insightsData && selectedInsightIndex !== null && reflection !== insightsData.insights[selectedInsightIndex].content);
-
-    // Convert null to undefined for the API (accepts boolean | undefined, not null)
-    const success = await saveNoteApi(reflection.trim(), isCustom ?? false);
-
-    if (success) {
-      onSaveReflection(reflection.trim());
-      // Refresh user note
-      fetchUserNote();
-    }
-  };
-
-  // ============================================================================
   // Helpers
   // ============================================================================
 
@@ -247,11 +197,6 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
       setCurrentIndex(viewableItems[0].index);
     }
   }).current;
-
-  const questionsArray = quizData?.questions || [];
-  const insightsArray = insightsData?.insights || [];
-  const correctCount = Object.keys(selectedAnswers).length;
-  const isQuizCompleted = results !== null;
 
   // ============================================================================
   // Render Quiz Item
@@ -327,6 +272,11 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
   // Render
   // ============================================================================
 
+  // Hide entire section if no quiz available
+  if (!isLoadingQuestions && !questionsError && questionsArray.length === 0) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       {/* Section Header */}
@@ -374,14 +324,6 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
               <Ionicons name="refresh" size={18} color={colors.primary} />
               <Text style={[styles.retryAllText, { color: colors.primary }]}>Take Quiz Again</Text>
             </TouchableOpacity>
-          </View>
-        ) : questionsArray.length === 0 ? (
-          // No quiz available
-          <View style={styles.emptyContainer}>
-            <Ionicons name="help-circle-outline" size={48} color={colors.textMuted} />
-            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-              No quiz available for this article
-            </Text>
           </View>
         ) : (
           <>
@@ -433,141 +375,6 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
           </>
         )}
       </View>
-
-      {/* Reflection Section - Key Insights */}
-      {/* <View style={[styles.reflectionContainer, { backgroundColor: colors.surface }]}>
-        <View style={styles.reflectionHeader}>
-          <Ionicons name="bulb-outline" size={20} color={colors.third} />
-          <Text style={[styles.reflectionTitle, { color: colors.text }]}>Key Insights</Text>
-        </View>
-        <Text style={[styles.reflectionSubtitle, { color: colors.textMuted }]}>
-          Save a key takeaway to your notes
-        </Text>
-
-        {userNote && !isSavingNote ? (
-          // User already saved a note
-          <View style={[styles.savedReflection, { backgroundColor: colors.success + '15' }]}>
-            <Ionicons name="checkmark-circle" size={24} color={colors.success} />
-            <Text style={[styles.savedReflectionText, { color: colors.success }]}>
-              Saved to your notes!
-            </Text>
-          </View>
-        ) : isLoadingInsights ? (
-          // Loading insights
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={colors.primary} />
-          </View>
-        ) : (
-          <>
-            {insightsArray.length > 0 && (
-              <View style={styles.insightsContainer}>
-                {insightsArray.map((insight, index) => (
-                  <TouchableOpacity
-                    key={insight.id}
-                    style={[
-                      styles.insightCard,
-                      {
-                        backgroundColor:
-                          selectedInsightIndex === index ? colors.third + '15' : colors.background,
-                        borderColor: selectedInsightIndex === index ? colors.third : colors.border,
-                      },
-                    ]}
-                    onPress={() => handleSelectInsight(index)}
-                  >
-                    <View style={styles.insightRow}>
-                      <View
-                        style={[
-                          styles.insightCheck,
-                          {
-                            backgroundColor:
-                              selectedInsightIndex === index ? colors.third : 'transparent',
-                            borderColor: selectedInsightIndex === index ? colors.third : colors.border,
-                          },
-                        ]}
-                      >
-                        {selectedInsightIndex === index && (
-                          <Ionicons name="checkmark" size={12} color="#fff" />
-                        )}
-                      </View>
-                      <View style={styles.insightContent}>
-                        <Ionicons
-                          name={ICON_MAP[insight.icon] || 'bulb'}
-                          size={16}
-                          color={colors.third}
-                          style={{ marginRight: Spacing.xs }}
-                        />
-                        <Text
-                          style={[
-                            styles.insightText,
-                            {
-                              color:
-                                selectedInsightIndex === index ? colors.text : colors.textSecondary,
-                            },
-                          ]}
-                        >
-                          {insight.content}
-                        </Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            <TextInput
-              style={[
-                styles.reflectionInput,
-                {
-                  backgroundColor: colors.background,
-                  color: colors.text,
-                  borderColor: colors.border,
-                  height: Math.max(60, inputHeight),
-                },
-              ]}
-              placeholder="Or write your own insight..."
-              placeholderTextColor={colors.textMuted}
-              multiline
-              value={reflection}
-              onChangeText={(text) => {
-                setReflection(text);
-                // Deselect if user types something different
-                if (
-                  selectedInsightIndex !== null &&
-                  insightsData &&
-                  text !== insightsData.insights[selectedInsightIndex].content
-                ) {
-                  setSelectedInsightIndex(null);
-                }
-              }}
-              onContentSizeChange={(event) => {
-                setInputHeight(event.nativeEvent.contentSize.height);
-              }}
-              textAlignVertical="top"
-            />
-
-            <TouchableOpacity
-              style={[
-                styles.saveButton,
-                {
-                  backgroundColor: reflection.trim() ? colors.primary : colors.border,
-                  opacity: isSavingNote ? 0.5 : 1,
-                },
-              ]}
-              onPress={handleSaveReflection}
-              disabled={!reflection.trim() || isSavingNote}
-            >
-              {isSavingNote ? (
-                <ActivityIndicator size="small" color={colors.text} />
-              ) : (
-                <>
-                  <Ionicons name="bookmark-outline" size={18} color={colors.text} />
-                  <Text style={[styles.saveButtonText, { color: colors.text }]}>Save to Notes</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </>
-        )}
-      </View> */}
     </View>
   );
 };
@@ -761,88 +568,5 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: Typography.fontSize.sm,
     textAlign: 'center',
-  },
-  // Reflection Styles
-  reflectionContainer: {
-    borderRadius: Radius.xl,
-    padding: Spacing.lg,
-  },
-  reflectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.xs,
-  },
-  reflectionTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: '700',
-  },
-  reflectionSubtitle: {
-    fontSize: Typography.fontSize.sm,
-    marginBottom: Spacing.md,
-  },
-  insightsContainer: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  insightCard: {
-    padding: Spacing.md,
-    borderRadius: Radius.lg,
-    borderWidth: 1.5,
-  },
-  insightRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing.sm,
-  },
-  insightCheck: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  insightContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  insightText: {
-    flex: 1,
-    fontSize: Typography.fontSize.sm,
-    lineHeight: Typography.fontSize.sm * 1.5,
-  },
-  reflectionInput: {
-    borderWidth: 1.5,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    fontSize: Typography.fontSize.base,
-    marginBottom: Spacing.md,
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
-    gap: Spacing.xs,
-  },
-  saveButtonText: {
-    fontSize: Typography.fontSize.base,
-    fontWeight: '600',
-  },
-  savedReflection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.xl,
-    borderRadius: Radius.lg,
-    gap: Spacing.sm,
-  },
-  savedReflectionText: {
-    fontSize: Typography.fontSize.base,
-    fontWeight: '600',
   },
 });

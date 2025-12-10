@@ -68,14 +68,6 @@ export interface QuizQuestion {
   order: number;
 }
 
-export interface Insight {
-  id: string;
-  title: string;
-  content: string;
-  icon: 'lightbulb' | 'rocket' | 'star';
-  order: number;
-}
-
 export interface SimplifyExternalResponse {
   success: boolean;
   message: string;
@@ -85,7 +77,6 @@ export interface SimplifyExternalResponse {
     isCached: boolean;
     content: ContentBlock[];
     quiz?: QuizQuestion[];
-    insights?: Insight[];
     metadata?: {
       extractionMethod: 'pdf' | 'html' | 'abstract';
       aiCost: number;
@@ -113,7 +104,6 @@ export interface GetSimplifiedArticleResponse {
     };
     content: ContentBlock[];
     quiz?: QuizQuestion[];
-    insights?: Insight[];
     externalMetadata?: {
       source: ExternalSource;
       externalId: string;
@@ -184,14 +174,12 @@ export async function getSimplifiedArticle(
   options?: {
     readingLevel?: ReadingLevel;
     includeQuiz?: boolean;
-    includeInsights?: boolean;
   }
 ): Promise<GetSimplifiedArticleResponse> {
   try {
     const params = new URLSearchParams();
     if (options?.readingLevel) params.append('readingLevel', options.readingLevel);
     if (options?.includeQuiz) params.append('includeQuiz', 'true');
-    if (options?.includeInsights) params.append('includeInsights', 'true');
 
     const url = `/simplify/${articleId}${params.toString() ? `?${params}` : ''}`;
     const response = await api.get<GetSimplifiedArticleResponse>(url);

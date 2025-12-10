@@ -15,8 +15,13 @@ interface InsightCardProps {
 const formatRelativeDate = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  // Set both dates to start of day (midnight) for accurate day comparison
+  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const nowOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const diffMs = nowOnly.getTime() - dateOnly.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';
@@ -31,6 +36,10 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight, onPress }) =>
   // Format date
   const date = formatRelativeDate(insight.createdAt);
 
+  // Determine title and type
+  const isStandalone = !insight.articleId;
+  const displayTitle = insight.articleTitle || insight.title || 'Personal Note';
+
   return (
     <TouchableOpacity
       style={[styles.insightCard, Shadows.sm, { backgroundColor: colors.surface }]}
@@ -38,9 +47,14 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight, onPress }) =>
       onPress={onPress}
     >
       <View style={styles.insightHeader}>
-        <Text style={[styles.insightArticleTitle, { color: colors.text }]} numberOfLines={1}>
-          {insight.articleTitle}
-        </Text>
+        <View style={styles.titleContainer}>
+          {isStandalone && (
+            <Ionicons name="document-text-outline" size={16} color={colors.textMuted} style={styles.titleIcon} />
+          )}
+          <Text style={[styles.insightArticleTitle, { color: colors.text }]} numberOfLines={1}>
+            {displayTitle}
+          </Text>
+        </View>
         <Text style={[styles.insightDate, { color: colors.textMuted }]}>
           {date}
         </Text>
@@ -69,6 +83,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: Spacing.sm,
     gap: Spacing.sm,
+  },
+  titleContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  titleIcon: {
+    marginTop: 2,
   },
   insightArticleTitle: {
     flex: 1,

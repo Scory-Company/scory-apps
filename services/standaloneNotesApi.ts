@@ -1,17 +1,12 @@
-import api from './api';
+import { notesApi, Note } from './notesApi';
 
 // ============================================================================
 // Types & Interfaces
 // ============================================================================
 
-export interface StandaloneNote {
-  id: string;
-  title: string | null;
-  content: string;
-  isCustom: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+// NOTE: Using unified Note type from notesApi
+// For backward compatibility, we export it as StandaloneNote
+export type StandaloneNote = Note;
 
 export interface CreateStandaloneNoteRequest {
   title?: string;
@@ -29,63 +24,49 @@ export interface UpdateStandaloneNoteRequest {
 
 /**
  * Create a standalone note (not associated with any article)
+ * Uses unified Notes API
  * Auth: Required
  *
  * @param title - Optional note title (max 255 chars)
- * @param content - Note content (min 5 chars, max 5000 chars)
+ * @param content - Note content (min 1 char, max 10000 chars)
  * @returns Created note data
  */
 export const createStandaloneNote = async (title: string | undefined, content: string) => {
-  const response = await api.post<{
-    success: boolean;
-    message: string;
-    data: StandaloneNote;
-  }>('/notes', {
-    title: title || undefined,
-    content,
-  });
-
-  return response.data;
+  // Use unified Notes API
+  return notesApi.createStandaloneNote(title, content);
 };
 
 /**
  * Get all user's standalone notes
+ * Uses unified Notes API with standalone filter
  * Auth: Required
  *
  * @returns Array of user's standalone notes (sorted by updatedAt DESC)
  */
 export const getAllStandaloneNotes = async () => {
-  const response = await api.get<{
-    success: boolean;
-    message: string;
-    data: StandaloneNote[];
-  }>('/notes');
-
-  return response.data;
+  // Use unified Notes API with standalone filter
+  return notesApi.getStandaloneNotes();
 };
 
 /**
  * Get single standalone note by ID
+ * Uses unified Notes API
  * Auth: Required
  *
- * @param noteId - Note ID
+ * @param noteId - Note ID (UUID)
  * @returns Note data
  */
 export const getStandaloneNote = async (noteId: string) => {
-  const response = await api.get<{
-    success: boolean;
-    message: string;
-    data: StandaloneNote;
-  }>(`/notes/${noteId}`);
-
-  return response.data;
+  // Use unified Notes API
+  return notesApi.getNoteById(noteId);
 };
 
 /**
  * Update standalone note
+ * Uses unified Notes API
  * Auth: Required
  *
- * @param noteId - Note ID
+ * @param noteId - Note ID (UUID)
  * @param updates - Fields to update (title and/or content)
  * @returns Updated note data
  */
@@ -93,33 +74,21 @@ export const updateStandaloneNote = async (
   noteId: string,
   updates: UpdateStandaloneNoteRequest
 ) => {
-  const response = await api.put<{
-    success: boolean;
-    message: string;
-    data: StandaloneNote;
-  }>(`/notes/${noteId}`, updates);
-
-  return response.data;
+  // Use unified Notes API
+  return notesApi.updateNote(noteId, updates);
 };
 
 /**
  * Delete standalone note
+ * Uses unified Notes API
  * Auth: Required
  *
- * @param noteId - Note ID
+ * @param noteId - Note ID (UUID)
  * @returns Success response
  */
 export const deleteStandaloneNote = async (noteId: string) => {
-  const response = await api.delete<{
-    success: boolean;
-    message: string;
-    data: {
-      success: boolean;
-      message: string;
-    };
-  }>(`/notes/${noteId}`);
-
-  return response.data;
+  // Use unified Notes API
+  return notesApi.deleteNote(noteId);
 };
 
 // ============================================================================

@@ -50,6 +50,7 @@ export interface SearchMeta {
   total: number;
   page: number;
   limit: number;
+  hasMore: boolean; // Indicates if there are more results to load
   sources: {
     internal: number;
     openalex: number;

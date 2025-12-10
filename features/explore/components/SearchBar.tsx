@@ -6,6 +6,7 @@ import { StyleSheet, TextInput, TouchableOpacity, View, ActivityIndicator } from
 interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
+  onSearch: () => void; // Trigger search on button click or Enter
   placeholder?: string;
   isSearchingScholar?: boolean;
 }
@@ -13,10 +14,17 @@ interface SearchBarProps {
 export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChangeText,
+  onSearch,
   placeholder = 'Search journals, topics, authors...',
   isSearchingScholar = false,
 }) => {
   const colors = Colors.light;
+
+  const handleSubmit = () => {
+    if (value.trim()) {
+      onSearch();
+    }
+  };
 
   return (
     <View style={[styles.searchContainer, { backgroundColor: colors.surface }, Shadows.sm]}>
@@ -27,6 +35,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         placeholderTextColor={colors.textMuted}
         value={value}
         onChangeText={onChangeText}
+        onSubmitEditing={handleSubmit}
+        returnKeyType="search"
       />
       {/* Scholar Search Loading Indicator */}
       {isSearchingScholar && (
@@ -38,6 +48,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       {value.length > 0 && !isSearchingScholar && (
         <TouchableOpacity onPress={() => onChangeText('')}>
           <Ionicons name="close-circle" size={20} color={colors.textMuted} />
+        </TouchableOpacity>
+      )}
+      {/* Search Button */}
+      {value.trim().length > 0 && !isSearchingScholar && (
+        <TouchableOpacity onPress={handleSubmit} style={styles.searchButton}>
+          <Ionicons name="arrow-forward-circle" size={24} color={colors.primary} />
         </TouchableOpacity>
       )}
     </View>
@@ -62,5 +78,8 @@ const styles = StyleSheet.create({
   },
   scholarIndicator: {
     paddingRight: Spacing.xs,
+  },
+  searchButton: {
+    marginLeft: Spacing.xs,
   },
 });

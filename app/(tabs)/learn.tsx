@@ -13,6 +13,7 @@ import { EmptyState } from '@/features/shared/components';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, StatusBar, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter, useFocusEffect } from 'expo-router';
 import {
   studyCollections,
   weeklyGoal,
@@ -22,6 +23,7 @@ import { useUserInsights } from '@/hooks/useUserInsights';
 
 export default function LearnScreen() {
   const colors = Colors.light;
+  const router = useRouter();
 
   // Fetch user insights from API
   const {
@@ -33,11 +35,17 @@ export default function LearnScreen() {
     invalidateCache,
   } = useUserInsights();
 
-  // Modal state for insight detail
-  const [selectedInsightId, setSelectedInsightId] = useState<number | null>(null);
-
   // Modal state for adding new note
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+
+  // Refresh insights when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('[LEARN] Screen focused - refreshing insights');
+      invalidateCache();
+      refreshInsights();
+    }, [invalidateCache, refreshInsights])
+  );
 
   // Learning Stats with color config
   const learningStats = learningStatsData.map((stat) => {
@@ -194,7 +202,7 @@ export default function LearnScreen() {
                   <InsightCard
                     key={insight.id}
                     insight={insight}
-                    onPress={() => setSelectedInsightId(insight.id)}
+                    onPress={() => router.push(`/insight/${insight.id}` as any)}
                   />
                 ))}
               </View>
@@ -204,7 +212,7 @@ export default function LearnScreen() {
                 <ViewAllPrompt
                   count={remainingInsightsCount}
                   label="insight"
-                  onPress={() => console.log('View all insights - TODO: Navigate to insights page')}
+                  onPress={() => router.push('/insights' as any)}
                 />
               )}
 

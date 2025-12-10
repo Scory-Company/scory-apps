@@ -204,6 +204,7 @@ export const useInsights = (
 
     try {
       console.log('[INSIGHTS] Deleting note:', userNote.id);
+      // Note: userNote.id is now a UUID string (not number)
       const response = await insightsApi.deleteInsightNote(userNote.id);
 
       if (response.success) {

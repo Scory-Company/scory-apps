@@ -1,13 +1,14 @@
 import { Colors, Spacing, Typography } from '@/constants/theme';
 import { EmptyState, SkeletonSearchResult, SimplifyLoadingModal } from '@/features/shared/components';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { FilterChip } from './FilterChip';
 import { UnifiedSearchResultCard, UnifiedSearchResult } from './UnifiedSearchResultCard';
 import { Article } from '@/utils/filterContent';
 import { router } from 'expo-router';
 import { SearchResult } from '@/services';
 import { useSimplifyAndNavigate } from '@/hooks/useSimplifyPaper';
+import { Ionicons } from '@expo/vector-icons';
 
 interface FilteredContentViewProps {
   results: Article[];
@@ -18,6 +19,9 @@ interface FilteredContentViewProps {
   onClearCategory?: () => void;
   isLoading?: boolean;
   externalResults?: SearchResult[];
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  isLoadingMore?: boolean;
 }
 
 export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
@@ -29,6 +33,9 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
   onClearCategory,
   isLoading = false,
   externalResults = [],
+  hasMore = false,
+  onLoadMore,
+  isLoadingMore = false,
 }) => {
   const colors = Colors.light;
   const { simplifyAndNavigate, isSimplifying, progress } = useSimplifyAndNavigate();
@@ -113,18 +120,18 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
           const unifiedResult: UnifiedSearchResult = {
             id: String(article.id),
             title: article.title,
-            excerpt: '', // Article doesn't have excerpt
+            excerpt: '', // Internal articles don't have excerpt in current data structure
             authors: [article.author],
-            year: null,
+            year: null, // Internal articles don't have year in current data structure
             source: 'internal',
             type: 'article',
-            image: article.image,
             category: article.category,
             rating: article.rating,
             reads: article.reads,
             metadata: {
-              isSimplified: false,
+              isSimplified: true, // Internal articles are already simplified
               isExternal: false,
+              articleId: String(article.id), // Add articleId for navigation
             },
           };
 
@@ -134,6 +141,7 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
               result={unifiedResult}
               highlightText={searchQuery}
               onPress={() => router.push(`/article/${article.slug || article.id}` as any)}
+              onReadSimplified={() => router.push(`/article/${article.slug || article.id}` as any)}
             />
           );
         })}
@@ -191,6 +199,38 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
                 />
               );
             })}
+
+            {/* Load More / End Message */}
+            {isLoadingMore && (
+              <View style={styles.loadingMore}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={[styles.loadingMoreText, { color: colors.textSecondary }]}>
+                  Loading more results...
+                </Text>
+              </View>
+            )}
+
+            {hasMore && !isLoadingMore && onLoadMore && (
+              <TouchableOpacity
+                style={styles.loadMoreButton}
+                activeOpacity={0.7}
+                onPress={onLoadMore}
+              >
+                <Ionicons name="arrow-down-circle-outline" size={20} color={colors.textMuted} />
+                <Text style={[styles.loadMoreText, { color: colors.textSecondary }]}>
+                  Load more results
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {!hasMore && externalResults.length > 0 && (
+              <View style={styles.endMessage}>
+                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                <Text style={[styles.endMessageText, { color: colors.textSecondary }]}>
+                  All results loaded ({externalResults.length} papers found)
+                </Text>
+              </View>
+            )}
           </>
         )}
       </View>
@@ -248,5 +288,40 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
     paddingHorizontal: Spacing.sm,
+  },
+  loadingMore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  loadingMoreText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '500',
+  },
+  loadMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    marginTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  loadMoreText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '500',
+  },
+  endMessage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  endMessageText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '500',
   },
 });

@@ -25,7 +25,6 @@ export type {
   GetSimplifiedArticleResponse,
   ContentBlock as SimplifyContentBlock,
   QuizQuestion,
-  Insight,
 } from './simplifyApi';
 
 export { default as searchApi } from './searchApi';
@@ -49,6 +48,15 @@ export type {
   QuizAttempt,
 } from './quizApi';
 
+// Unified Notes API (new)
+export { notesApi } from './notesApi';
+export type {
+  Note,
+  CreateNoteRequest,
+  UpdateNoteRequest,
+} from './notesApi';
+
+// Insights API (uses unified Notes API)
 export { insightsApi } from './insightsApi';
 export type {
   Insight as InsightApiInsight,
@@ -57,6 +65,7 @@ export type {
   InsightNote,
 } from './insightsApi';
 
+// Standalone Notes API (uses unified Notes API)
 export { standaloneNotesApi } from './standaloneNotesApi';
 export type {
   StandaloneNote,

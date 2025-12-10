@@ -74,16 +74,18 @@ export const useQuiz = (articleSlug: string): UseQuizReturn => {
         setQuestions(response.data);
         console.log('[QUIZ] Questions loaded:', response.data.questions.length);
       } else {
-        setQuestionsError(response.message || 'Failed to load quiz questions');
+        // Quiz not available (404 handled gracefully by API)
+        console.log('[QUIZ] Quiz not available for this article');
+        setQuestionsError(null); // Don't show error, just show empty state
+        setQuestions(null); // Will show "No quiz available"
       }
     } catch (error: any) {
-      console.error('[QUIZ] Error fetching questions:', error);
-
-      if (error.response?.status === 404) {
-        setQuestionsError('Quiz not available for this article');
-      } else if (error.response?.status === 401) {
+      // Handle remaining errors (401, 500, etc.)
+      if (error.response?.status === 401) {
+        console.warn('[QUIZ] Unauthorized:', error);
         setQuestionsError('Please login to take the quiz');
       } else {
+        console.error('[QUIZ] Error fetching questions:', error);
         setQuestionsError(error.response?.data?.message || 'Failed to load quiz questions');
       }
     } finally {

@@ -16,7 +16,7 @@
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ImageSourcePropType, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 
 // Search Result from API
 export interface SearchResultMetadata {
@@ -45,7 +45,6 @@ export interface UnifiedSearchResult {
   metadata?: SearchResultMetadata;
 
   // Legacy support for existing code
-  image?: ImageSourcePropType;
   category?: string;
   rating?: number;
   reads?: string;
@@ -69,8 +68,7 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
 }) => {
   const colors = Colors.light;
 
-  // Determine if this is a Scholar result (for special styling)
-  const isScholarResult = result.source === 'scholar';
+  // Determine source type and simplification status
   const isExternalSource = result.source === 'openalex' || result.source === 'scholar';
   const isSimplified = result.metadata?.isSimplified || false;
 
@@ -135,16 +133,11 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
         styles.card,
         Shadows.sm,
         { backgroundColor: colors.surface },
-        isExternalSource && styles.externalCard,
+        styles.externalCard, // Apply border to all cards
       ]}
       activeOpacity={0.8}
       onPress={handleMainAction}
     >
-      {/* Image (for internal articles) or placeholder */}
-      {result.image && (
-        <Image source={result.image} style={styles.image} resizeMode="cover" />
-      )}
-
       <View style={styles.content}>
         {/* Badges Container */}
         <View style={styles.badgesContainer}>
@@ -192,8 +185,8 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
           )}
         </View>
 
-        {/* Excerpt/Abstract (for Scholar results) */}
-        {isScholarResult && result.excerpt && (
+        {/* Excerpt/Abstract (for all results) */}
+        {result.excerpt && (
           <Text style={[styles.excerpt, { color: colors.textSecondary }]} numberOfLines={2}>
             {result.excerpt}
           </Text>
@@ -225,55 +218,55 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
           )}
         </View>
 
-        {/* Action Buttons (for external sources) */}
-        {isExternalSource && (
-          <View style={styles.actionsContainer}>
-            {/* PDF Button */}
-            {result.pdfUrl && (
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => handleOpenUrl(result.pdfUrl)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="document-outline" size={16} color="#6366F1" />
-                <Text style={styles.actionText}>PDF</Text>
-              </TouchableOpacity>
-            )}
+        {/* Action Buttons (for all results) */}
+        <View style={styles.actionsContainer}>
+          {/* PDF Button */}
+          {result.pdfUrl && (
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleOpenUrl(result.pdfUrl)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="document-outline" size={16} color="#6366F1" />
+              <Text style={styles.actionText}>PDF</Text>
+            </TouchableOpacity>
+          )}
 
-            {/* DOI Button */}
-            {result.doi && (
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handleOpenDoi}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="link-outline" size={16} color="#6366F1" />
-                <Text style={styles.actionText}>DOI</Text>
-              </TouchableOpacity>
-            )}
+          {/* DOI Button */}
+          {result.doi && (
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleOpenDoi}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="link-outline" size={16} color="#6366F1" />
+              <Text style={styles.actionText}>DOI</Text>
+            </TouchableOpacity>
+          )}
 
-            {/* Main Action Button */}
-            {isSimplified ? (
-              <TouchableOpacity
-                style={[styles.actionButton, styles.primaryActionButton]}
-                onPress={handleMainAction}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="book-outline" size={16} color="#FFFFFF" />
-                <Text style={[styles.actionText, styles.primaryActionText]}>Read</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[styles.actionButton, styles.primaryActionButton]}
-                onPress={handleMainAction}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="sparkles-outline" size={16} color="#FFFFFF" />
-                <Text style={[styles.actionText, styles.primaryActionText]}>Simplify</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
+          {/* Main Action Button */}
+          {isSimplified ? (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.primaryActionButton]}
+              onPress={handleMainAction}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="book-outline" size={16} color="#FFFFFF" />
+              <Text style={[styles.actionText, styles.primaryActionText]}>Read</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.primaryActionButton]}
+              onPress={handleMainAction}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="sparkles-outline" size={16} color="#FFFFFF" />
+              <Text style={[styles.actionText, styles.primaryActionText]}>
+                {isExternalSource ? 'Simplify' : 'Read'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -295,7 +288,6 @@ function citationsToRating(citations: number): number {
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
     borderRadius: Radius.md,
     overflow: 'hidden',
     marginBottom: Spacing.md,
@@ -304,14 +296,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E7FF',
   },
-  image: {
-    width: 100,
-    height: '100%',
-  },
   content: {
-    flex: 1,
-    padding: Spacing.sm,
-    justifyContent: 'space-between',
+    padding: Spacing.md,
   },
   badgesContainer: {
     flexDirection: 'row',

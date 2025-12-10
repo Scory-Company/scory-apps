@@ -35,8 +35,11 @@ export default function ArticleDetailScreen() {
   const [readingProgress, setReadingProgress] = useState(0);
   const [contentHeight, setContentHeight] = useState(0);
 
+  // Quiz availability state
+  const [isQuizAvailable, setIsQuizAvailable] = useState<boolean>(true);
+
   // Re-simplify hook
-  const { resimplify, isResimplifying, progress: resimplifyProgress } = useResimplify();
+  const { resimplify, resimplifyManual, isResimplifying, progress: resimplifyProgress, PremiumModal } = useResimplify();
 
   // Load user's preferred reading level from storage
   const loadPreferredReadingLevel = useCallback(async () => {
@@ -182,9 +185,6 @@ export default function ArticleDetailScreen() {
     (content) => content.readingLevel === selectedReadingLevel
   );
 
-  // Check if user is viewing a fallback level
-  const isViewingFallback = !isPreferredLevelAvailable && article?.contents && article.contents.length > 0;
-
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
@@ -206,19 +206,14 @@ export default function ArticleDetailScreen() {
     // TODO: Save to storage/API
   };
 
-  const handleSaveReflection = (reflection: string) => {
-    console.log('Reflection saved:', reflection);
-    // TODO: Save to storage/API
-  };
-
-  // Handle re-simplify
+  // Handle auto re-simplify
   const handleResimplify = useCallback(async () => {
     if (!article?.id) {
       console.error('[RESIMPLIFY] No article ID available');
       return;
     }
 
-    console.log('[RESIMPLIFY] Starting re-simplify for level:', selectedReadingLevel);
+    console.log('[RESIMPLIFY] Starting auto re-simplify for level:', selectedReadingLevel);
     // Convert to string for API
     const success = await resimplify(article.id, selectedReadingLevel as string);
 
@@ -228,6 +223,49 @@ export default function ArticleDetailScreen() {
       await fetchArticle();
     }
   }, [article?.id, selectedReadingLevel, resimplify, fetchArticle]);
+
+  // Handle manual re-simplify (requires premium)
+  const handleManualResimplify = useCallback(async () => {
+    if (!article?.id) {
+      console.error('[MANUAL-RESIMPLIFY] No article ID available');
+      return;
+    }
+
+    console.log('[MANUAL-RESIMPLIFY] User triggered manual re-simplify for level:', selectedReadingLevel);
+    // Convert to string for API
+    const success = await resimplifyManual(article.id, selectedReadingLevel as string);
+
+    if (success) {
+      console.log('[MANUAL-RESIMPLIFY] Success! Reloading article...');
+      // Reload article to get the new content
+      await fetchArticle();
+    }
+  }, [article?.id, selectedReadingLevel, resimplifyManual, fetchArticle]);
+
+  // Auto-trigger resimplify when preferred reading level is not available
+  useEffect(() => {
+    // Only trigger if:
+    // 1. Article is loaded
+    // 2. Not already resimplifying
+    // 3. Not loading article
+    // 4. Preferred level is not available
+    // 5. Article has at least some content (to avoid triggering on empty articles)
+    if (
+      article &&
+      !isResimplifying &&
+      !isLoading &&
+      !isPreferredLevelAvailable &&
+      article.contents &&
+      article.contents.length > 0
+    ) {
+      console.log('[AUTO-RESIMPLIFY] Preferred level not available, auto-triggering resimplify...');
+      console.log('[AUTO-RESIMPLIFY] Preferred:', selectedReadingLevel);
+      console.log('[AUTO-RESIMPLIFY] Available:', article.contents.map(c => c.readingLevel));
+
+      // Trigger resimplify automatically
+      handleResimplify();
+    }
+  }, [article, isResimplifying, isLoading, isPreferredLevelAvailable, selectedReadingLevel, handleResimplify]);
 
   // Loading state with skeleton
   if (isLoading) {
@@ -312,32 +350,7 @@ export default function ArticleDetailScreen() {
             <SourceLinks externalMetadata={article.externalMetadata} />
           )}
 
-          {/* Reading Level Mismatch Banner */}
-          {isViewingFallback && !isResimplifying && (
-            <View style={[styles.levelMismatchBanner, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
-              <View style={styles.bannerContent}>
-                <Ionicons name="information-circle" size={20} color={colors.primary} />
-                <View style={styles.bannerTextContainer}>
-                  <Text style={[styles.bannerTitle, { color: colors.text }]}>
-                    {selectedReadingLevel.charAt(0).toUpperCase() + selectedReadingLevel.slice(1)} level not available
-                  </Text>
-                  <Text style={[styles.bannerSubtitle, { color: colors.textMuted }]}>
-                    Currently showing {displayContent?.readingLevel} level.
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={[styles.resimplifyButton, { backgroundColor: colors.primary }]}
-                onPress={handleResimplify}
-              >
-                <Text style={[styles.resimplifyButtonText, { color: '#FFFFFF' }]}>
-                  Generate {selectedReadingLevel.charAt(0).toUpperCase() + selectedReadingLevel.slice(1)}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Re-simplifying Loading Banner */}
+          {/* Auto Re-simplifying Loading Banner */}
           {isResimplifying && (
             <View style={[styles.levelMismatchBanner, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
               <View style={styles.bannerContent}>
@@ -366,11 +379,38 @@ export default function ArticleDetailScreen() {
             </Text>
           )}
 
+          {/* Manual Re-simplify Card - After Content (Only show if quiz not available) */}
+          {!isResimplifying && displayContent && !isQuizAvailable && (
+            <View style={[styles.resimplifyCard, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+              <View style={styles.resimplifyCardHeader}>
+                <Ionicons name="sparkles" size={24} color={colors.primary} />
+                <Text style={[styles.resimplifyCardTitle, { color: colors.text }]}>
+                  Want a different perspective?
+                </Text>
+              </View>
+              <Text style={[styles.resimplifyCardDescription, { color: colors.textMuted }]}>
+                Re-simplify this article to match your preferred {selectedReadingLevel} reading level for better understanding.
+              </Text>
+              <TouchableOpacity
+                style={[styles.resimplifyCardButton, { backgroundColor: colors.primary }]}
+                onPress={handleManualResimplify}
+              >
+                <Ionicons name="refresh" size={18} color={colors.textwhite} />
+                <Text style={[styles.resimplifyCardButtonText, { color: colors.textwhite }]}>
+                  Re-simplify Now
+                </Text>
+                <View style={[styles.premiumBadge, { backgroundColor: colors.textwhite + '30' }]}>
+                  <Text style={[styles.premiumBadgeText, { color: colors.textwhite }]}>PREMIUM</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Comprehension Section */}
           <ComprehensionSection
             articleSlug={article.slug}
             category={article.category.name}
-            onSaveReflection={handleSaveReflection}
+            onQuizAvailabilityChange={setIsQuizAvailable}
           />
 
           {/* Related Articles - TODO: Fetch from API */}
@@ -387,6 +427,9 @@ export default function ArticleDetailScreen() {
         articleTitle={article.title}
         onSaveNote={handleSaveNote}
       />
+
+      {/* Premium Upgrade Modal */}
+      <PremiumModal />
     </View>
   );
 }
@@ -486,5 +529,59 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: Typography.fontSize.base,
     fontWeight: '600',
+  },
+  // Re-simplify Card (after content)
+  resimplifyCard: {
+    borderRadius: Radius.xl,
+    borderWidth: 1.5,
+    padding: Spacing.lg,
+    marginVertical: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  resimplifyCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  resimplifyCardTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '700',
+    fontFamily: Typography.fontFamily.bold,
+  },
+  resimplifyCardDescription: {
+    fontSize: Typography.fontSize.sm,
+    lineHeight: 20,
+    marginBottom: Spacing.md,
+  },
+  resimplifyCardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: Radius.lg,
+    gap: Spacing.sm,
+  },
+  resimplifyCardButtonText: {
+    fontSize: Typography.fontSize.base,
+    fontWeight: '600',
+    fontFamily: Typography.fontFamily.semiBold,
+    flex: 1,
+    textAlign: 'center',
+  },
+  premiumBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+  },
+  premiumBadgeText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });

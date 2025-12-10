@@ -1,4 +1,5 @@
 import api from './api';
+import { notesApi, Note } from './notesApi';
 
 // ============================================================================
 // Types & Interfaces
@@ -26,16 +27,9 @@ export interface SaveInsightNoteRequest {
   isCustom?: boolean; // true = user wrote it, false = selected from suggestions
 }
 
-export interface InsightNote {
-  id: number;
-  userId?: number;
-  articleId?: number;
-  articleTitle: string;
-  articleSlug: string;
-  content: string;
-  isCustom: boolean;
-  createdAt: string;
-}
+// NOTE: Using unified Note type from notesApi
+// For backward compatibility, we export it as InsightNote
+export type InsightNote = Note;
 
 // ============================================================================
 // API Functions
@@ -60,87 +54,86 @@ export const getInsights = async (slug: string) => {
 
 /**
  * Save insight note for an article
- * Note: If user already saved note for this article, it will UPDATE (not create new)
+ * Uses unified Notes API - creates article note
  * Auth: Required
  *
  * @param slug - Article slug
- * @param content - Note content (min 5 chars, max 1000 chars)
- * @param isCustom - Whether user wrote it themselves or selected from suggestions
+ * @param content - Note content (min 1 char, max 10000 chars)
+ * @param _isCustom - (Deprecated) Whether user wrote it themselves - always true now
  * @returns Saved note data
  */
 export const saveInsightNote = async (
   slug: string,
   content: string,
-  isCustom: boolean = false
+  _isCustom: boolean = true // Deprecated parameter, kept for compatibility
 ) => {
-  const response = await api.post<{
-    success: boolean;
-    message: string;
-    data: InsightNote;
-  }>(`/articles/${slug}/notes`, {
-    content,
-    isCustom,
-  });
-
-  return response.data;
+  // Use unified Notes API
+  return notesApi.createArticleNote(slug, content);
 };
 
 /**
- * Get all insight notes for current user
+ * Get all insight notes for current user (all notes - article notes + standalone notes)
+ * Uses unified Notes API
  * Auth: Required
  *
- * @returns Array of user's insight notes
+ * @returns Array of all user's notes (both article notes and standalone notes)
  */
 export const getUserInsightNotes = async () => {
-  console.log('[INSIGHTS_API] Calling GET /articles/notes');
+  console.log('[INSIGHTS_API] Fetching all user notes');
 
-  const response = await api.get<{
-    success: boolean;
-    message: string;
-    data: InsightNote[];
-  }>('/articles/notes');
+  // Get all notes (both article notes and standalone notes)
+  const response = await notesApi.getAllNotes();
 
-  console.log('[INSIGHTS_API] Response status:', response.status);
-  console.log('[INSIGHTS_API] Response data:', response.data);
+  console.log('[INSIGHTS_API] Response:', response);
 
-  return response.data;
+  if (response.success && response.data) {
+    console.log('[INSIGHTS_API] Loaded', response.data.length, 'total notes');
+
+    return {
+      success: true,
+      message: response.message,
+      data: response.data,
+    };
+  }
+
+  return response;
 };
 
 /**
  * Get insight note for specific article
+ * Uses unified Notes API with articleSlug filter
  * Auth: Required
  *
  * @param slug - Article slug
- * @returns User's note for this article (if exists)
+ * @returns User's notes for this article (array)
  */
 export const getUserInsightNoteByArticle = async (slug: string) => {
-  const response = await api.get<{
-    success: boolean;
-    message: string;
-    data: InsightNote[];
-  }>(`/articles/${slug}/notes`);
+  console.log('[INSIGHTS_API] Fetching notes for article:', slug);
 
-  return response.data;
+  // Use unified Notes API with articleSlug filter
+  const response = await notesApi.getArticleNotes(slug);
+
+  console.log('[INSIGHTS_API] Found', response.data?.length || 0, 'notes for article');
+
+  return response;
 };
 
 /**
  * Delete insight note
+ * Uses unified Notes API
  * Auth: Required
  *
- * @param noteId - Note ID to delete
+ * @param noteId - Note ID to delete (UUID string)
  * @returns Success response
  */
-export const deleteInsightNote = async (noteId: number) => {
-  const response = await api.delete<{
-    success: boolean;
-    message: string;
-    data: {
-      success: boolean;
-      message: string;
-    };
-  }>(`/articles/notes/${noteId}`);
+export const deleteInsightNote = async (noteId: string | number) => {
+  console.log('[INSIGHTS_API] Deleting note:', noteId);
 
-  return response.data;
+  // Convert to string if number (for backward compatibility)
+  const noteIdStr = String(noteId);
+
+  // Use unified Notes API
+  return notesApi.deleteNote(noteIdStr);
 };
 
 // ============================================================================

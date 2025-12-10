@@ -15,9 +15,9 @@ export const ListBlock: React.FC<ListBlockProps> = ({ style, items }) => {
       {items.map((item, index) => (
         <View key={index} style={styles.listItem}>
           {style === 'bullet' ? (
-            <View style={[styles.bullet, { backgroundColor: colors.primary }]} />
+            <View style={[styles.bullet, { backgroundColor: colors.text }]} />
           ) : (
-            <Text style={[styles.number, { color: colors.primary }]}>
+            <Text style={[styles.number, { color: colors.text }]}>
               {index + 1}.
             </Text>
           )}

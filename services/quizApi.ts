@@ -70,13 +70,26 @@ export interface QuizAttempt {
  * @returns Quiz questions data
  */
 export const getQuizQuestions = async (slug: string) => {
-  const response = await api.get<{
-    success: boolean;
-    message: string;
-    data: QuizQuestionsResponse;
-  }>(`/articles/${slug}/quiz`);
+  try {
+    const response = await api.get<{
+      success: boolean;
+      message: string;
+      data: QuizQuestionsResponse;
+    }>(`/articles/${slug}/quiz`);
 
-  return response.data;
+    return response.data;
+  } catch (error: any) {
+    // Handle 404 gracefully (quiz not available is expected)
+    if (error.response?.status === 404) {
+      return {
+        success: false,
+        message: 'Quiz not available for this article',
+        data: null as any, // Will be handled in the hook
+      };
+    }
+    // Re-throw other errors
+    throw error;
+  }
 };
 
 /**
