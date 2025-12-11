@@ -39,6 +39,7 @@ export interface SearchResult {
   link: string;
   pdfUrl: string | null;
   citations: number;
+  rating?: number;
   isOpenAccess: boolean;
   publisher: string | null;
   doi: string | null;

@@ -22,6 +22,20 @@ export const ArticleMetadata: React.FC<ArticleMetadataProps> = ({
 }) => {
   const colors = Colors.light;
 
+  // Format author name - max 2 authors, add "et al." if more
+  const formatAuthorName = (authorString: string): string => {
+    const authors = authorString.split(',').map(a => a.trim());
+
+    if (authors.length <= 2) {
+      return authorString;
+    }
+
+    // More than 2 authors, show first 2 + "et al."
+    return `${authors[0]}, ${authors[1]}, et al.`;
+  };
+
+  const displayAuthor = formatAuthorName(author);
+
   return (
     <>
       {/* Category Badge */}
@@ -35,7 +49,7 @@ export const ArticleMetadata: React.FC<ArticleMetadataProps> = ({
       {/* Metadata Row */}
       <View style={styles.metadataContainer}>
         <View style={styles.metadataLeft}>
-          <Text style={[styles.authorName, { color: colors.text }]}>{author}</Text>
+          <Text style={[styles.authorName, { color: colors.text }]}>{displayAuthor}</Text>
           <View style={styles.metadataStats}>
             <View style={styles.statItem}>
               <Ionicons name="star" size={16} color={colors.warning} />

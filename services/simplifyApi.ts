@@ -38,6 +38,8 @@ export interface SimplifyExternalRequest {
   doi?: string;
   readingLevel?: ReadingLevel;
   categoryName?: string;
+  citations?: number;
+  rating?: number;
 }
 
 export interface ContentBlock {

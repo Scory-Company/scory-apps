@@ -24,6 +24,20 @@ export const RecentlyAddedCard: React.FC<RecentlyAddedCardProps> = ({
 }) => {
   const colors = Colors.light;
 
+  // Format author name - max 2 authors, add "et al." if more
+  const formatAuthorName = (authorString: string): string => {
+    const authors = authorString.split(',').map(a => a.trim());
+
+    if (authors.length <= 2) {
+      return authorString;
+    }
+
+    // More than 2 authors, show first 2 + "et al."
+    return `${authors[0]}, ${authors[1]}, et al.`;
+  };
+
+  const displayAuthor = formatAuthorName(author);
+
   return (
     <TouchableOpacity
       style={[styles.recentCard, { backgroundColor: colors.surface }, Shadows.sm]}
@@ -34,7 +48,7 @@ export const RecentlyAddedCard: React.FC<RecentlyAddedCardProps> = ({
         <Text style={[styles.recentTitle, { color: colors.text }]} numberOfLines={2}>
           {title}
         </Text>
-        <Text style={[styles.recentAuthor, { color: colors.textMuted }]}>{author}</Text>
+        <Text style={[styles.recentAuthor, { color: colors.textMuted }]}>{displayAuthor}</Text>
         <View style={styles.recentFooter}>
           <View style={[styles.categorySmallBadge, { backgroundColor: colors.surfaceSecondary }]}>
             <Text style={[styles.categorySmallText, { color: colors.textSecondary }]}>

@@ -341,8 +341,12 @@ export default function ArticleDetailScreen() {
             title={article.title}
             author={article.authorName}
             rating={article.rating}
-            reads={`${(article.viewCount / 1000).toFixed(1)}k`}
-            readTime={`${article.readTimeMinutes} min read`}
+            reads={
+              article.viewCount >= 1000
+                ? `${(article.viewCount / 1000).toFixed(1)}k reads`
+                : `${article.viewCount || 0} reads`
+            }
+            readTime={`${article.readTimeMinutes || 5} min read`}
           />
 
           {/* Source Links (PDF, DOI) - Only for external articles */}

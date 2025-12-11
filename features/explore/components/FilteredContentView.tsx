@@ -181,6 +181,7 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
                   highlightText={searchQuery}
                   onSimplify={() => {
                     // Simplify workflow with backend integration
+                    // Pass citations and rating to be saved in internal database
                     simplifyAndNavigate({
                       externalId: article.id,
                       source: article.source === 'openalex' ? 'openalex' : 'scholar',
@@ -190,6 +191,8 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
                       abstract: article.excerpt,
                       pdfUrl: article.pdfUrl || undefined,
                       doi: article.doi || undefined,
+                      citations: article.citations || undefined,
+                      rating: (article as any).rating || undefined,
                     });
                   }}
                   onReadSimplified={(articleId) => {

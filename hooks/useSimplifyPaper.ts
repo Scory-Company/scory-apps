@@ -146,10 +146,39 @@ export function useSimplifyPaper(): UseSimplifyPaperResult {
       });
       console.log('='.repeat(60));
 
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        'Failed to simplify paper. Please try again.';
+      // Generate user-friendly error message based on error type
+      let errorTitle = 'Simplification Failed';
+      let errorMessage = 'Failed to simplify paper. Please try again.';
+
+      if (err.response?.status === 500) {
+        // Server error
+        const serverError = err.response?.data?.error || '';
+
+        if (serverError.includes('AI returned invalid JSON') || serverError.includes('SyntaxError')) {
+          errorTitle = 'Processing Error';
+          errorMessage = 'The AI service encountered an issue while processing this paper. This usually happens with very long or complex documents. Please try again or choose a different paper.';
+        } else if (serverError.includes('timeout') || serverError.includes('Timeout')) {
+          errorTitle = 'Timeout Error';
+          errorMessage = 'The simplification process took too long. Please try again with a shorter paper or try later.';
+        } else {
+          errorTitle = 'Server Error';
+          errorMessage = err.response?.data?.message || 'The server encountered an error while processing your request. Please try again later.';
+        }
+      } else if (err.response?.status === 404) {
+        errorTitle = 'Paper Not Found';
+        errorMessage = 'The paper could not be found or accessed. Please try a different paper.';
+      } else if (err.response?.status === 403) {
+        errorTitle = 'Access Denied';
+        errorMessage = 'You do not have permission to simplify this paper.';
+      } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        errorTitle = 'Connection Timeout';
+        errorMessage = 'The request took too long to complete. Please check your internet connection and try again.';
+      } else if (err.message?.includes('Network Error') || !err.response) {
+        errorTitle = 'Network Error';
+        errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
 
       setError(errorMessage);
       setProgress({
@@ -157,11 +186,11 @@ export function useSimplifyPaper(): UseSimplifyPaperResult {
         message: '',
       });
 
-      // Show error alert
+      // Show user-friendly error alert
       Alert.alert(
-        'Simplification Failed',
+        errorTitle,
         errorMessage,
-        [{ text: 'OK' }]
+        [{ text: 'OK', style: 'cancel' }]
       );
 
       setIsSimplifying(false);
