@@ -17,7 +17,7 @@ export const CalloutBlock: React.FC<CalloutBlockProps> = ({ text, variant }) => 
       case 'info':
         return {
           backgroundColor: colors.primaryLight,
-          iconColor: colors.primary,
+          iconColor: colors.text,
           icon: 'information-circle' as const,
         };
       case 'warning':

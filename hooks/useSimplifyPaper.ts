@@ -32,7 +32,6 @@
 import { useState, useCallback } from 'react';
 import { router } from 'expo-router';
 import { simplifyApi, SimplifyExternalRequest } from '@/services';
-import { Alert } from 'react-native';
 
 interface UseSimplifyPaperResult {
   simplify: (request: SimplifyExternalRequest) => Promise<{
@@ -41,6 +40,7 @@ interface UseSimplifyPaperResult {
   } | null>;
   isSimplifying: boolean;
   error: string | null;
+  errorTitle: string | null;
   progress: {
     step: 'idle' | 'checking' | 'simplifying' | 'done';
     message: string;
@@ -50,6 +50,7 @@ interface UseSimplifyPaperResult {
 export function useSimplifyPaper(): UseSimplifyPaperResult {
   const [isSimplifying, setIsSimplifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorTitle, setErrorTitle] = useState<string | null>(null);
   const [progress, setProgress] = useState<{
     step: 'idle' | 'checking' | 'simplifying' | 'done';
     message: string;
@@ -181,17 +182,11 @@ export function useSimplifyPaper(): UseSimplifyPaperResult {
       }
 
       setError(errorMessage);
+      setErrorTitle(errorTitle);
       setProgress({
         step: 'idle',
         message: '',
       });
-
-      // Show user-friendly error alert
-      Alert.alert(
-        errorTitle,
-        errorMessage,
-        [{ text: 'OK', style: 'cancel' }]
-      );
 
       setIsSimplifying(false);
       return null;
@@ -202,6 +197,7 @@ export function useSimplifyPaper(): UseSimplifyPaperResult {
     simplify,
     isSimplifying,
     error,
+    errorTitle,
     progress,
   };
 }

@@ -24,6 +24,20 @@ export const CardArticle: React.FC<CardArticleProps> = ({
 }) => {
   const colors = Colors.light;
 
+  // Format author name - max 2 authors, add "et al." if more
+  const formatAuthorName = (authorString: string): string => {
+    const authors = authorString.split(',').map(a => a.trim());
+
+    if (authors.length <= 2) {
+      return authorString;
+    }
+
+    // More than 2 authors, show first 2 + "et al."
+    return `${authors[0]}, ${authors[1]}, et al.`;
+  };
+
+  const displayAuthor = formatAuthorName(author);
+
   return (
     <TouchableOpacity
       style={[styles.forYouCard, { backgroundColor: colors.surface }, Shadows.md]}
@@ -39,7 +53,7 @@ export const CardArticle: React.FC<CardArticleProps> = ({
         <Text style={[styles.forYouTitle, { color: colors.text }]} numberOfLines={2}>
           {title}
         </Text>
-        <Text style={[styles.forYouAuthor, { color: colors.textMuted }]}>{author}</Text>
+        <Text style={[styles.forYouAuthor, { color: colors.textMuted }]}>{displayAuthor}</Text>
         <View style={styles.forYouStats}>
           <View style={styles.statItem}>
             <Ionicons name="star" size={14} color={colors.warning} />

@@ -15,11 +15,11 @@ import { View, Text, StyleSheet, ScrollView, StatusBar, ActivityIndicator, Refre
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import {
-  studyCollections,
   weeklyGoal,
   learningStats as learningStatsData,
 } from '@/data/mock';
 import { useUserInsights } from '@/hooks/useUserInsights';
+import { useStudyCollections } from '@/hooks/useStudyCollections';
 
 export default function LearnScreen() {
   const colors = Colors.light;
@@ -31,20 +31,33 @@ export default function LearnScreen() {
     isLoading: isLoadingInsights,
     isRefreshing,
     error: insightsError,
+    fetchInsights,
     refreshInsights,
     invalidateCache,
   } = useUserInsights();
 
+  // Fetch study collections from API
+  const {
+    collections: studyCollections,
+    isLoading: isLoadingCollections,
+    isRefreshing: isRefreshingCollections,
+    error: collectionsError,
+    refetch: refetchCollections,
+    refresh: refreshCollections,
+  } = useStudyCollections();
+
   // Modal state for adding new note
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
 
-  // Refresh insights when screen comes into focus
+  // Refresh data when screen comes into focus (uses cache if still valid)
   useFocusEffect(
     React.useCallback(() => {
-      console.log('[LEARN] Screen focused - refreshing insights');
-      invalidateCache();
-      refreshInsights();
-    }, [invalidateCache, refreshInsights])
+      console.log('[LEARN] Screen focused - fetching data (with cache)');
+      // Don't invalidate cache - let hooks decide if cache is still valid
+      // This makes tab switching instant if cache is fresh (<30s)
+      fetchInsights(); // Uses cache if age < 30s
+      refetchCollections();
+    }, [fetchInsights, refetchCollections])
   );
 
   // Learning Stats with color config
@@ -75,6 +88,11 @@ export default function LearnScreen() {
   const showHeaderAddButton = allInsights.length > 2;
   const remainingInsightsCount = allInsights.length > 3 ? allInsights.length - 3 : 0;
 
+  // Smart loading: only show full loading on initial load (no data + loading)
+  // If we have data, don't block UI with loading indicator
+  const showInsightsLoading = isLoadingInsights && allInsights.length === 0;
+  const showCollectionsLoading = isLoadingCollections && studyCollections.length === 0;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
@@ -93,8 +111,11 @@ export default function LearnScreen() {
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={refreshInsights}
+            refreshing={isRefreshing || isRefreshingCollections}
+            onRefresh={() => {
+              refreshInsights();
+              refreshCollections();
+            }}
             colors={[colors.primary]}
             tintColor={colors.primary}
           />
@@ -142,7 +163,20 @@ export default function LearnScreen() {
             onViewAllPress={() => console.log('View all collections')}
           />
 
-          {studyCollections.length > 0 ? (
+          {showCollectionsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                Loading collections...
+              </Text>
+            </View>
+          ) : collectionsError && studyCollections.length === 0 ? (
+            <EmptyState
+              icon="alert-circle-outline"
+              title="Unable to Load Collections"
+              message={collectionsError}
+            />
+          ) : studyCollections.length > 0 ? (
             <View style={styles.collectionsContainer}>
               {studyCollections.map((collection) => (
                 <StudyCollectionCard
@@ -151,7 +185,7 @@ export default function LearnScreen() {
                   category={collection.category}
                   articlesCount={collection.articlesCount}
                   progress={collection.progress}
-                  icon={collection.icon}
+                  icon={collection.icon as any}
                   color={collection.color}
                   onPress={() => console.log('Collection pressed:', collection.title)}
                 />
@@ -161,9 +195,7 @@ export default function LearnScreen() {
             <EmptyState
               icon="folder-open-outline"
               title="No Collections Yet"
-              message="Start creating your first study collection to organize your learning"
-              actionLabel="Create Collection"
-              onActionPress={() => console.log('Create collection pressed')}
+              message="Bookmark articles to automatically create collections by category"
             />
           )}
         </View>
@@ -179,14 +211,14 @@ export default function LearnScreen() {
             onAddPress={() => setShowAddNoteModal(true)}
           />
 
-          {isLoadingInsights ? (
+          {showInsightsLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.primary} />
               <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
                 Loading your insights...
               </Text>
             </View>
-          ) : insightsError ? (
+          ) : insightsError && allInsights.length === 0 ? (
             <>
               <EmptyState
                 icon="alert-circle-outline"

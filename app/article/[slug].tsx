@@ -18,6 +18,9 @@ import { articlesApi, ArticleResponse, ReadingLevel, ArticleContent as ArticleCo
 import { SkeletonArticleDetail, SimplifyLoadingModal } from '@/features/shared/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useResimplify } from '@/hooks/useResimplify';
+import { collectionService } from '@/services/collectionService';
+import { useToast } from '@/features/shared/hooks/useToast';
+import * as BookmarkCache from '@/utils/bookmarkCache';
 
 export default function ArticleDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -38,22 +41,25 @@ export default function ArticleDetailScreen() {
   // Quiz availability state
   const [isQuizAvailable, setIsQuizAvailable] = useState<boolean>(true);
 
+  // Bookmark state
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarking, setIsBookmarking] = useState(false);
+
   // Re-simplify hook
   const { resimplify, resimplifyManual, isResimplifying, progress: resimplifyProgress, PremiumModal } = useResimplify();
+
+  // Toast hook
+  const toast = useToast();
 
   // Load user's preferred reading level from storage
   const loadPreferredReadingLevel = useCallback(async () => {
     try {
       const storedLevel = await AsyncStorage.getItem('preferredReadingLevel');
-      console.log('🔍 [DEBUG] Loaded from AsyncStorage:', storedLevel || 'null (default: SIMPLE)');
       if (storedLevel && Object.values(ReadingLevel).includes(storedLevel as ReadingLevel)) {
         setSelectedReadingLevel(storedLevel as ReadingLevel);
-        console.log('✅ [DEBUG] Reading level set to:', storedLevel);
-      } else {
-        console.log('⚠️ [DEBUG] Using default reading level: SIMPLE');
       }
     } catch (err) {
-      console.error('❌ [DEBUG] Failed to load preferred reading level:', err);
+      console.error('Failed to load preferred reading level:', err);
     }
   }, []);
 
@@ -65,74 +71,35 @@ export default function ArticleDetailScreen() {
   );
 
   const fetchArticle = useCallback(async () => {
-    if (!slug) {
-      console.log('[❌ FETCH] No slug provided');
-      return;
-    }
+    if (!slug) return;
 
     setIsLoading(true);
-    console.log('='.repeat(60));
-    console.log('[📄 ARTICLE PAGE] Fetching article...');
-    console.log('[📄 ARTICLE PAGE] Slug/ID parameter:', slug);
-    console.log('='.repeat(60));
 
     try {
       // Try fetching by slug first
       let response;
       try {
-        console.log('[🔍 ATTEMPT 1] Trying getBySlug...');
         response = await articlesApi.getBySlug(slug as string);
-        console.log('[✅ SUCCESS] Article fetched by slug!');
-        console.log('[✅ SUCCESS] Article data:', JSON.stringify({
-          id: response.data?.data?.id,
-          slug: response.data?.data?.slug,
-          title: response.data?.data?.title,
-          hasContents: !!response.data?.data?.contents,
-          contentsCount: response.data?.data?.contents?.length,
-        }, null, 2));
       } catch (slugError: any) {
         // If slug fails, try by ID (for simplified articles)
-        console.log('[⚠️ ATTEMPT 1 FAILED] Slug fetch failed');
-        console.log('[⚠️ ERROR] Status:', slugError.response?.status);
-        console.log('[⚠️ ERROR] Message:', slugError.message);
-
         if (slugError.response?.status === 404) {
-          console.log('[🔍 ATTEMPT 2] Trying getById...');
           response = await articlesApi.getById(slug as string);
-          console.log('[✅ SUCCESS] Article fetched by ID!');
-          console.log('[✅ SUCCESS] Article data:', JSON.stringify({
-            id: response.data?.data?.id,
-            slug: response.data?.data?.slug,
-            title: response.data?.data?.title,
-            hasContents: !!response.data?.data?.contents,
-            contentsCount: response.data?.data?.contents?.length,
-          }, null, 2));
         } else {
           throw slugError;
         }
       }
 
       if (response.data?.data) {
-        console.log('[✅ FINAL] Setting article state');
         setArticle(response.data.data);
         setError(false);
       } else {
-        console.log('[❌ FINAL] No data in response');
         setError(true);
       }
     } catch (err: any) {
-      console.log('='.repeat(60));
-      console.error('[❌ FETCH FAILED] Failed to fetch article!');
-      console.error('[❌ FETCH FAILED] Error:', err);
-      console.error('[❌ FETCH FAILED] Error message:', err.message);
-      console.error('[❌ FETCH FAILED] Error response:', err.response?.data);
-      console.error('[❌ FETCH FAILED] Error status:', err.response?.status);
-      console.log('='.repeat(60));
+      console.error('Failed to fetch article:', err);
       setError(true);
     } finally {
       setIsLoading(false);
-      console.log('[📄 ARTICLE PAGE] Fetch complete');
-      console.log('='.repeat(60));
     }
   }, [slug]);
 
@@ -143,22 +110,29 @@ export default function ArticleDetailScreen() {
     }
   }, [slug, fetchArticle]);
 
+  // Check bookmark status from cache when article loads
+  useEffect(() => {
+    const checkBookmarkStatus = async () => {
+      if (article?.id) {
+        const cached = await BookmarkCache.isArticleBookmarked(article.id);
+        setIsBookmarked(cached);
+      }
+    };
+
+    checkBookmarkStatus();
+  }, [article?.id]);
+
   // Get content for selected reading level with fallback
   const getDisplayContent = (): ArticleContentType | null => {
     if (!article?.contents || article.contents.length === 0) {
-      console.log('🔍 [DEBUG] No contents available in article');
       return null;
     }
-
-    console.log('🔍 [DEBUG] Selected Reading Level:', selectedReadingLevel);
-    console.log('🔍 [DEBUG] Available Levels:', article.contents.map(c => c.readingLevel));
 
     // Try to find content for selected reading level
     const preferredContent = article.contents.find(
       (content) => content.readingLevel === selectedReadingLevel
     );
     if (preferredContent) {
-      console.log('✅ [DEBUG] Using preferred level:', preferredContent.readingLevel);
       return preferredContent;
     }
 
@@ -168,13 +142,11 @@ export default function ArticleDetailScreen() {
     for (const level of fallbackOrder) {
       const fallbackContent = article.contents.find(content => content.readingLevel === level);
       if (fallbackContent) {
-        console.log(`⚠️ [DEBUG] Fallback to ${level} (${selectedReadingLevel} not found)`);
         return fallbackContent;
       }
     }
 
     // Last fallback: return first available content
-    console.log('⚠️ [DEBUG] Using first available:', article.contents[0]?.readingLevel);
     return article.contents[0] || null;
   };
 
@@ -201,24 +173,81 @@ export default function ArticleDetailScreen() {
     setContentHeight(event.nativeEvent.layout.height);
   }, []);
 
-  const handleSaveNote = (note: string) => {
-    console.log('Insight note saved:', note);
+  const handleSaveNote = () => {
     // TODO: Save to storage/API
   };
 
+  // Handle bookmark toggle with optimistic updates
+  const handleBookmark = useCallback(async () => {
+    if (!article?.id || isBookmarking) return;
+
+    // Store original state for rollback
+    const previousState = isBookmarked;
+
+    // OPTIMISTIC UPDATE: Update UI immediately
+    setIsBookmarked(!isBookmarked);
+    setIsBookmarking(true);
+
+    try {
+      if (previousState) {
+        // Un-bookmark
+        await BookmarkCache.removeFromBookmarkCache(article.id);
+        const result = await collectionService.unbookmarkArticle(article.id);
+
+        // Show feedback
+        if (result.collection.wasDeleted) {
+          toast.success('Bookmark removed and collection deleted', 2000);
+        } else {
+          toast.success('Bookmark removed', 2000);
+        }
+      } else {
+        // Bookmark
+        await BookmarkCache.addToBookmarkCache(article.id);
+        const result = await collectionService.bookmarkArticle(article.id);
+
+        // Show feedback
+        if (result.collection.isNew) {
+          toast.success(`Added to new "${result.collection.category}" collection!`, 2500);
+        } else {
+          toast.success(`Added to "${result.collection.category}"`, 2000);
+        }
+      }
+    } catch (err: any) {
+      console.error('Bookmark error:', err);
+
+      // ROLLBACK: Revert UI on error
+      setIsBookmarked(previousState);
+
+      // Rollback cache
+      if (previousState) {
+        await BookmarkCache.addToBookmarkCache(article.id);
+      } else {
+        await BookmarkCache.removeFromBookmarkCache(article.id);
+      }
+
+      // Handle specific errors
+      if (err.message.includes('already bookmarked')) {
+        toast.warning('Already in your collection', 2000);
+        setIsBookmarked(true);
+        await BookmarkCache.addToBookmarkCache(article.id);
+      } else if (err.message.includes('Unauthorized')) {
+        toast.error('Please login to bookmark', 2500);
+      } else {
+        toast.error(err.message || 'Failed to update bookmark', 2500);
+      }
+    } finally {
+      setIsBookmarking(false);
+    }
+  }, [article?.id, isBookmarked, isBookmarking, toast]);
+
   // Handle auto re-simplify
   const handleResimplify = useCallback(async () => {
-    if (!article?.id) {
-      console.error('[RESIMPLIFY] No article ID available');
-      return;
-    }
+    if (!article?.id) return;
 
-    console.log('[RESIMPLIFY] Starting auto re-simplify for level:', selectedReadingLevel);
     // Convert to string for API
     const success = await resimplify(article.id, selectedReadingLevel as string);
 
     if (success) {
-      console.log('[RESIMPLIFY] Success! Reloading article...');
       // Reload article to get the new content
       await fetchArticle();
     }
@@ -226,17 +255,12 @@ export default function ArticleDetailScreen() {
 
   // Handle manual re-simplify (requires premium)
   const handleManualResimplify = useCallback(async () => {
-    if (!article?.id) {
-      console.error('[MANUAL-RESIMPLIFY] No article ID available');
-      return;
-    }
+    if (!article?.id) return;
 
-    console.log('[MANUAL-RESIMPLIFY] User triggered manual re-simplify for level:', selectedReadingLevel);
     // Convert to string for API
     const success = await resimplifyManual(article.id, selectedReadingLevel as string);
 
     if (success) {
-      console.log('[MANUAL-RESIMPLIFY] Success! Reloading article...');
       // Reload article to get the new content
       await fetchArticle();
     }
@@ -258,10 +282,6 @@ export default function ArticleDetailScreen() {
       article.contents &&
       article.contents.length > 0
     ) {
-      console.log('[AUTO-RESIMPLIFY] Preferred level not available, auto-triggering resimplify...');
-      console.log('[AUTO-RESIMPLIFY] Preferred:', selectedReadingLevel);
-      console.log('[AUTO-RESIMPLIFY] Available:', article.contents.map(c => c.readingLevel));
-
       // Trigger resimplify automatically
       handleResimplify();
     }
@@ -326,8 +346,10 @@ export default function ArticleDetailScreen() {
         {/* Hero Image with Header */}
         <ArticleHero
           image={{ uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' }}
-          onBookmark={() => console.log('Bookmark')}
-          onShare={() => console.log('Share')}
+          onBookmark={handleBookmark}
+          onShare={() => {/* TODO: Implement share */}}
+          isBookmarked={isBookmarked}
+          isBookmarking={isBookmarking}
         />
 
         {/* Content Container */}
@@ -349,8 +371,8 @@ export default function ArticleDetailScreen() {
             readTime={`${article.readTimeMinutes || 5} min read`}
           />
 
-          {/* Source Links (PDF, DOI) - Only for external articles */}
-          {article.isExternal && article.externalMetadata && (
+          {/* Source Links (PDF, DOI) - Show if external metadata exists */}
+          {article.externalMetadata && (
             <SourceLinks externalMetadata={article.externalMetadata} />
           )}
 
@@ -434,6 +456,9 @@ export default function ArticleDetailScreen() {
 
       {/* Premium Upgrade Modal */}
       <PremiumModal />
+
+      {/* Toast Notifications */}
+      <toast.ToastComponent />
     </View>
   );
 }

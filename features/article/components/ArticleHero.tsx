@@ -2,16 +2,24 @@ import { Colors, Radius, Spacing } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, ImageSourcePropType, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, ImageSourcePropType, StyleSheet, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface ArticleHeroProps {
   image: ImageSourcePropType;
   onBookmark?: () => void;
   onShare?: () => void;
+  isBookmarked?: boolean;
+  isBookmarking?: boolean;
 }
 
-export const ArticleHero: React.FC<ArticleHeroProps> = ({ image, onBookmark, onShare }) => {
+export const ArticleHero: React.FC<ArticleHeroProps> = ({
+  image,
+  onBookmark,
+  onShare,
+  isBookmarked = false,
+  isBookmarking = false
+}) => {
   const colors = Colors.light;
 
   return (
@@ -33,10 +41,19 @@ export const ArticleHero: React.FC<ArticleHeroProps> = ({ image, onBookmark, onS
         {/* Action Buttons */}
         <View style={styles.headerActions}>
           <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+            style={[styles.iconButton, { backgroundColor: isBookmarked ? colors.primary : 'rgba(0,0,0,0.5)' }]}
             onPress={onBookmark}
+            disabled={isBookmarking}
           >
-            <Ionicons name="bookmark-outline" size={22} color="#FFFFFF" />
+            {isBookmarking ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Ionicons
+                name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                size={22}
+                color="#FFFFFF"
+              />
+            )}
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}

@@ -1,14 +1,15 @@
 /**
  * SourceLinks Component
  *
- * Shows links to original paper sources (PDF, DOI, Landing Page)
+ * Shows links to original paper sources (PDF, DOI)
  * Only visible for external articles (from Scholar/OpenAlex)
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Typography } from '@/constants/theme';
+import { useToast } from '@/features/shared/hooks/useToast';
 
 interface SourceLinksProps {
   externalMetadata?: {
@@ -23,6 +24,7 @@ interface SourceLinksProps {
 
 export function SourceLinks({ externalMetadata }: SourceLinksProps) {
   const colors = Colors.light;
+  const toast = useToast();
 
   if (!externalMetadata) {
     return null;
@@ -34,15 +36,15 @@ export function SourceLinks({ externalMetadata }: SourceLinksProps) {
       if (canOpen) {
         await Linking.openURL(url);
       } else {
-        Alert.alert('Cannot Open Link', `Unable to open ${label}`);
+        toast.error(`Unable to open ${label}`, 2500);
       }
     } catch (error) {
       console.error(`Error opening ${label}:`, error);
-      Alert.alert('Error', `Failed to open ${label}`);
+      toast.error(`Failed to open ${label}`, 2500);
     }
   };
 
-  const { pdfUrl, doi, landingPageUrl, source } = externalMetadata;
+  const { pdfUrl, doi, landingPageUrl } = externalMetadata;
 
   // If no links available, don't render
   if (!pdfUrl && !doi && !landingPageUrl) {
@@ -50,119 +52,89 @@ export function SourceLinks({ externalMetadata }: SourceLinksProps) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="link-outline" size={16} color={colors.textMuted} />
-        <Text style={[styles.headerText, { color: colors.textMuted }]}>
-          Original Source
-        </Text>
+    <>
+      <View style={styles.container}>
+        <View style={styles.linksRow}>
+          {/* PDF Link */}
+          {pdfUrl && (
+            <TouchableOpacity
+              style={[styles.linkButton, {
+                backgroundColor: colors.background,
+                borderColor: colors.primary,
+                borderWidth: 1.5,
+              }]}
+              onPress={() => handleOpenLink(pdfUrl, 'PDF')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="document-text-outline" size={16} color={colors.primary} />
+              <Text style={[styles.linkText, { color: colors.primary }]}>
+                PDF
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* DOI Link */}
+          {doi && (
+            <TouchableOpacity
+              style={[styles.linkButton, {
+                backgroundColor: colors.background,
+                borderColor: colors.primary,
+                borderWidth: 1.5,
+              }]}
+              onPress={() => handleOpenLink(`https://doi.org/${doi}`, 'DOI')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="link-outline" size={16} color={colors.primary} />
+              <Text style={[styles.linkText, { color: colors.primary }]}>
+                DOI
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Landing Page Link - Only show if no PDF */}
+          {landingPageUrl && !pdfUrl && !doi && (
+            <TouchableOpacity
+              style={[styles.linkButton, {
+                backgroundColor: colors.background,
+                borderColor: colors.primary,
+                borderWidth: 1.5,
+              }]}
+              onPress={() => handleOpenLink(landingPageUrl, 'Paper Website')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="globe-outline" size={16} color={colors.primary} />
+              <Text style={[styles.linkText, { color: colors.primary }]}>
+                View Paper
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      <View style={styles.linksContainer}>
-        {/* PDF Link */}
-        {pdfUrl && (
-          <TouchableOpacity
-            style={[styles.linkButton, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}
-            onPress={() => handleOpenLink(pdfUrl, 'PDF')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="document-text" size={18} color={colors.primary} />
-            <Text style={[styles.linkText, { color: colors.primary }]}>
-              View PDF
-            </Text>
-            <Ionicons name="open-outline" size={14} color={colors.primary} />
-          </TouchableOpacity>
-        )}
-
-        {/* DOI Link */}
-        {doi && (
-          <TouchableOpacity
-            style={[styles.linkButton, { backgroundColor: colors.secondary + '15', borderColor: colors.secondary }]}
-            onPress={() => handleOpenLink(`https://doi.org/${doi}`, 'DOI')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="journal" size={18} color={colors.secondary} />
-            <Text style={[styles.linkText, { color: colors.secondary }]}>
-              DOI
-            </Text>
-            <Ionicons name="open-outline" size={14} color={colors.secondary} />
-          </TouchableOpacity>
-        )}
-
-        {/* Landing Page Link */}
-        {landingPageUrl && !pdfUrl && (
-          <TouchableOpacity
-            style={[styles.linkButton, { backgroundColor: colors.accent + '15', borderColor: colors.accent }]}
-            onPress={() => handleOpenLink(landingPageUrl, 'Paper Website')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="globe-outline" size={18} color={colors.accent} />
-            <Text style={[styles.linkText, { color: colors.accent }]}>
-              View Online
-            </Text>
-            <Ionicons name="open-outline" size={14} color={colors.accent} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Source Badge */}
-      <View style={styles.sourceBadge}>
-        <Text style={[styles.sourceBadgeText, { color: colors.textMuted }]}>
-          Source: {source === 'scholar' ? 'Google Scholar' : 'OpenAlex'}
-        </Text>
-      </View>
-    </View>
+      {/* Toast Notifications */}
+      <toast.ToastComponent />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: Spacing.md,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    backgroundColor: Colors.light.background,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
+    marginVertical: Spacing.sm,
   },
-  header: {
+  linksRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  headerText: {
-    fontSize: Typography.fontSize.xs,
-    fontWeight: '600',
-    marginLeft: Spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  linksContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: Spacing.sm,
   },
   linkButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.xs + 2,
     paddingHorizontal: Spacing.md,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    gap: Spacing.xs,
+    borderRadius: Radius.full,
+    gap: Spacing.xs - 2,
   },
   linkText: {
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
-  },
-  sourceBadge: {
-    marginTop: Spacing.sm,
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
-  },
-  sourceBadgeText: {
-    fontSize: Typography.fontSize.xs,
-    fontStyle: 'italic',
   },
 });

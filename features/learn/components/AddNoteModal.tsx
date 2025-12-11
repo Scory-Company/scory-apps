@@ -8,10 +8,10 @@ import {
   View,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
-import { BottomSheetModal, Toast } from '@/features/shared/components';
+import { BottomSheetModal } from '@/features/shared/components';
 import { standaloneNotesApi } from '@/services';
+import { useToast } from '@/features/shared/hooks/useToast';
 
 interface AddNoteModalProps {
   visible: boolean;
@@ -21,12 +21,10 @@ interface AddNoteModalProps {
 
 export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, onNoteAdded }) => {
   const colors = Colors.light;
+  const toast = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   // Reset form when modal closes
   useEffect(() => {
@@ -38,7 +36,7 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
 
   const handleSave = async () => {
     if (!content.trim()) {
-      Alert.alert('Error', 'Please enter your note content');
+      toast.error('Please enter your note content', 2500);
       return;
     }
 
@@ -68,9 +66,7 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
         onClose();
 
         // Show success toast
-        setToastType('success');
-        setToastMessage('Note saved successfully!');
-        setToastVisible(true);
+        toast.success('Note saved successfully!', 2500);
 
         // Trigger refresh
         if (onNoteAdded) {
@@ -79,9 +75,7 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
         }
       } else {
         console.log('[ADD_NOTE_MODAL] ❌ Save failed:', response.message);
-        setToastType('error');
-        setToastMessage(response.message || 'Failed to save note');
-        setToastVisible(true);
+        toast.error(response.message || 'Failed to save note', 3000);
       }
     } catch (error: any) {
       console.error('[ADD_NOTE_MODAL] ❌ Error saving note:', error);
@@ -90,8 +84,6 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
         status: error.response?.status,
         data: error.response?.data,
       });
-
-      setToastType('error');
 
       // Better error messages
       let errorMsg = 'Failed to save note';
@@ -107,8 +99,7 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
         errorMsg = error.message;
       }
 
-      setToastMessage(errorMsg);
-      setToastVisible(true);
+      toast.error(errorMsg, 3000);
     } finally {
       setIsSaving(false);
       console.log('[ADD_NOTE_MODAL] Save process completed');
@@ -214,15 +205,8 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
         </View>
       </BottomSheetModal>
 
-      {/* Toast Notification */}
-      <Toast
-        visible={toastVisible}
-        type={toastType}
-        message={toastMessage}
-        position="top"
-        duration={3000}
-        onHide={() => setToastVisible(false)}
-      />
+      {/* Toast Notifications */}
+      <toast.ToastComponent />
     </>
   );
 };

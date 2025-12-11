@@ -54,9 +54,9 @@ export function ForYouSection({ readingLevel, onChangeLevel }: ForYouSectionProp
           author: article.authorName,
           category: article.category?.name || 'General',
           rating: article.rating || 0,
-          reads: article.viewCount
+          reads: article.viewCount >= 1000
             ? `${(article.viewCount / 1000).toFixed(1)}k reads`
-            : '0 reads',
+            : `${article.viewCount || 0} reads`,
         }));
 
         setArticles(transformedArticles.slice(0, 3)); // Take top 3

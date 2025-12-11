@@ -22,6 +22,20 @@ export const TopRatedCard: React.FC<TopRatedCardProps> = ({
 }) => {
   const colors = Colors.light;
 
+  // Format author name - max 1 author, add "et al." if more
+  const formatAuthorName = (authorString: string): string => {
+    const authors = authorString.split(',').map(a => a.trim());
+
+    if (authors.length <= 1) {
+      return authorString;
+    }
+
+    // More than 1 author, show first author + "et al."
+    return `${authors[0]}, et al.`;
+  };
+
+  const displayAuthor = formatAuthorName(author);
+
   return (
     <TouchableOpacity
       style={[styles.topRatedCard, { backgroundColor: colors.surface }, Shadows.sm]}
@@ -35,7 +49,7 @@ export const TopRatedCard: React.FC<TopRatedCardProps> = ({
           {title}
         </Text>
         <View style={styles.topRatedMeta}>
-          <Text style={[styles.topRatedAuthor, { color: colors.textMuted }]}>{author}</Text>
+          <Text style={[styles.topRatedAuthor, { color: colors.textMuted }]}>{displayAuthor}</Text>
           <View style={[styles.categorySmallBadge, { backgroundColor: colors.surfaceSecondary }]}>
             <Text style={[styles.categorySmallText, { color: colors.textSecondary }]}>
               {category}

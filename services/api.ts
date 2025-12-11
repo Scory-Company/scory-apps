@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Base URL configuration
 const API_URL = __DEV__
-  ? 'http://192.168.1.14:5000/api/v1'
+  ? 'http://10.252.0.51:5000/api/v1'
   : 'https://api.scory.app/api/v1';
 
 // Create axios instance

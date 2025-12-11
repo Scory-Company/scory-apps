@@ -210,7 +210,9 @@ export default function ExploreScreen() {
           author: article.authorName,
           category: article.category?.name || 'General',
           rating: article.rating,
-          reads: `${(article.viewCount / 1000).toFixed(1)}k reads`,
+          reads: article.viewCount >= 1000
+            ? `${(article.viewCount / 1000).toFixed(1)}k reads`
+            : `${article.viewCount || 0} reads`,
         }));
         setAllFetchedArticles(transformed);
         console.log(`[Explore] ✅ Loaded ${transformed.length} internal articles (will filter by search query on client)`);
