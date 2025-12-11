@@ -21,6 +21,9 @@ import { useResimplify } from '@/hooks/useResimplify';
 import { collectionService } from '@/services/collectionService';
 import { useToast } from '@/features/shared/hooks/useToast';
 import * as BookmarkCache from '@/utils/bookmarkCache';
+import { useGamificationStats } from '@/hooks/useGamificationStats';
+import { useWeeklyGoal } from '@/hooks/useWeeklyGoal';
+import type { GamificationResult } from '@/types/gamification';
 
 export default function ArticleDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -45,11 +48,63 @@ export default function ArticleDetailScreen() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isBookmarking, setIsBookmarking] = useState(false);
 
+  // Reading time tracking (for gamification)
+  const [readingStartTime] = useState<number>(Date.now());
+
   // Re-simplify hook
   const { resimplify, resimplifyManual, isResimplifying, progress: resimplifyProgress, PremiumModal } = useResimplify();
 
   // Toast hook
   const toast = useToast();
+
+  // Gamification hooks (for cache invalidation)
+  const { invalidateCache: invalidateStatsCache } = useGamificationStats();
+  const { invalidateCache: invalidateGoalCache } = useWeeklyGoal();
+
+  // Handle gamification result from quiz completion
+  const handleGamificationResult = useCallback((result: GamificationResult) => {
+    console.log('[ARTICLE] Gamification result:', result);
+
+    // Invalidate gamification caches to refresh stats
+    invalidateStatsCache();
+    invalidateGoalCache();
+
+    // Show appropriate feedback based on completion type and streak
+    if (result.completionType === 'verified' && result.streakUpdated && result.newStreak) {
+      // Streak celebration 🔥
+      toast.success(`🔥 ${result.newStreak} day streak!`, 3000);
+
+      // Navigate to Learn tab to show updated stats
+      setTimeout(() => {
+        router.push('/(tabs)/explore');
+      }, 3500); // Wait for toast to finish
+    } else if (result.completionType === 'verified') {
+      // Completed but streak didn't update (already completed today)
+      toast.success('Article completed!', 2000);
+
+      // Still navigate to show updated stats
+      setTimeout(() => {
+        router.push('/(tabs)/explore');
+      }, 2500);
+    } else if (result.completionType === 'basic') {
+      // Too fast - didn't meet verification criteria
+      toast.warning('⚡ Read carefully to earn streak points!', 2500);
+    } else if (result.completionType === 'rejected') {
+      // Rejected (shouldn't happen in normal flow)
+      toast.info('Complete the article to track progress', 2000);
+    }
+
+    // Show weekly goal progress if available
+    if (result.weeklyGoalProgress) {
+      const { completed, target } = result.weeklyGoalProgress;
+      if (completed === target) {
+        // Goal achieved! 🎉
+        setTimeout(() => {
+          toast.success(`🎯 Weekly goal achieved! ${completed}/${target} articles`, 3000);
+        }, 500);
+      }
+    }
+  }, [invalidateStatsCache, invalidateGoalCache, toast]);
 
   // Load user's preferred reading level from storage
   const loadPreferredReadingLevel = useCallback(async () => {
@@ -437,6 +492,8 @@ export default function ArticleDetailScreen() {
             articleSlug={article.slug}
             category={article.category.name}
             onQuizAvailabilityChange={setIsQuizAvailable}
+            readingStartTime={readingStartTime}
+            onGamificationResult={handleGamificationResult}
           />
 
           {/* Related Articles - TODO: Fetch from API */}

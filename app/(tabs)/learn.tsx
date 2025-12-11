@@ -6,6 +6,7 @@ import {
   SectionHeader,
   AddInsightButton,
   AddNoteModal,
+  SetWeeklyGoalModal,
   ViewAllPrompt,
   InsightCard,
 } from '@/features/learn/components';
@@ -15,11 +16,13 @@ import { View, Text, StyleSheet, ScrollView, StatusBar, ActivityIndicator, Refre
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import {
-  weeklyGoal,
-  learningStats as learningStatsData,
+  weeklyGoal as weeklyGoalMock,
+  learningStats as learningStatsMock,
 } from '@/data/mock';
 import { useUserInsights } from '@/hooks/useUserInsights';
 import { useStudyCollections } from '@/hooks/useStudyCollections';
+import { useGamificationStats } from '@/hooks/useGamificationStats';
+import { useWeeklyGoal } from '@/hooks/useWeeklyGoal';
 
 export default function LearnScreen() {
   const colors = Colors.light;
@@ -46,8 +49,32 @@ export default function LearnScreen() {
     refresh: refreshCollections,
   } = useStudyCollections();
 
-  // Modal state for adding new note
+  // Fetch gamification stats from API
+  const {
+    stats: gamificationStats,
+    isLoading: isLoadingStats,
+    isRefreshing: isRefreshingStats,
+    error: statsError,
+    fetchStats,
+    refreshStats,
+    invalidateCache: invalidateStatsCache,
+  } = useGamificationStats();
+
+  // Fetch weekly goal from API
+  const {
+    goal: weeklyGoal,
+    isLoading: isLoadingGoal,
+    isRefreshing: isRefreshingGoal,
+    error: goalError,
+    fetchGoal,
+    refreshGoal,
+    updateGoal,
+    invalidateCache: invalidateGoalCache,
+  } = useWeeklyGoal();
+
+  // Modal states
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [showGoalModal, setShowGoalModal] = useState(false);
 
   // Refresh data when screen comes into focus (uses cache if still valid)
   useFocusEffect(
@@ -57,28 +84,58 @@ export default function LearnScreen() {
       // This makes tab switching instant if cache is fresh (<30s)
       fetchInsights(); // Uses cache if age < 30s
       refetchCollections();
-    }, [fetchInsights, refetchCollections])
+      fetchStats(); // Uses cache if age < 30s
+      fetchGoal(); // Uses cache if age < 60s
+    }, [fetchInsights, refetchCollections, fetchStats, fetchGoal])
   );
 
   // Learning Stats with color config
-  const learningStats = learningStatsData.map((stat) => {
-    let iconColor = colors.primary;
-    let iconBackgroundColor = colors.primary + '20';
+  // Transform API data or use mock data as fallback
+  const learningStats = React.useMemo(() => {
+    // Use API data if available, otherwise fallback to mock
+    const statsData = gamificationStats
+      ? [
+          {
+            id: '1',
+            icon: 'flame' as const,
+            value: gamificationStats.streak.current,
+            label: 'Day Streak',
+          },
+          {
+            id: '2',
+            icon: 'book' as const,
+            value: gamificationStats.articlesRead.thisWeek,
+            label: 'Articles Read',
+          },
+          {
+            id: '3',
+            icon: 'time' as const,
+            value: gamificationStats.readingTime.thisWeek,
+            label: 'Minutes',
+          },
+        ]
+      : learningStatsMock;
 
-    if (stat.icon === 'book') {
-      iconColor = colors.warning;
-      iconBackgroundColor = '#FEF3E2';
-    } else if (stat.icon === 'time') {
-      iconColor = colors.info;
-      iconBackgroundColor = '#E0F2FE';
-    }
+    // Apply color mapping
+    return statsData.map((stat) => {
+      let iconColor = colors.primary;
+      let iconBackgroundColor = colors.primary + '20';
 
-    return {
-      ...stat,
-      iconColor,
-      iconBackgroundColor,
-    };
-  });
+      if (stat.icon === 'book') {
+        iconColor = colors.warning;
+        iconBackgroundColor = '#FEF3E2';
+      } else if (stat.icon === 'time') {
+        iconColor = colors.info;
+        iconBackgroundColor = '#E0F2FE';
+      }
+
+      return {
+        ...stat,
+        iconColor,
+        iconBackgroundColor,
+      };
+    });
+  }, [gamificationStats, colors]);
 
   // Limit to max 3 recent insights
   const recentInsights = allInsights.slice(0, 3);
@@ -111,10 +168,12 @@ export default function LearnScreen() {
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
-            refreshing={isRefreshing || isRefreshingCollections}
+            refreshing={isRefreshing || isRefreshingCollections || isRefreshingStats || isRefreshingGoal}
             onRefresh={() => {
               refreshInsights();
               refreshCollections();
+              refreshStats();
+              refreshGoal();
             }}
             colors={[colors.primary]}
             tintColor={colors.primary}
@@ -145,13 +204,42 @@ export default function LearnScreen() {
             showViewAll={false}
           />
 
-          <WeeklyGoalCard
-            completed={weeklyGoal.completed}
-            target={weeklyGoal.target}
-            daysLeft={weeklyGoal.daysLeft}
-            onContinuePress={() => console.log('Continue reading pressed')}
-            onSetGoalPress={() => console.log('Open goal setup modal')}
-          />
+          {isLoadingGoal ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : goalError && !weeklyGoal ? (
+            <EmptyState
+              icon="alert-circle-outline"
+              title="Unable to Load Goal"
+              message={goalError}
+            />
+          ) : weeklyGoal ? (
+            <WeeklyGoalCard
+              completed={weeklyGoal.completed}
+              target={weeklyGoal.target}
+              daysLeft={weeklyGoal.daysLeft}
+              onContinuePress={() => {
+                // Navigate to explore/articles
+                router.push('/(tabs)/explore' as any);
+              }}
+              onSetGoalPress={() => {
+                console.log('[LEARN] Opening goal modal');
+                setShowGoalModal(true);
+              }}
+            />
+          ) : (
+            // No goal set yet - show empty state with call to action
+            <WeeklyGoalCard
+              completed={0}
+              target={0}
+              daysLeft={7}
+              onSetGoalPress={() => {
+                console.log('[LEARN] Opening goal modal');
+                setShowGoalModal(true);
+              }}
+            />
+          )}
         </View>
 
         {/* Study Collections */}
@@ -276,6 +364,17 @@ export default function LearnScreen() {
         onNoteAdded={() => {
           invalidateCache();
           refreshInsights();
+        }}
+      />
+
+      {/* Set Weekly Goal Modal */}
+      <SetWeeklyGoalModal
+        visible={showGoalModal}
+        currentTarget={weeklyGoal?.target}
+        onClose={() => setShowGoalModal(false)}
+        onGoalSet={async (target) => {
+          await updateGoal(target);
+          invalidateStatsCache(); // Refresh stats after goal update
         }}
       />
     </SafeAreaView>

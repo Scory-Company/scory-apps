@@ -6,4 +6,5 @@ export { InsightCard } from './InsightCard';
 export { SectionHeader } from './SectionHeader';
 export { AddInsightButton } from './AddInsightButton';
 export { AddNoteModal } from './AddNoteModal';
+export { SetWeeklyGoalModal } from './SetWeeklyGoalModal';
 export { ViewAllPrompt } from '../../shared/components/ViewAllPrompt';

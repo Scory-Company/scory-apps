@@ -18,6 +18,8 @@ interface ComprehensionSectionProps {
   articleSlug: string;
   category: string;
   onQuizAvailabilityChange?: (isAvailable: boolean) => void;
+  readingStartTime?: number; // Timestamp when article reading started
+  onGamificationResult?: (result: any) => void; // Callback for gamification result
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -29,6 +31,8 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
   articleSlug,
   onQuizAvailabilityChange,
+  readingStartTime,
+  onGamificationResult,
 }) => {
   const colors = Colors.light;
   const flatListRef = useRef<FlatList>(null);
@@ -176,8 +180,44 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
       };
     });
 
-    console.log('[COMPREHENSION] Submitting to API:', JSON.stringify(answers, null, 2));
-    await submitQuizApi(answers);
+    // Calculate reading time if readingStartTime is provided
+    let readingTime: number | undefined;
+    if (readingStartTime) {
+      const endTime = Date.now();
+      readingTime = Math.round((endTime - readingStartTime) / 60000); // Convert to minutes
+      console.log('[COMPREHENSION] ============================================');
+      console.log('[COMPREHENSION] Reading time calculation:');
+      console.log('[COMPREHENSION]   Start time:', new Date(readingStartTime).toISOString());
+      console.log('[COMPREHENSION]   End time:', new Date(endTime).toISOString());
+      console.log('[COMPREHENSION]   Duration (ms):', endTime - readingStartTime);
+      console.log('[COMPREHENSION]   Reading time (minutes):', readingTime);
+      console.log('[COMPREHENSION] ============================================');
+    } else {
+      console.warn('[COMPREHENSION] ⚠️ readingStartTime is undefined! Gamification will not work!');
+    }
+
+    console.log('[COMPREHENSION] Submitting to API with:');
+    console.log('[COMPREHENSION]   Answers:', JSON.stringify(answers, null, 2));
+    console.log('[COMPREHENSION]   Reading time:', readingTime);
+
+    // Submit quiz with reading time (triggers gamification)
+    const gamificationResult = await submitQuizApi(answers, readingTime);
+
+    // Handle gamification result if present
+    if (gamificationResult) {
+      console.log('[COMPREHENSION] ✅ Gamification result received:');
+      console.log('[COMPREHENSION]   Completion Type:', gamificationResult.completionType);
+      console.log('[COMPREHENSION]   Streak Updated:', gamificationResult.streakUpdated);
+      console.log('[COMPREHENSION]   New Streak:', gamificationResult.newStreak);
+      console.log('[COMPREHENSION]   Weekly Goal Progress:', gamificationResult.weeklyGoalProgress);
+      onGamificationResult?.(gamificationResult);
+    } else {
+      console.warn('[COMPREHENSION] ⚠️ No gamification result received from backend!');
+      console.warn('[COMPREHENSION] ⚠️ This means either:');
+      console.warn('[COMPREHENSION]   1. Backend did not return gamification data');
+      console.warn('[COMPREHENSION]   2. User is not logged in');
+      console.warn('[COMPREHENSION]   3. Reading time was not sent (check logs above)');
+    }
   };
 
   const handleRetakeQuiz = () => {

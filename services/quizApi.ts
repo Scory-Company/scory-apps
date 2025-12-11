@@ -29,6 +29,7 @@ export interface QuizAnswer {
 
 export interface QuizSubmitRequest {
   answers: QuizAnswer[];
+  readingTime?: number; // NEW: Reading time in minutes
 }
 
 export interface QuizAnswerResult {
@@ -40,6 +41,16 @@ export interface QuizAnswerResult {
   explanation: string;
 }
 
+export interface GamificationResult {
+  completionType: 'verified' | 'basic' | 'rejected';
+  streakUpdated: boolean;
+  newStreak?: number;
+  weeklyGoalProgress?: {
+    completed: number;
+    target: number;
+  };
+}
+
 export interface QuizSubmitResponse {
   attemptId: string;
   score: number;
@@ -47,6 +58,7 @@ export interface QuizSubmitResponse {
   percentage: number;
   answers: QuizAnswerResult[];
   completedAt: string;
+  gamification?: GamificationResult; // NEW: Gamification result
 }
 
 export interface QuizAttempt {
@@ -98,14 +110,22 @@ export const getQuizQuestions = async (slug: string) => {
  *
  * @param slug - Article slug
  * @param answers - Array of 3 answers
- * @returns Quiz results with score and explanations
+ * @param readingTime - Optional reading time in minutes (triggers gamification)
+ * @returns Quiz results with score, explanations, and gamification result
  */
-export const submitQuiz = async (slug: string, answers: QuizAnswer[]) => {
+export const submitQuiz = async (slug: string, answers: QuizAnswer[], readingTime?: number) => {
+  const payload: QuizSubmitRequest = { answers };
+
+  // Include readingTime if provided (enables gamification)
+  if (readingTime !== undefined) {
+    payload.readingTime = readingTime;
+  }
+
   const response = await api.post<{
     success: boolean;
     message: string;
     data: QuizSubmitResponse;
-  }>(`/articles/${slug}/quiz`, { answers });
+  }>(`/articles/${slug}/quiz`, payload);
 
   return response.data;
 };

@@ -46,6 +46,7 @@ export type {
   QuizAnswerResult,
   QuizSubmitResponse,
   QuizAttempt,
+  GamificationResult as QuizGamificationResult,
 } from './quizApi';
 
 // Unified Notes API (new)
@@ -72,3 +73,12 @@ export type {
   CreateStandaloneNoteRequest,
   UpdateStandaloneNoteRequest,
 } from './standaloneNotesApi';
+
+// Gamification API
+export { gamificationService } from './gamificationApi';
+export type {
+  GamificationStats,
+  WeeklyGoal,
+  GamificationResult,
+  RecordActivityRequest,
+} from '@/types/gamification';

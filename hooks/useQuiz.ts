@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { quizApi, QuizAnswer, QuizQuestionsResponse, QuizSubmitResponse } from '@/services';
+import type { GamificationResult } from '@/types/gamification';
 
 interface UseQuizReturn {
   // Data
@@ -16,7 +17,7 @@ interface UseQuizReturn {
 
   // Actions
   fetchQuestions: () => Promise<void>;
-  submitQuiz: (answers: QuizAnswer[]) => Promise<boolean>;
+  submitQuiz: (answers: QuizAnswer[], readingTime?: number) => Promise<GamificationResult | null>;
   resetQuiz: () => void;
 }
 
@@ -97,18 +98,19 @@ export const useQuiz = (articleSlug: string): UseQuizReturn => {
    * Submit quiz answers and get results
    *
    * @param answers - Array of quiz answers (must be exactly 3)
-   * @returns true if submission was successful, false otherwise
+   * @param readingTime - Optional reading time in minutes (triggers gamification)
+   * @returns GamificationResult if successful and present, null otherwise
    */
   const submitQuiz = useCallback(
-    async (answers: QuizAnswer[]): Promise<boolean> => {
+    async (answers: QuizAnswer[], readingTime?: number): Promise<GamificationResult | null> => {
       if (!articleSlug) {
         setSubmitError('Article slug is required');
-        return false;
+        return null;
       }
 
       if (answers.length !== 3) {
         setSubmitError(`Expected 3 answers, got ${answers.length}`);
-        return false;
+        return null;
       }
 
       setIsSubmitting(true);
@@ -116,20 +118,31 @@ export const useQuiz = (articleSlug: string): UseQuizReturn => {
 
       try {
         console.log('[QUIZ] Submitting answers:', JSON.stringify(answers, null, 2));
-        const response = await quizApi.submitQuiz(articleSlug, answers);
+        if (readingTime !== undefined) {
+          console.log('[QUIZ] Reading time:', readingTime, 'minutes');
+        }
+
+        const response = await quizApi.submitQuiz(articleSlug, answers, readingTime);
 
         if (response.success && response.data) {
           setResults(response.data);
           console.log('[QUIZ] Quiz submitted! Score:', response.data.score, '/', response.data.totalQuestions);
-          return true;
+
+          // Log and return gamification result if present
+          if (response.data.gamification) {
+            console.log('[QUIZ] Gamification result:', JSON.stringify(response.data.gamification, null, 2));
+            return response.data.gamification;
+          }
+
+          return null;
         } else {
           setSubmitError(response.message || 'Failed to submit quiz');
-          return false;
+          return null;
         }
       } catch (error: any) {
         console.error('[QUIZ] Error submitting quiz:', error);
         console.error('[QUIZ] Error response:', JSON.stringify(error.response?.data, null, 2));
-        console.error('[QUIZ] Request payload:', JSON.stringify({ answers }, null, 2));
+        console.error('[QUIZ] Request payload:', JSON.stringify({ answers, readingTime }, null, 2));
 
         if (error.response?.status === 401) {
           setSubmitError('Please login to submit the quiz');
@@ -141,7 +154,7 @@ export const useQuiz = (articleSlug: string): UseQuizReturn => {
           setSubmitError(error.response?.data?.message || 'Failed to submit quiz');
         }
 
-        return false;
+        return null;
       } finally {
         setIsSubmitting(false);
       }
