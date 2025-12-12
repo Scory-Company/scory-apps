@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import { SearchResult } from '@/services';
 import { useSimplifyAndNavigate } from '@/hooks/useSimplifyPaper';
 import { Ionicons } from '@expo/vector-icons';
+import { useToast } from '@/features/shared/hooks/useToast';
 
 interface FilteredContentViewProps {
   results: Article[];
@@ -38,7 +39,10 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
   isLoadingMore = false,
 }) => {
   const colors = Colors.light;
-  const { simplifyAndNavigate, isSimplifying, progress } = useSimplifyAndNavigate();
+  const toast = useToast();
+  const { simplifyAndNavigate, isSimplifying, progress } = useSimplifyAndNavigate({
+    onError: (_title, message) => toast.error(message),
+  });
 
   const hasExternalResults = externalResults.length > 0;
   const hasLocalResults = results.length > 0;
@@ -79,6 +83,9 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* Toast Component */}
+      <toast.ToastComponent />
+
       {/* Results Header */}
       <View style={styles.resultsHeader}>
         <Text style={[styles.resultCount, { color: colors.text }]}>
@@ -243,6 +250,7 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
         visible={isSimplifying}
         step={progress.step}
         message={progress.message}
+        progressValue={progress.value}
       />
     </View>
   );

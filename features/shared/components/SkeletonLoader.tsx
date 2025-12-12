@@ -261,6 +261,132 @@ export const SkeletonSearchResult: React.FC<SkeletonSearchResultProps> = ({
   );
 };
 
+interface SkeletonCollectionCardProps {
+  count?: number;
+}
+
+/**
+ * Skeleton for Study Collection Cards
+ * Used in Learn screen for collections loading state
+ */
+export const SkeletonCollectionCard: React.FC<SkeletonCollectionCardProps> = ({
+  count = 2,
+}) => {
+  const colors = Colors.light;
+
+  return (
+    <View style={styles.collectionCardContainer}>
+      {Array.from({ length: count }).map((_, index) => (
+        <View
+          key={index}
+          style={[styles.collectionCard, { backgroundColor: colors.surface }]}
+        >
+          {/* Icon skeleton - left side (64x64) */}
+          <SkeletonLoader
+            width={64}
+            height={64}
+            borderRadius={Radius.md}
+          />
+
+          {/* Content - right side */}
+          <View style={styles.collectionCardContent}>
+            {/* Category */}
+            <SkeletonLoader
+              width={80}
+              height={12}
+              style={{ marginBottom: 4 }}
+            />
+
+            {/* Title (2 lines) */}
+            <SkeletonLoader
+              width="100%"
+              height={16}
+              style={{ marginBottom: 2 }}
+            />
+            <SkeletonLoader
+              width="60%"
+              height={16}
+              style={{ marginBottom: Spacing.xs }}
+            />
+
+            {/* Articles count */}
+            <SkeletonLoader
+              width={80}
+              height={14}
+              style={{ marginBottom: Spacing.sm }}
+            />
+
+            {/* Progress bar or button */}
+            <SkeletonLoader
+              width="100%"
+              height={8}
+            />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+interface SkeletonWeeklyGoalCardProps {
+  // Optional props for customization
+}
+
+/**
+ * Skeleton for Weekly Goal Card
+ * Used in Learn screen for weekly goal loading state
+ */
+export const SkeletonWeeklyGoalCard: React.FC<SkeletonWeeklyGoalCardProps> = () => {
+  const colors = Colors.light;
+
+  return (
+    <View style={[styles.weeklyGoalCard, { backgroundColor: colors.surface }]}>
+      {/* Title */}
+      <SkeletonLoader
+        width="70%"
+        height={18}
+        style={{ marginBottom: Spacing.xs }}
+      />
+
+      {/* Days left */}
+      <SkeletonLoader
+        width={80}
+        height={14}
+        style={{ marginBottom: Spacing.md }}
+      />
+
+      {/* Progress bar */}
+      <SkeletonLoader
+        width="100%"
+        height={8}
+        borderRadius={4}
+        style={{ marginBottom: Spacing.md }}
+      />
+
+      {/* Motivation badge */}
+      <View style={styles.weeklyGoalBadge}>
+        <SkeletonLoader
+          width={16}
+          height={16}
+          borderRadius={8}
+        />
+        <SkeletonLoader
+          width="80%"
+          height={14}
+        />
+      </View>
+
+      {/* Button */}
+      <SkeletonLoader
+        width="100%"
+        height={48}
+        borderRadius={Radius.md}
+        style={{ marginTop: Spacing.md }}
+      />
+    </View>
+  );
+};
+
 interface SkeletonArticleDetailProps {
   // Optional props for customization
 }
@@ -466,6 +592,29 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   searchResultMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  // Collection Card Skeleton
+  collectionCardContainer: {
+    gap: Spacing.md,
+  },
+  collectionCard: {
+    flexDirection: 'row',
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    gap: Spacing.md,
+  },
+  collectionCardContent: {
+    flex: 1,
+  },
+  // Weekly Goal Card Skeleton
+  weeklyGoalCard: {
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+  },
+  weeklyGoalBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,

@@ -21,15 +21,22 @@ interface UseQuizReturn {
   resetQuiz: () => void;
 }
 
+interface UseQuizOptions {
+  onError?: (message: string) => void;
+}
+
 /**
  * Custom hook for managing quiz functionality
  *
  * @param articleSlug - The article slug to fetch quiz for
+ * @param options - Optional configuration including error callback
  * @returns Quiz state and actions
  *
  * @example
  * ```tsx
- * const { questions, fetchQuestions, submitQuiz, isLoadingQuestions } = useQuiz('ai-in-healthcare');
+ * const { questions, fetchQuestions, submitQuiz, isLoadingQuestions } = useQuiz('ai-in-healthcare', {
+ *   onError: (message) => toast.error(message)
+ * });
  *
  * // Fetch questions
  * await fetchQuestions();
@@ -42,7 +49,8 @@ interface UseQuizReturn {
  * ]);
  * ```
  */
-export const useQuiz = (articleSlug: string): UseQuizReturn => {
+export const useQuiz = (articleSlug: string, options?: UseQuizOptions): UseQuizReturn => {
+
   // Data state
   const [questions, setQuestions] = useState<QuizQuestionsResponse | null>(null);
   const [results, setResults] = useState<QuizSubmitResponse | null>(null);
@@ -84,15 +92,19 @@ export const useQuiz = (articleSlug: string): UseQuizReturn => {
       // Handle remaining errors (401, 500, etc.)
       if (error.response?.status === 401) {
         console.warn('[QUIZ] Unauthorized:', error);
-        setQuestionsError('Please login to take the quiz');
+        const errorMsg = 'Please login to take the quiz';
+        setQuestionsError(errorMsg);
+        options?.onError?.(errorMsg);
       } else {
         console.error('[QUIZ] Error fetching questions:', error);
-        setQuestionsError(error.response?.data?.message || 'Failed to load quiz questions');
+        const errorMsg = error.response?.data?.message || 'Failed to load quiz questions';
+        setQuestionsError(errorMsg);
+        options?.onError?.(errorMsg);
       }
     } finally {
       setIsLoadingQuestions(false);
     }
-  }, [articleSlug]);
+  }, [articleSlug]); // Removed 'options' from dependency to prevent re-creation
 
   /**
    * Submit quiz answers and get results
@@ -144,22 +156,42 @@ export const useQuiz = (articleSlug: string): UseQuizReturn => {
         console.error('[QUIZ] Error response:', JSON.stringify(error.response?.data, null, 2));
         console.error('[QUIZ] Request payload:', JSON.stringify({ answers, readingTime }, null, 2));
 
+        let errorMessage = 'Failed to submit quiz';
+
         if (error.response?.status === 401) {
-          setSubmitError('Please login to submit the quiz');
+          errorMessage = 'Please login to submit the quiz';
         } else if (error.response?.status === 400) {
-          const errorMessage = error.response?.data?.message || 'Invalid quiz submission';
-          console.error('[QUIZ] 400 Error:', errorMessage);
-          setSubmitError(errorMessage);
+          // Validation error - extract specific error messages
+          const responseData = error.response?.data;
+
+          if (responseData?.errors) {
+            // If there are specific field errors, show the first one
+            const firstErrorField = Object.keys(responseData.errors)[0];
+            const firstErrorMessage = responseData.errors[firstErrorField]?.[0];
+
+            if (firstErrorMessage) {
+              errorMessage = firstErrorMessage;
+            } else {
+              errorMessage = responseData?.message || 'Validation error';
+            }
+          } else {
+            errorMessage = responseData?.message || 'Invalid quiz submission';
+          }
+
+          console.error('[QUIZ] 400 Validation Error:', errorMessage);
         } else {
-          setSubmitError(error.response?.data?.message || 'Failed to submit quiz');
+          errorMessage = error.response?.data?.message || 'Failed to submit quiz';
         }
+
+        setSubmitError(errorMessage);
+        options?.onError?.(errorMessage);
 
         return null;
       } finally {
         setIsSubmitting(false);
       }
     },
-    [articleSlug]
+    [articleSlug] // Removed 'options' from dependency to prevent re-creation
   );
 
   /**

@@ -10,7 +10,8 @@ export interface ArticleListParams {
   category?: string;
   topic?: string;
   search?: string;
-  sort?: 'recent' | 'popular' | 'top_rated' | 'trending';
+  sort?: 'recent' | 'popular' | 'top_rated' | 'trending' | 'random';
+  excludeRead?: boolean; // Filter out completed articles
 }
 
 // Reading Level Enum (sync with backend Prisma enum)

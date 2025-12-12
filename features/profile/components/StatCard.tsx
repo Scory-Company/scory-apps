@@ -22,16 +22,26 @@ export const StatCard: React.FC<StatCardProps> = ({
   const { t } = useTranslation();
   const colors = Colors.light;
 
+  // Format value: convert to number and format
+  const numericValue = Number(value);
+
+  const formattedValue = !isNaN(numericValue)
+    ? (Number.isInteger(numericValue)
+        ? numericValue.toString()
+        : numericValue.toFixed(1))
+    : value;
+
   return (
     <View style={[styles.statCard, Shadows.sm, { backgroundColor: colors.surface }]}>
       <View style={[styles.statIconContainer, { backgroundColor: bgColor || colors.surfaceSecondary }]}>
         <Ionicons name={icon} size={24} color={color || colors.primary} />
       </View>
-      <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
+      <Text style={[styles.statValue, { color: colors.text }]}>{formattedValue}</Text>
       <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t(labelKey)}</Text>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   statCard: {

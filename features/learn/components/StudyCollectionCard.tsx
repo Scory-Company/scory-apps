@@ -25,6 +25,9 @@ export const StudyCollectionCard: React.FC<StudyCollectionCardProps> = ({
 }) => {
   const colors = Colors.light;
 
+  // Calculate read articles count from progress percentage
+  const readCount = Math.round((progress / 100) * articlesCount);
+
   return (
     <TouchableOpacity
       style={[styles.collectionCard, Shadows.md, { backgroundColor: colors.surface }]}
@@ -48,7 +51,7 @@ export const StudyCollectionCard: React.FC<StudyCollectionCardProps> = ({
 
         {progress > 0 ? (
           <View style={styles.collectionProgress}>
-            <ProgressBar current={progress} total={articlesCount} />
+            <ProgressBar current={readCount} total={articlesCount} />
           </View>
         ) : (
           <View style={[styles.startButton, { borderColor: color }]}>

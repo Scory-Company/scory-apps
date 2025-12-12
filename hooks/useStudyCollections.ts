@@ -3,7 +3,7 @@
  * Manages study collections data fetching and state
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { collectionService } from '@/services/collectionService';
 import type { StudyCollection } from '@/types/collection';
 import * as BookmarkCache from '@/utils/bookmarkCache';
@@ -113,6 +113,11 @@ export function useStudyCollections(): UseStudyCollectionsResult {
    */
   const refresh = useCallback(async () => {
     await fetchCollections(true);
+  }, [fetchCollections]);
+
+  // Auto-fetch on mount
+  useEffect(() => {
+    fetchCollections(false);
   }, [fetchCollections]);
 
   return {

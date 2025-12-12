@@ -23,6 +23,7 @@ import { useToast } from '@/features/shared/hooks/useToast';
 import * as BookmarkCache from '@/utils/bookmarkCache';
 import { useGamificationStats } from '@/hooks/useGamificationStats';
 import { useWeeklyGoal } from '@/hooks/useWeeklyGoal';
+import { invalidateForYouCache } from '@/hooks/useForYouArticles';
 import type { GamificationResult } from '@/types/gamification';
 
 export default function ArticleDetailScreen() {
@@ -51,11 +52,13 @@ export default function ArticleDetailScreen() {
   // Reading time tracking (for gamification)
   const [readingStartTime] = useState<number>(Date.now());
 
-  // Re-simplify hook
-  const { resimplify, resimplifyManual, isResimplifying, progress: resimplifyProgress, PremiumModal } = useResimplify();
-
   // Toast hook
   const toast = useToast();
+
+  // Re-simplify hook with error handling via toast
+  const { resimplify, resimplifyManual, isResimplifying, progress: resimplifyProgress, PremiumModal } = useResimplify({
+    onError: (message) => toast.error(message),
+  });
 
   // Gamification hooks (for cache invalidation)
   const { invalidateCache: invalidateStatsCache } = useGamificationStats();
@@ -65,9 +68,10 @@ export default function ArticleDetailScreen() {
   const handleGamificationResult = useCallback((result: GamificationResult) => {
     console.log('[ARTICLE] Gamification result:', result);
 
-    // Invalidate gamification caches to refresh stats
+    // Invalidate all gamification caches to refresh stats and For You feed
     invalidateStatsCache();
     invalidateGoalCache();
+    invalidateForYouCache(); // This will auto-refresh For You with new random articles!
 
     // Show appropriate feedback based on completion type and streak
     if (result.completionType === 'verified' && result.streakUpdated && result.newStreak) {

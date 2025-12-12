@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useQuiz } from '@/hooks/useQuiz';
 import { QuizAnswer } from '@/services';
+import { useToast } from '@/features/shared/hooks/useToast';
 
 interface ComprehensionSectionProps {
   articleSlug: string;
@@ -36,12 +37,13 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
 }) => {
   const colors = Colors.light;
   const flatListRef = useRef<FlatList>(null);
+  const toast = useToast();
 
   // ============================================================================
   // API Hooks
   // ============================================================================
 
-  // Quiz hook
+  // Quiz hook with error handling via toast
   const {
     questions: quizData,
     results,
@@ -50,7 +52,9 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
     fetchQuestions,
     submitQuiz: submitQuizApi,
     resetQuiz,
-  } = useQuiz(articleSlug);
+  } = useQuiz(articleSlug, {
+    onError: (message) => toast.error(message),
+  });
 
   // ============================================================================
   // Local State
@@ -72,7 +76,7 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
 
   useEffect(() => {
     fetchQuestions();
-  }, [fetchQuestions]);
+  }, [fetchQuestions]); // fetchQuestions is now stable (only changes when articleSlug changes)
 
   // Notify parent about quiz availability
   useEffect(() => {
@@ -184,7 +188,16 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
     let readingTime: number | undefined;
     if (readingStartTime) {
       const endTime = Date.now();
-      readingTime = Math.round((endTime - readingStartTime) / 60000); // Convert to minutes
+      const durationInMinutes = (endTime - readingStartTime) / 60000; // Convert to minutes
+
+      // Backend validation: reading time must be between 0.1 and 240 minutes
+      if (durationInMinutes < 0.1) {
+        readingTime = 0.1; // Use minimum valid value
+        console.log('[COMPREHENSION] Reading time too short, using minimum 0.1 minutes');
+      } else {
+        readingTime = Math.round(durationInMinutes * 10) / 10; // Round to 1 decimal place
+      }
+
       console.log('[COMPREHENSION] ============================================');
       console.log('[COMPREHENSION] Reading time calculation:');
       console.log('[COMPREHENSION]   Start time:', new Date(readingStartTime).toISOString());
@@ -194,6 +207,7 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
       console.log('[COMPREHENSION] ============================================');
     } else {
       console.warn('[COMPREHENSION] ⚠️ readingStartTime is undefined! Gamification will not work!');
+      toast.warning('Reading time not tracked');
     }
 
     console.log('[COMPREHENSION] Submitting to API with:');
@@ -213,10 +227,11 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
       onGamificationResult?.(gamificationResult);
     } else {
       console.warn('[COMPREHENSION] ⚠️ No gamification result received from backend!');
-      console.warn('[COMPREHENSION] ⚠️ This means either:');
-      console.warn('[COMPREHENSION]   1. Backend did not return gamification data');
-      console.warn('[COMPREHENSION]   2. User is not logged in');
-      console.warn('[COMPREHENSION]   3. Reading time was not sent (check logs above)');
+      if (!readingStartTime) {
+        // Don't show toast again if already shown above
+        return;
+      }
+      toast.warning('Gamification data not available');
     }
   };
 
@@ -319,6 +334,9 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* Toast Component */}
+      <toast.ToastComponent />
+
       {/* Section Header */}
       <View style={styles.sectionHeader}>
         <Ionicons name="school-outline" size={24} color={colors.primary} />

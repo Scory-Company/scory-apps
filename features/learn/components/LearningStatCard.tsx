@@ -20,12 +20,17 @@ export const LearningStatCard: React.FC<LearningStatCardProps> = ({
 }) => {
   const colors = Colors.light;
 
+  // Format value: round to 1 decimal if float, otherwise show as integer
+  const formattedValue = Number.isInteger(value)
+    ? value.toString()
+    : value.toFixed(1);
+
   return (
     <View style={[styles.statCard, Shadows.sm, { backgroundColor: colors.surface }]}>
       <View style={[styles.statIconContainer, { backgroundColor: iconBackgroundColor || colors.surfaceSecondary }]}>
         <Ionicons name={icon} size={24} color={iconColor || colors.primary} />
       </View>
-      <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
+      <Text style={[styles.statValue, { color: colors.text }]}>{formattedValue}</Text>
       <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{label}</Text>
     </View>
   );

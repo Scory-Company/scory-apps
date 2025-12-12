@@ -13,4 +13,6 @@ export {
   SkeletonText,
   SkeletonArticleDetail,
   SkeletonSearchResult,
+  SkeletonCollectionCard,
+  SkeletonWeeklyGoalCard,
 } from './SkeletonLoader';

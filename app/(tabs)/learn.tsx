@@ -10,9 +10,9 @@ import {
   ViewAllPrompt,
   InsightCard,
 } from '@/features/learn/components';
-import { EmptyState } from '@/features/shared/components';
+import { EmptyState, SkeletonCollectionCard, SkeletonListArticle, SkeletonWeeklyGoalCard } from '@/features/shared/components';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, StatusBar, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import {
@@ -205,8 +205,8 @@ export default function LearnScreen() {
           />
 
           {isLoadingGoal ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
+            <View style={{ paddingHorizontal: Spacing.lg }}>
+              <SkeletonWeeklyGoalCard />
             </View>
           ) : goalError && !weeklyGoal ? (
             <EmptyState
@@ -248,15 +248,12 @@ export default function LearnScreen() {
             title="Study Collections"
             icon="folder-open"
             iconColor={colors.warning}
-            onViewAllPress={() => console.log('View all collections')}
+            onViewAllPress={() => router.push('/collections' as any)}
           />
 
           {showCollectionsLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                Loading collections...
-              </Text>
+            <View style={styles.collectionsContainer}>
+              <SkeletonCollectionCard count={2} />
             </View>
           ) : collectionsError && studyCollections.length === 0 ? (
             <EmptyState
@@ -275,7 +272,7 @@ export default function LearnScreen() {
                   progress={collection.progress}
                   icon={collection.icon as any}
                   color={collection.color}
-                  onPress={() => console.log('Collection pressed:', collection.title)}
+                  onPress={() => router.push(`/collection/${collection.id}` as any)}
                 />
               ))}
             </View>
@@ -300,11 +297,8 @@ export default function LearnScreen() {
           />
 
           {showInsightsLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                Loading your insights...
-              </Text>
+            <View style={styles.insightsContainer}>
+              <SkeletonListArticle count={2} />
             </View>
           ) : insightsError && allInsights.length === 0 ? (
             <>

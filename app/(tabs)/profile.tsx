@@ -9,8 +9,9 @@ import {
 import { getProfile, updateProfile, logout, User } from '@/services/auth';
 import { personalizationApi } from '@/services';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { quickStats, settingsMenu as settingsMenuData } from '@/data/mock';
+import { quickStats as quickStatsMock, settingsMenu as settingsMenuData } from '@/data/mock';
 import React, { useEffect, useState } from 'react';
+import { useGamificationStats } from '@/hooks/useGamificationStats';
 import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -30,10 +31,22 @@ export default function ProfileScreen() {
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch gamification stats from API
+  const {
+    stats: gamificationStats,
+    isLoading: isLoadingStats,
+    fetchStats,
+  } = useGamificationStats();
+
   // Load user profile on mount
   useEffect(() => {
     loadUserProfile();
   }, []);
+
+  // Load stats on mount
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   const loadUserProfile = async () => {
     try {
@@ -218,6 +231,39 @@ export default function ProfileScreen() {
       onPress: () => handleMenuAction(item.action),
     })),
   }));
+
+  // Transform API data to quickStats format, fallback to mock if not available
+  const quickStats = React.useMemo(() => {
+    if (gamificationStats) {
+      return [
+        {
+          id: 1,
+          icon: 'book' as const,
+          value: gamificationStats.articlesRead.total.toString(),
+          labelKey: 'profile.stats.articlesRead',
+          color: '#7C3AED',
+          bgColor: '#7C3AED20',
+        },
+        {
+          id: 2,
+          icon: 'flame' as const,
+          value: gamificationStats.streak.current.toString(),
+          labelKey: 'profile.stats.dayStreak',
+          color: '#F59E0B',
+          bgColor: '#FEF3E2',
+        },
+        {
+          id: 3,
+          icon: 'time' as const,
+          value: gamificationStats.readingTime.totalMinutes.toString(),
+          labelKey: 'profile.stats.minutes',
+          color: '#3B82F6',
+          bgColor: '#E0F2FE',
+        },
+      ];
+    }
+    return quickStatsMock;
+  }, [gamificationStats]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>

@@ -3,12 +3,14 @@
  *
  * Handles paper simplification workflow:
  * 1. Check if paper already simplified (cache check)
- * 2. Simplify external paper
- * 3. Get simplified article content
+ * 2. Simplify external paper (starts async job OR returns cached)
+ * 3. Poll job status until complete (if job started)
+ * 4. Get simplified article content
  */
 
 import api from './api';
-import { ReadingLevel } from '@/constants/readingLevels';
+import { ReadingLevel, toAPIReadingLevel } from '@/constants/readingLevels';
+import * as JobPersistence from '@/utils/jobPersistence';
 
 // ==================== TYPES ====================
 
@@ -70,21 +72,52 @@ export interface QuizQuestion {
   order: number;
 }
 
-export interface SimplifyExternalResponse {
-  success: boolean;
+// 1. Response when job is created (201 Created)
+export interface SimplifyJobCreatedResponse {
+  success: true;
   message: string;
   data: {
-    articleId: string;
+    jobId: string;
+    status: 'pending' | 'completed';
+    isCached: false;
+    statusUrl: string;
+    estimatedTime: string;
+    pollingInterval: number;
+  };
+}
+
+// 2. Response when already cached (200 OK)
+export interface SimplifyCachedResponse {
+  success: true;
+  message: string;
+  data: {
+    isCached: true;
     isNewSimplification: boolean;
-    isCached: boolean;
+    articleId: string;
     content: ContentBlock[];
     quiz?: QuizQuestion[];
-    metadata?: {
-      extractionMethod: 'pdf' | 'html' | 'abstract';
-      aiCost: number;
-      processingTime: number;
-      readingLevel: ReadingLevel;
+  };
+}
+
+export type SimplifyResponse = SimplifyJobCreatedResponse | SimplifyCachedResponse;
+
+// Response when polling job status
+export interface JobStatusResponse {
+  success: boolean;
+  data: {
+    jobId: string;
+    status: 'pending' | 'active' | 'completed' | 'failed';
+    progress: number; // 0-100
+    estimatedTimeRemaining?: number;
+    result?: {
+      articleId: string;
+      isNewSimplification: boolean;
+      metadata?: {
+        aiCost: number;
+        processingTime: number;
+      };
     };
+    error?: string;
   };
 }
 
@@ -118,15 +151,33 @@ export interface GetSimplifiedArticleResponse {
   };
 }
 
+// ==================== TYPE GUARDS ====================
+
+/**
+ * Type guard to check if response is cached
+ */
+function isCachedResponse(response: SimplifyResponse): response is SimplifyCachedResponse {
+  return response.data.isCached === true && 'articleId' in response.data;
+}
+
+/**
+ * Type guard to check if response is job created
+ */
+function isJobCreatedResponse(response: SimplifyResponse): response is SimplifyJobCreatedResponse {
+  return response.data.isCached === false && 'jobId' in response.data;
+}
+
 // ==================== API FUNCTIONS ====================
 
 /**
  * Check if external paper already simplified (cached)
+ * Note: This is rarely needed - the simplifyExternalPaper endpoint already checks cache
  */
 export async function checkSimplifyCache(
   externalId: string
 ): Promise<SimplifyCacheCheckResponse> {
   try {
+    // Always encode to match backend expectations
     const encodedId = encodeURIComponent(externalId);
     const response = await api.get<SimplifyCacheCheckResponse>(
       `/simplify/check-cache/${encodedId}`
@@ -139,31 +190,70 @@ export async function checkSimplifyCache(
 }
 
 /**
- * Simplify external paper (OpenAlex or Scholar)
+ * Start simplification job for external paper
+ * Handles both 201 (Job Created) and 200 (Cached) responses
  */
 export async function simplifyExternalPaper(
   request: SimplifyExternalRequest
-): Promise<SimplifyExternalResponse> {
+): Promise<SimplifyResponse> {
   try {
-    console.log('[SimplifyAPI] Simplifying paper:', request.title);
-    console.log('[SimplifyAPI] Request payload:', JSON.stringify(request, null, 2));
-    console.log('[SimplifyAPI] Base URL:', api.defaults.baseURL);
+    console.log('[SimplifyAPI] Starting simplification request:', request.title);
 
-    const response = await api.post<SimplifyExternalResponse>(
+    // Default to SIMPLE if not provided, and convert to API format (ENUM)
+    const apiReadingLevel = toAPIReadingLevel(request.readingLevel || 'simple');
+
+    // ENCODE externalId to prevent backend error "Custom Id cannot contain :"
+    // The backend uses externalId to construct the Job ID, which fails if it contains ':'
+    const encodedExternalId = encodeURIComponent(request.externalId);
+
+    const payload = {
+      ...request,
+      externalId: encodedExternalId,
+      readingLevel: apiReadingLevel
+    };
+
+    console.log('[SimplifyAPI] Payload:', JSON.stringify(payload, null, 2));
+
+    const response = await api.post<SimplifyResponse>(
       '/simplify/external',
-      request
+      payload
     );
-    console.log('[SimplifyAPI] Response received:', response.status);
+
+    console.log('[SimplifyAPI] Response status:', response.status);
     return response.data;
   } catch (error: any) {
-    console.error('[SimplifyAPI] Simplify error:', error);
-    console.error('[SimplifyAPI] Error details:', {
-      message: error.message,
-      code: error.code,
-      url: error.config?.url,
-      baseURL: error.config?.baseURL,
-      timeout: error.config?.timeout,
-    });
+    console.error('[SimplifyAPI] Create request error:', error.message);
+    if (error.response) {
+      console.error('[SimplifyAPI] Error Status:', error.response.status);
+      console.error('[SimplifyAPI] Error Data:', JSON.stringify(error.response.data, null, 2));
+    }
+    throw error;
+  }
+}
+
+/**
+ * Poll job status
+ */
+export async function pollJobStatus(jobId: string): Promise<JobStatusResponse> {
+  try {
+    const response = await api.get<JobStatusResponse>(`/jobs/${jobId}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('[SimplifyAPI] Poll status error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Cancel a pending job
+ * Only works for jobs in 'waiting' status
+ */
+export async function cancelJob(jobId: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await api.delete<{ success: boolean; message: string }>(`/jobs/${jobId}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('[SimplifyAPI] Cancel job error:', error);
     throw error;
   }
 }
@@ -208,63 +298,80 @@ export async function simplifyHealthCheck(): Promise<{ success: boolean; message
 // ==================== HELPER FUNCTIONS ====================
 
 /**
- * Full simplify workflow with cache check
- *
- * Usage:
- * ```ts
- * const result = await simplifyPaperWorkflow({
- *   externalId: 'https://openalex.org/W123',
- *   source: 'openalex',
- *   title: 'Paper Title',
- *   authors: ['Author 1'],
- *   year: 2024
- * });
- *
- * if (result.isCached) {
- *   console.log('Already simplified, article ID:', result.articleId);
- * } else {
- *   console.log('Newly simplified, processing time:', result.processingTime);
- * }
- * ```
+ * Full simplify workflow with job creation and polling
+ * Includes proper timeout and cleanup mechanisms
  */
 export async function simplifyPaperWorkflow(
-  request: SimplifyExternalRequest
+  request: SimplifyExternalRequest,
+  options?: {
+    onProgress?: (progress: number) => void;
+    pollingTimeout?: number; // Max time to wait for job completion (default: 120s)
+    signal?: AbortSignal; // For cancellation support
+  }
 ): Promise<{
   articleId: string;
   isCached: boolean;
   isNewSimplification: boolean;
   processingTime?: number;
 }> {
-  try {
-    // Step 1: Check cache
-    console.log('[SimplifyWorkflow] Checking cache for:', request.externalId);
-    const cacheCheck = await checkSimplifyCache(request.externalId);
+  const { onProgress, pollingTimeout = 120000, signal } = options || {};
 
-    if (cacheCheck.data.isCached && cacheCheck.data.articleId) {
-      console.log('[SimplifyWorkflow] ✅ Found in cache:', cacheCheck.data.articleId);
+  try {
+    // Step 1: Request Simplification (backend handles cache check)
+    console.log('[SimplifyWorkflow] ⏳ Requesting simplification...');
+    const response = await simplifyExternalPaper(request);
+
+    // Check if it was a Cache Hit (200 OK with cached data)
+    if (isCachedResponse(response)) {
+      console.log('[SimplifyWorkflow] ✅ Instant response (Cached):', response.data.articleId);
+      onProgress?.(100);
       return {
-        articleId: cacheCheck.data.articleId,
+        articleId: response.data.articleId,
         isCached: true,
-        isNewSimplification: false,
+        isNewSimplification: false
       };
     }
 
-    // Step 2: Simplify paper (not in cache)
-    console.log('[SimplifyWorkflow] ⏳ Simplifying paper (not in cache)...');
-    const simplifyResult = await simplifyExternalPaper(request);
+    // It's a Job Created (201 Created)
+    if (isJobCreatedResponse(response)) {
+      const { jobId, pollingInterval = 3000 } = response.data;
 
-    console.log('[SimplifyWorkflow] ✅ Simplification complete:', {
-      articleId: simplifyResult.data.articleId,
-      processingTime: simplifyResult.data.metadata?.processingTime,
-      isCached: simplifyResult.data.isCached,
-    });
+      console.log('[SimplifyWorkflow] 🔄 Polling job:', jobId);
+      console.log('[SimplifyWorkflow] Polling interval:', pollingInterval, 'ms');
+      console.log('[SimplifyWorkflow] Timeout:', pollingTimeout, 'ms');
 
-    return {
-      articleId: simplifyResult.data.articleId,
-      isCached: simplifyResult.data.isCached,
-      isNewSimplification: simplifyResult.data.isNewSimplification,
-      processingTime: simplifyResult.data.metadata?.processingTime,
-    };
+      // Persist job for recovery
+      await JobPersistence.saveJob({
+        jobId,
+        type: 'simplify',
+        timestamp: Date.now(),
+        metadata: {
+          title: request.title,
+          readingLevel: request.readingLevel
+        }
+      });
+
+      try {
+        // Step 2: Poll with timeout and abort support
+        const result = await pollJobUntilComplete(jobId, {
+          pollingInterval,
+          timeout: pollingTimeout,
+          onProgress,
+          signal
+        });
+
+        // Remove from persistence after completion
+        await JobPersistence.removeJob(jobId);
+
+        return result;
+      } catch (error) {
+        // Keep in persistence if failed (for manual recovery)
+        throw error;
+      }
+    }
+
+    throw new Error('Unexpected response format from simplify endpoint');
+
   } catch (error: any) {
     console.error('[SimplifyWorkflow] ❌ Error:', error);
     throw error;
@@ -272,33 +379,269 @@ export async function simplifyPaperWorkflow(
 }
 
 /**
+ * Poll job status until completion with proper cleanup
+ * @internal
+ */
+async function pollJobUntilComplete(
+  jobId: string,
+  options: {
+    pollingInterval: number;
+    timeout: number;
+    onProgress?: (progress: number) => void;
+    signal?: AbortSignal;
+  }
+): Promise<{
+  articleId: string;
+  isCached: boolean;
+  isNewSimplification: boolean;
+  processingTime?: number;
+}> {
+  const { pollingInterval, timeout, onProgress, signal } = options;
+  const startTime = Date.now();
+
+  return new Promise((resolve, reject) => {
+    let timeoutId: number | null = null;
+    let isCleanedUp = false;
+
+    const cleanup = () => {
+      if (isCleanedUp) return;
+      isCleanedUp = true;
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
+      // Remove abort listener if exists
+      if (signal) {
+        signal.removeEventListener('abort', handleAbort);
+      }
+    };
+
+    const handleAbort = () => {
+      cleanup();
+      reject(new Error('Job polling cancelled by user'));
+    };
+
+    // Setup abort handler
+    if (signal) {
+      signal.addEventListener('abort', handleAbort);
+
+      // Check if already aborted
+      if (signal.aborted) {
+        handleAbort();
+        return;
+      }
+    }
+
+    const poll = async () => {
+      try {
+        // Check timeout
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= timeout) {
+          cleanup();
+          reject(new Error(`Job polling timeout after ${timeout}ms`));
+          return;
+        }
+
+        // Poll status
+        const statusRes = await pollJobStatus(jobId);
+        const { status, progress, result, error } = statusRes.data;
+
+        // Update progress
+        if (progress !== undefined) {
+          onProgress?.(progress);
+        }
+
+        // Check status
+        if (status === 'completed' && result) {
+          cleanup();
+          resolve({
+            articleId: result.articleId,
+            isCached: false,
+            isNewSimplification: result.isNewSimplification,
+            processingTime: result.metadata?.processingTime
+          });
+        } else if (status === 'failed') {
+          cleanup();
+          reject(new Error(error || 'Simplification job failed'));
+        } else {
+          // Continue polling (waiting or active)
+          timeoutId = setTimeout(poll, pollingInterval);
+        }
+      } catch (err) {
+        cleanup();
+        reject(err);
+      }
+    };
+
+    // Start polling
+    poll();
+  });
+}
+
+/**
  * Re-simplify existing article to different reading level
- *
- * @param articleId - The article ID to re-simplify
- * @param readingLevel - Target reading level (SIMPLE, STUDENT, ACADEMIC, EXPERT)
+ * Returns either cached result OR job ID for polling
  */
 export async function resimplifyArticle(
   articleId: string,
   readingLevel: string
-): Promise<SimplifyExternalResponse> {
+): Promise<SimplifyResponse> {
   try {
-    console.log('[SimplifyAPI] Re-simplifying article:', articleId);
-    console.log('[SimplifyAPI] Target reading level:', readingLevel);
+    console.log('[SimplifyAPI] Re-simplifying article:', articleId, 'to level:', readingLevel);
 
-    const response = await api.post<SimplifyExternalResponse>(
+    const response = await api.post<SimplifyResponse>(
       `/simplify/${articleId}/resimplify`,
       { readingLevel }
     );
 
-    console.log('[SimplifyAPI] Re-simplify response:', response.status);
     return response.data;
   } catch (error: any) {
     console.error('[SimplifyAPI] Re-simplify error:', error);
-    console.error('[SimplifyAPI] Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.response?.status,
+    throw error;
+  }
+}
+
+/**
+ * Re-simplify workflow with job polling
+ * Similar to simplifyPaperWorkflow but for existing articles
+ */
+export async function resimplifyWorkflow(
+  articleId: string,
+  readingLevel: string,
+  options?: {
+    onProgress?: (progress: number) => void;
+    pollingTimeout?: number;
+    signal?: AbortSignal;
+  }
+): Promise<{
+  articleId: string;
+  isCached: boolean;
+  isNewSimplification: boolean;
+  processingTime?: number;
+}> {
+  const { onProgress, pollingTimeout = 120000, signal } = options || {};
+
+  try {
+    console.log('[ResimplifyWorkflow] ⏳ Requesting re-simplification...');
+    const response = await resimplifyArticle(articleId, readingLevel);
+
+    // Check if it was a Cache Hit (already simplified to this level)
+    if (isCachedResponse(response)) {
+      console.log('[ResimplifyWorkflow] ✅ Instant response (Cached):', response.data.articleId);
+      onProgress?.(100);
+      return {
+        articleId: response.data.articleId,
+        isCached: true,
+        isNewSimplification: false
+      };
+    }
+
+    // It's a Job Created (async processing needed)
+    if (isJobCreatedResponse(response)) {
+      const { jobId, pollingInterval = 3000 } = response.data;
+
+      console.log('[ResimplifyWorkflow] 🔄 Polling job:', jobId);
+
+      // Persist job for recovery
+      await JobPersistence.saveJob({
+        jobId,
+        type: 'resimplify',
+        timestamp: Date.now(),
+        metadata: {
+          articleId,
+          readingLevel
+        }
+      });
+
+      try {
+        // Poll with timeout and abort support
+        const result = await pollJobUntilComplete(jobId, {
+          pollingInterval,
+          timeout: pollingTimeout,
+          onProgress,
+          signal
+        });
+
+        // Remove from persistence after completion
+        await JobPersistence.removeJob(jobId);
+
+        return result;
+      } catch (error) {
+        // Keep in persistence if failed (for manual recovery)
+        throw error;
+      }
+    }
+
+    throw new Error('Unexpected response format from resimplify endpoint');
+
+  } catch (error: any) {
+    console.error('[ResimplifyWorkflow] ❌ Error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Resume polling for a persisted job
+ * Useful if app was closed during job processing
+ */
+export async function resumeJob(
+  jobId: string,
+  options?: {
+    onProgress?: (progress: number) => void;
+    pollingTimeout?: number;
+    signal?: AbortSignal;
+  }
+): Promise<{
+  articleId: string;
+  isCached: boolean;
+  isNewSimplification: boolean;
+  processingTime?: number;
+}> {
+  const { onProgress, pollingTimeout = 120000, signal } = options || {};
+
+  console.log('[ResumeJob] Resuming job:', jobId);
+
+  try {
+    // Check current job status
+    const statusRes = await pollJobStatus(jobId);
+    const { status, result } = statusRes.data;
+
+    // If already completed, return immediately
+    if (status === 'completed' && result) {
+      console.log('[ResumeJob] ✅ Job already completed');
+      await JobPersistence.removeJob(jobId);
+      return {
+        articleId: result.articleId,
+        isCached: false,
+        isNewSimplification: result.isNewSimplification,
+        processingTime: result.metadata?.processingTime
+      };
+    }
+
+    // If failed, throw error
+    if (status === 'failed') {
+      console.log('[ResumeJob] ❌ Job failed');
+      await JobPersistence.removeJob(jobId);
+      throw new Error('Job failed during processing');
+    }
+
+    // Otherwise, continue polling
+    console.log('[ResumeJob] 🔄 Continuing to poll...');
+    const pollResult = await pollJobUntilComplete(jobId, {
+      pollingInterval: 3000,
+      timeout: pollingTimeout,
+      onProgress,
+      signal
     });
+
+    // Remove from persistence after completion
+    await JobPersistence.removeJob(jobId);
+
+    return pollResult;
+  } catch (error: any) {
+    console.error('[ResumeJob] Error:', error);
     throw error;
   }
 }
@@ -306,8 +649,12 @@ export async function resimplifyArticle(
 export default {
   checkCache: checkSimplifyCache,
   simplify: simplifyExternalPaper,
+  pollStatus: pollJobStatus,
+  cancelJob: cancelJob,
   resimplify: resimplifyArticle,
   getArticle: getSimplifiedArticle,
   healthCheck: simplifyHealthCheck,
   workflow: simplifyPaperWorkflow,
+  resimplifyWorkflow: resimplifyWorkflow,
+  resumeJob: resumeJob,
 };

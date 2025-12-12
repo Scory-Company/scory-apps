@@ -21,6 +21,7 @@ interface SimplifyLoadingModalProps {
   visible: boolean;
   step: 'idle' | 'checking' | 'simplifying' | 'done';
   message?: string;
+  progressValue?: number; // 0-100
 }
 
 const PROGRESS_MESSAGES = [
@@ -36,10 +37,23 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
   visible,
   step,
   message,
+  progressValue,
 }) => {
   const colors = Colors.light;
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [fadeAnim] = useState(new Animated.Value(1));
+  const [progressWidthAnim] = useState(new Animated.Value(0));
+
+  // Animate progress bar
+  useEffect(() => {
+    if (progressValue !== undefined) {
+      Animated.timing(progressWidthAnim, {
+        toValue: progressValue,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [progressValue]);
 
   // Rotate progress messages during simplification
   useEffect(() => {
@@ -89,7 +103,7 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
         return '#10B981'; // Green
       default:
         return colors.textMuted;
-    }
+      }
   };
 
   const displayMessage =
@@ -125,15 +139,38 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
             </Animated.View>
           )}
 
-          {/* Loading Indicator */}
-          {(step === 'checking' || step === 'simplifying') && (
+          {/* Progress Bar */}
+          {step === 'simplifying' && progressValue !== undefined && (
+            <View style={styles.progressContainer}>
+              <View style={[styles.progressBarBackground, { backgroundColor: colors.border }]}>
+                <Animated.View 
+                  style={[
+                    styles.progressBarFill, 
+                    { 
+                      backgroundColor: getStepColor(),
+                      width: progressWidthAnim.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: ['0%', '100%']
+                      })
+                    }
+                  ]} 
+                />
+              </View>
+              <Text style={[styles.progressText, { color: colors.textMuted }]}>
+                {progressValue}%
+              </Text>
+            </View>
+          )}
+
+          {/* Loading Indicator (if no progress value or checking) */}
+          {(step === 'checking' || (step === 'simplifying' && progressValue === undefined)) && (
             <View style={styles.loaderContainer}>
               <ActivityIndicator size="large" color={getStepColor()} />
             </View>
           )}
 
           {/* Estimated Time (for simplifying step) */}
-          {step === 'simplifying' && (
+          {step === 'simplifying' && progressValue === undefined && (
             <Text style={[styles.estimatedTime, { color: colors.textMuted }]}>
               This usually takes 20-30 seconds
             </Text>
@@ -192,4 +229,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
+  progressContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  progressBarBackground: {
+    width: '100%',
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: Spacing.xs,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: Typography.fontSize.sm,
+    fontVariant: ['tabular-nums'],
+  }
 });

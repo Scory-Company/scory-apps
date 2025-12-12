@@ -40,7 +40,11 @@ interface UseResimplifyResult {
   PremiumModal: () => JSX.Element | null;
 }
 
-export function useResimplify(): UseResimplifyResult {
+interface UseResimplifyOptions {
+  onError?: (message: string) => void;
+}
+
+export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResult {
   const [isResimplifying, setIsResimplifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{
@@ -71,47 +75,51 @@ export function useResimplify(): UseResimplifyResult {
       return false;
     }
 
-    // If premium, proceed with re-simplify
+    // If premium, proceed with re-simplify workflow (with job polling)
     try {
       setIsResimplifying(true);
       setError(null);
 
       setProgress({
         step: 'resimplifying',
-        message: `Simplifying to ${readingLevel} level... This may take 20-30 seconds.`,
+        message: `Simplifying to ${readingLevel} level...`,
       });
 
-      const result = await simplifyApi.resimplify(articleId, readingLevel);
+      // Use the new workflow function that handles job polling
+      const result = await simplifyApi.resimplifyWorkflow(articleId, readingLevel, {
+        onProgress: (progressValue) => {
+          // Update progress message based on value
+          let message = `Processing (${progressValue}%)...`;
+          if (progressValue >= 80) message = 'Generating quiz...';
+          else if (progressValue >= 50) message = 'Simplifying content...';
+          else if (progressValue >= 20) message = 'Analyzing structure...';
 
-      console.log('[🔄 AUTO-RESIMPLIFY] Result:', JSON.stringify({
-        articleId: result.data.articleId,
-        isNewSimplification: result.data.isNewSimplification,
-        hasContent: !!result.data.content,
-        contentBlocks: result.data.content?.length,
-      }, null, 2));
+          setProgress({
+            step: 'resimplifying',
+            message,
+          });
+        }
+      });
+
+      console.log('[✅ AUTO-RESIMPLIFY] Success!', {
+        articleId: result.articleId,
+        isCached: result.isCached,
+        isNew: result.isNewSimplification
+      });
 
       setProgress({
         step: 'done',
-        message: `Successfully simplified to ${readingLevel} level!`,
+        message: result.isCached ? 'Loaded from cache!' : `Successfully simplified to ${readingLevel} level!`,
       });
 
       setIsResimplifying(false);
-      console.log('[✅ AUTO-RESIMPLIFY] Success!');
-      console.log('='.repeat(60));
-
       return true;
-    } catch (err: any) {
-      console.log('='.repeat(60));
-      console.error('[❌ AUTO-RESIMPLIFY ERROR] Auto re-simplify failed!');
-      console.error('[❌ AUTO-RESIMPLIFY ERROR] Error:', err);
-      console.error('[❌ AUTO-RESIMPLIFY ERROR] Error message:', err.message);
-      console.error('[❌ AUTO-RESIMPLIFY ERROR] Error response:', err.response?.data);
-      console.log('='.repeat(60));
 
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        'Failed to re-simplify article. Please try again.';
+    } catch (err: any) {
+      console.error('[❌ AUTO-RESIMPLIFY ERROR]', err.message);
+
+      // Simplified error handling
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to re-simplify article. Please try again.';
 
       setError(errorMessage);
       setProgress({
@@ -119,11 +127,13 @@ export function useResimplify(): UseResimplifyResult {
         message: '',
       });
 
-      // Just log error, don't show modal for API errors
+      // Call onError callback if provided
+      options?.onError?.(errorMessage);
+
       setIsResimplifying(false);
       return false;
     }
-  }, [showPremiumModal]);
+  }, [showPremiumModal, options]);
 
   // Manual re-simplify (triggered by user, requires premium)
   const resimplifyManual = useCallback(async (articleId: string, readingLevel: string) => {
@@ -143,7 +153,7 @@ export function useResimplify(): UseResimplifyResult {
       return false;
     }
 
-    // If premium, proceed with re-simplify
+    // If premium, proceed with re-simplify workflow (with job polling)
     try {
       setIsResimplifying(true);
       setError(null);
@@ -153,37 +163,41 @@ export function useResimplify(): UseResimplifyResult {
         message: `Re-simplifying to ${readingLevel} level...`,
       });
 
-      const result = await simplifyApi.resimplify(articleId, readingLevel);
+      // Use the new workflow function that handles job polling
+      const result = await simplifyApi.resimplifyWorkflow(articleId, readingLevel, {
+        onProgress: (progressValue) => {
+          // Update progress message based on value
+          let message = `Processing (${progressValue}%)...`;
+          if (progressValue >= 80) message = 'Generating quiz...';
+          else if (progressValue >= 50) message = 'Simplifying content...';
+          else if (progressValue >= 20) message = 'Analyzing structure...';
 
-      console.log('[🔄 MANUAL-RESIMPLIFY] Result:', JSON.stringify({
-        articleId: result.data.articleId,
-        isNewSimplification: result.data.isNewSimplification,
-        hasContent: !!result.data.content,
-        contentBlocks: result.data.content?.length,
-      }, null, 2));
+          setProgress({
+            step: 'resimplifying',
+            message,
+          });
+        }
+      });
+
+      console.log('[✅ MANUAL-RESIMPLIFY] Success!', {
+        articleId: result.articleId,
+        isCached: result.isCached,
+        isNew: result.isNewSimplification
+      });
 
       setProgress({
         step: 'done',
-        message: `Successfully re-simplified to ${readingLevel} level!`,
+        message: result.isCached ? 'Loaded from cache!' : `Successfully re-simplified to ${readingLevel} level!`,
       });
 
       setIsResimplifying(false);
-      console.log('[✅ MANUAL-RESIMPLIFY] Success!');
-      console.log('='.repeat(60));
-
       return true;
-    } catch (err: any) {
-      console.log('='.repeat(60));
-      console.error('[❌ MANUAL-RESIMPLIFY ERROR] Manual re-simplify failed!');
-      console.error('[❌ MANUAL-RESIMPLIFY ERROR] Error:', err);
-      console.error('[❌ MANUAL-RESIMPLIFY ERROR] Error message:', err.message);
-      console.error('[❌ MANUAL-RESIMPLIFY ERROR] Error response:', err.response?.data);
-      console.log('='.repeat(60));
 
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        'Failed to re-simplify article. Please try again.';
+    } catch (err: any) {
+      console.error('[❌ MANUAL-RESIMPLIFY ERROR]', err.message);
+
+      // Simplified error handling
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to re-simplify article. Please try again.';
 
       setError(errorMessage);
       setProgress({
@@ -191,11 +205,13 @@ export function useResimplify(): UseResimplifyResult {
         message: '',
       });
 
-      // Just log error, don't show modal for API errors
+      // Call onError callback if provided
+      options?.onError?.(errorMessage);
+
       setIsResimplifying(false);
       return false;
     }
-  }, [showPremiumModal]);
+  }, [showPremiumModal, options]);
 
   return {
     resimplify,

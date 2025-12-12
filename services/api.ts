@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Base URL configuration
 const API_URL = __DEV__
-  ? 'http://192.168.1.14:5000/api/v1'
+  ? 'http://10.65.240.94:5000/api/v1'
   : 'https://api.scory.app/api/v1';
 
 // Create axios instance
@@ -12,7 +12,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // 60 seconds for long-running simplify operations
+  // Increased timeout for job polling endpoints
+  // Job creation and status polling should not timeout - backend handles the actual timeout
+  // Only applies to network connection timeout, not job processing time
+  timeout: 30000, // 30 seconds for network operations
 });
 
 // Request interceptor - Auto-attach JWT token
