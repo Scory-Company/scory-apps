@@ -86,10 +86,8 @@ export default function HomeScreen() {
         }));
 
         setCategoryCards(transformedCategories);
-        console.log('[Categories] Loaded:', transformedCategories.length);
       }
     } catch (error: any) {
-      console.error('[Categories] Error:', error?.message);
     }
   };
 
@@ -141,7 +139,6 @@ export default function HomeScreen() {
         setDisplayedArticles(articles);
         setIsUsingApi(true);
         setHasMoreArticles(apiData.pagination.page < apiData.pagination.totalPages);
-        console.log('[Popular] Loaded:', articles.length);
       }
     } catch {
       setHasMoreArticles(popularArticles.length > INITIAL_LOAD);

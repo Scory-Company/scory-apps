@@ -98,6 +98,9 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
         }
       });
 
+      // ✅ OPTIMIZED: Reset loading state immediately
+      setIsResimplifying(false);
+
       const successMessage = result.isCached
         ? 'Content loaded from cache!'
         : `Article simplified to ${readingLevel} level!`;
@@ -110,7 +113,6 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
       // Call onSuccess callback if provided
       options?.onSuccess?.(successMessage);
 
-      setIsResimplifying(false);
       return true;
 
     } catch (err: any) {
@@ -177,6 +179,9 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
         }
       });
 
+      // ✅ OPTIMIZED: Reset loading state immediately
+      setIsResimplifying(false);
+
       const successMessage = result.isCached
         ? 'Content loaded from cache!'
         : `Article re-simplified to ${readingLevel} level!`;
@@ -189,7 +194,6 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
       // Call onSuccess callback if provided
       options?.onSuccess?.(successMessage);
 
-      setIsResimplifying(false);
       return true;
 
     } catch (err: any) {

@@ -81,7 +81,6 @@ export const useQuiz = (articleSlug: string, readingLevel?: string, options?: Us
 
       if (response.success && response.data) {
         setQuestions(response.data);
-        console.log('[QUIZ] Questions loaded:', response.data.questions.length);
       } else {
         setQuestionsError(null);
         setQuestions(null);
@@ -89,12 +88,10 @@ export const useQuiz = (articleSlug: string, readingLevel?: string, options?: Us
     } catch (error: any) {
       // Handle remaining errors (401, 500, etc.)
       if (error.response?.status === 401) {
-        console.warn('[QUIZ] Unauthorized:', error);
         const errorMsg = 'Please login to take the quiz';
         setQuestionsError(errorMsg);
         options?.onError?.(errorMsg);
       } else {
-        console.error('[QUIZ] Error fetching questions:', error);
         const errorMsg = error.response?.data?.message || 'Failed to load quiz questions';
         setQuestionsError(errorMsg);
         options?.onError?.(errorMsg);
@@ -127,20 +124,16 @@ export const useQuiz = (articleSlug: string, readingLevel?: string, options?: Us
       setSubmitError(null);
 
       try {
-        console.log('[QUIZ] Submitting answers:', JSON.stringify(answers, null, 2));
         if (readingTime !== undefined) {
-          console.log('[QUIZ] Reading time:', readingTime, 'minutes');
         }
 
         const response = await quizApi.submitQuiz(articleSlug, answers, readingTime);
 
         if (response.success && response.data) {
           setResults(response.data);
-          console.log('[QUIZ] Quiz submitted! Score:', response.data.score, '/', response.data.totalQuestions);
 
           // Log and return gamification result if present
           if (response.data.gamification) {
-            console.log('[QUIZ] Gamification result:', JSON.stringify(response.data.gamification, null, 2));
             return response.data.gamification;
           }
 
@@ -150,9 +143,6 @@ export const useQuiz = (articleSlug: string, readingLevel?: string, options?: Us
           return null;
         }
       } catch (error: any) {
-        console.error('[QUIZ] Error submitting quiz:', error);
-        console.error('[QUIZ] Error response:', JSON.stringify(error.response?.data, null, 2));
-        console.error('[QUIZ] Request payload:', JSON.stringify({ answers, readingTime }, null, 2));
 
         let errorMessage = 'Failed to submit quiz';
 
@@ -175,8 +165,6 @@ export const useQuiz = (articleSlug: string, readingLevel?: string, options?: Us
           } else {
             errorMessage = responseData?.message || 'Invalid quiz submission';
           }
-
-          console.error('[QUIZ] 400 Validation Error:', errorMessage);
         } else {
           errorMessage = error.response?.data?.message || 'Failed to submit quiz';
         }
@@ -198,7 +186,6 @@ export const useQuiz = (articleSlug: string, readingLevel?: string, options?: Us
   const resetQuiz = useCallback(() => {
     setResults(null);
     setSubmitError(null);
-    console.log('[QUIZ] Quiz reset');
   }, []);
 
   return {

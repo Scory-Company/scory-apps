@@ -4,6 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
 import { useEffect, useState } from 'react';
 import api from './api';
+import { saveToken, clearTokens } from './tokenManager';
 
 // Complete auth session for web browser
 WebBrowser.maybeCompleteAuthSession();
@@ -39,7 +40,7 @@ export interface User {
   nickname: string | null;
   avatarUrl: string | null;
   authProvider: string;
-  role:string;
+  role: string;
   isVerified: boolean;
 }
 
@@ -50,6 +51,7 @@ interface AuthResponse {
   data: {
     user: User;
     token: string;
+    refreshToken?: string; // Optional refresh token
   };
 }
 
@@ -88,8 +90,8 @@ export const useGoogleAuth = () => {
           });
 
           if (data.success) {
-            // Save token and user data
-            await AsyncStorage.setItem('token', data.data.token);
+            // Save token and user data using tokenManager
+            await saveToken(data.data.token, data.data.refreshToken);
             await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
 
             setUser(data.data.user);
@@ -128,8 +130,7 @@ export const useGoogleAuth = () => {
    */
   const signOut = async () => {
     try {
-      await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('user');
+      await clearTokens();
       setUser(null);
     } catch {
       // Ignore errors during sign out
@@ -234,8 +235,8 @@ export const registerWithEmail = async (
     });
 
     if (data.success) {
-      // Save token and user data
-      await AsyncStorage.setItem('token', data.data.token);
+      // Save token and user data using tokenManager
+      await saveToken(data.data.token, data.data.refreshToken);
       await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
 
       return data.data;
@@ -262,8 +263,8 @@ export const loginWithEmail = async (
     });
 
     if (data.success) {
-      // Save token and user data
-      await AsyncStorage.setItem('token', data.data.token);
+      // Save token and user data using tokenManager
+      await saveToken(data.data.token, data.data.refreshToken);
       await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
 
       return data.data;
@@ -297,8 +298,7 @@ export const checkSession = async (): Promise<boolean> => {
     }
 
     // Token invalid, clear storage
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('user');
+    await clearTokens();
     return false;
   } catch {
     // Network error or other issues, assume invalid
@@ -325,7 +325,6 @@ export const logout = async (): Promise<void> => {
     }
 
     // Clear local storage
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('user');
+    await clearTokens();
   }
 };

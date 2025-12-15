@@ -122,7 +122,7 @@ export const articlesApi = {
     api.get(`/articles/${slug}/content`, { params: { readingLevel } }),
 
   // Get personalized "For You" feed
-  getForYou: (params?: { page?: number; limit?: number }) =>
+  getForYou: (params?: { page?: number; limit?: number; excludeRead?: boolean; sort?: string; readingLevel?: string }) =>
     api.get<PaginatedResponse<ArticleResponse>>('/articles/for-you', { params }),
 
   // Get popular articles

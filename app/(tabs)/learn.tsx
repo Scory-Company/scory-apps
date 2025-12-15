@@ -79,9 +79,6 @@ export default function LearnScreen() {
   // Refresh data when screen comes into focus (uses cache if still valid)
   useFocusEffect(
     React.useCallback(() => {
-      console.log('[LEARN] Screen focused - fetching data (with cache)');
-      // Don't invalidate cache - let hooks decide if cache is still valid
-      // This makes tab switching instant if cache is fresh (<30s)
       fetchInsights(); // Uses cache if age < 30s
       refetchCollections();
       fetchStats(); // Uses cache if age < 30s
@@ -89,10 +86,7 @@ export default function LearnScreen() {
     }, [fetchInsights, refetchCollections, fetchStats, fetchGoal])
   );
 
-  // Learning Stats with color config
-  // Transform API data or use mock data as fallback
   const learningStats = React.useMemo(() => {
-    // Use API data if available, otherwise fallback to mock
     const statsData = gamificationStats
       ? [
           {
@@ -116,7 +110,6 @@ export default function LearnScreen() {
         ]
       : learningStatsMock;
 
-    // Apply color mapping
     return statsData.map((stat) => {
       let iconColor = colors.primary;
       let iconBackgroundColor = colors.primary + '20';
@@ -137,16 +130,12 @@ export default function LearnScreen() {
     });
   }, [gamificationStats, colors]);
 
-  // Limit to max 3 recent insights
   const recentInsights = allInsights.slice(0, 3);
 
-  // Conditional logic for add button placement
   const showBottomAddButton = allInsights.length <= 2;
   const showHeaderAddButton = allInsights.length > 2;
   const remainingInsightsCount = allInsights.length > 3 ? allInsights.length - 3 : 0;
 
-  // Smart loading: only show full loading on initial load (no data + loading)
-  // If we have data, don't block UI with loading indicator
   const showInsightsLoading = isLoadingInsights && allInsights.length === 0;
   const showCollectionsLoading = isLoadingCollections && studyCollections.length === 0;
 
@@ -224,7 +213,6 @@ export default function LearnScreen() {
                 router.push('/(tabs)/explore' as any);
               }}
               onSetGoalPress={() => {
-                console.log('[LEARN] Opening goal modal');
                 setShowGoalModal(true);
               }}
             />
@@ -235,7 +223,6 @@ export default function LearnScreen() {
               target={0}
               daysLeft={7}
               onSetGoalPress={() => {
-                console.log('[LEARN] Opening goal modal');
                 setShowGoalModal(true);
               }}
             />

@@ -20,15 +20,15 @@ export function ForYouSection({ readingLevel }: ForYouSectionProps) {
     articles,
     isLoading,
     fetchArticles,
-  } = useForYouArticles({ limit: 5 });
+  } = useForYouArticles({ limit: 5, readingLevel });
 
-  // Fetch articles on mount - will automatically use random sort + exclude read
+  // Fetch articles on mount and when reading level changes
   useEffect(() => {
     fetchArticles();
-  }, [fetchArticles]);
+  }, [fetchArticles, readingLevel]);
 
-  // Display max 3 articles
-  const displayArticles = articles.slice(0, 100);
+  // Display max 5 articles
+  const displayArticles = articles.slice(0, 5);
 
   // Loading skeleton
   if (isLoading && !articles.length) {

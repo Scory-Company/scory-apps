@@ -51,10 +51,6 @@ export function useCollectionDetail(collectionId: string): UseCollectionDetailRe
   const fetchCollectionDetail = useCallback(
     async (isRefresh = false) => {
       try {
-        console.log('[useCollectionDetail] Fetching collection detail...', {
-          collectionId,
-          isRefresh,
-        });
 
         // Set appropriate loading state
         if (isRefresh) {
@@ -69,18 +65,12 @@ export function useCollectionDetail(collectionId: string): UseCollectionDetailRe
         // Fetch from API
         const data = await collectionService.getCollectionDetail(collectionId);
 
-        console.log('[useCollectionDetail] Collection detail fetched:', {
-          collectionId: data.collection.id,
-          articlesCount: data.articles.length,
-        });
-
-        // Update state
+  // Update state
         setCollection(data.collection);
         setArticles(data.articles);
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : 'Failed to load collection detail';
-        console.error('[useCollectionDetail] Error fetching collection detail:', errorMessage);
+        err instanceof Error ? err.message : 'Failed to load collection detail';
         setError(errorMessage);
       } finally {
         setIsLoading(false);
@@ -99,7 +89,6 @@ export function useCollectionDetail(collectionId: string): UseCollectionDetailRe
       if (!collection) return;
 
       try {
-        console.log('[useCollectionDetail] Marking article as read:', articleId);
 
         // Optimistically update UI
         setArticles((prev) =>
@@ -118,13 +107,9 @@ export function useCollectionDetail(collectionId: string): UseCollectionDetailRe
           prev ? { ...prev, progress: response.collection.progress } : prev
         );
 
-        console.log('[useCollectionDetail] Article marked as read, progress updated:', {
-          articleId,
-          newProgress: response.collection.progress,
-        });
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to mark as read';
-        console.error('[useCollectionDetail] Error marking as read:', errorMessage);
+        setError(errorMessage);
 
         // Revert optimistic update on error
         await fetchCollectionDetail(true);
@@ -140,7 +125,6 @@ export function useCollectionDetail(collectionId: string): UseCollectionDetailRe
   const unbookmarkArticle = useCallback(
     async (articleId: string) => {
       try {
-        console.log('[useCollectionDetail] Unbookmarking article:', articleId);
 
         // Optimistically update UI
         setArticles((prev) => prev.filter((article) => article.id !== articleId));
@@ -151,22 +135,16 @@ export function useCollectionDetail(collectionId: string): UseCollectionDetailRe
         // Call API
         const response = await collectionService.unbookmarkArticle(articleId);
 
-        console.log('[useCollectionDetail] Article unbookmarked:', {
-          articleId,
-          wasDeleted: response.collection.wasDeleted,
-        });
-
         // If collection was deleted, we might want to navigate back
         if (response.collection.wasDeleted) {
-          console.log('[useCollectionDetail] Collection was deleted (no articles remaining)');
-          // Note: Navigation should be handled by the screen component
+          setError('Collection was deleted (no articles remaining)');
         } else {
           // Refresh to get accurate state from backend
           await fetchCollectionDetail(true);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to unbookmark article';
-        console.error('[useCollectionDetail] Error unbookmarking article:', errorMessage);
+        setError(errorMessage);
 
         // Revert optimistic update on error
         await fetchCollectionDetail(true);

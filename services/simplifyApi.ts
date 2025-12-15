@@ -230,7 +230,6 @@ export async function checkSimplifyCache(
     );
     return response.data;
   } catch (error: any) {
-    console.error('[SimplifyAPI] Check cache error:', error);
     throw error;
   }
 }
@@ -243,8 +242,6 @@ export async function simplifyExternalPaper(
   request: SimplifyExternalRequest
 ): Promise<SimplifyResponse> {
   try {
-    console.log('[SimplifyAPI] Starting simplification request:', request.title);
-
     // Default to SIMPLE if not provided, and convert to API format (ENUM)
     const apiReadingLevel = toAPIReadingLevel(request.readingLevel || 'simple');
 
@@ -258,20 +255,13 @@ export async function simplifyExternalPaper(
       readingLevel: apiReadingLevel
     };
 
-    console.log('[SimplifyAPI] Payload:', JSON.stringify(payload, null, 2));
-
     const response = await api.post<SimplifyResponse>(
       '/simplify/external',
       payload
     );
-
-    console.log('[SimplifyAPI] Response status:', response.status);
     return response.data;
   } catch (error: any) {
-    console.error('[SimplifyAPI] Create request error:', error.message);
     if (error.response) {
-      console.error('[SimplifyAPI] Error Status:', error.response.status);
-      console.error('[SimplifyAPI] Error Data:', JSON.stringify(error.response.data, null, 2));
     }
     throw error;
   }
@@ -285,7 +275,6 @@ export async function pollJobStatus(jobId: string): Promise<JobStatusResponse> {
     const response = await api.get<JobStatusResponse>(`/jobs/${jobId}`);
     return response.data;
   } catch (error: any) {
-    console.error('[SimplifyAPI] Poll status error:', error);
     throw error;
   }
 }
@@ -299,7 +288,6 @@ export async function cancelJob(jobId: string): Promise<{ success: boolean; mess
     const response = await api.delete<{ success: boolean; message: string }>(`/jobs/${jobId}`);
     return response.data;
   } catch (error: any) {
-    console.error('[SimplifyAPI] Cancel job error:', error);
     throw error;
   }
 }
@@ -323,7 +311,6 @@ export async function getSimplifiedArticle(
     const response = await api.get<GetSimplifiedArticleResponse>(url);
     return response.data;
   } catch (error: any) {
-    console.error('[SimplifyAPI] Get article error:', error);
     throw error;
   }
 }
@@ -336,7 +323,6 @@ export async function simplifyHealthCheck(): Promise<{ success: boolean; message
     const response = await api.get<{ success: boolean; message: string }>('/simplify/health');
     return response.data;
   } catch (error: any) {
-    console.error('[SimplifyAPI] Health check error:', error);
     throw error;
   }
 }
@@ -363,13 +349,10 @@ export async function simplifyPaperWorkflow(
   const { onProgress, pollingTimeout = 120000, signal } = options || {};
 
   try {
-    // Step 1: Request Simplification (backend handles cache check)
-    console.log('[SimplifyWorkflow] ⏳ Requesting simplification...');
     const response = await simplifyExternalPaper(request);
 
     // Check if it was a Cache Hit (200 OK with cached data)
     if (isCachedResponse(response)) {
-      console.log('[SimplifyWorkflow] ✅ Instant response (Cached):', response.data.articleId);
       onProgress?.(100);
       return {
         articleId: response.data.articleId,
@@ -381,10 +364,6 @@ export async function simplifyPaperWorkflow(
     // It's a Job Created (201 Created)
     if (isJobCreatedResponse(response)) {
       const { jobId, pollingInterval = 3000 } = response.data;
-
-      console.log('[SimplifyWorkflow] 🔄 Polling job:', jobId);
-      console.log('[SimplifyWorkflow] Polling interval:', pollingInterval, 'ms');
-      console.log('[SimplifyWorkflow] Timeout:', pollingTimeout, 'ms');
 
       // Persist job for recovery
       await JobPersistence.saveJob({
@@ -398,7 +377,6 @@ export async function simplifyPaperWorkflow(
       });
 
       try {
-        // Step 2: Poll with timeout and abort support
         const result = await pollJobUntilComplete(jobId, {
           pollingInterval,
           timeout: pollingTimeout,
@@ -419,7 +397,6 @@ export async function simplifyPaperWorkflow(
     throw new Error('Unexpected response format from simplify endpoint');
 
   } catch (error: any) {
-    console.error('[SimplifyWorkflow] ❌ Error:', error);
     throw error;
   }
 }

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import api from './api';
+import { saveToken, clearTokens } from './tokenManager';
 
 // Google OAuth Configuration
 const GOOGLE_CONFIG = {
@@ -15,7 +16,7 @@ export interface User {
   nickname: string | null;
   avatarUrl: string | null;
   authProvider: string;
-  role:string;
+  role: string;
   isVerified: boolean;
 }
 
@@ -26,6 +27,7 @@ interface AuthResponse {
   data: {
     user: User;
     token: string;
+    refreshToken?: string; // Optional refresh token
   };
 }
 
@@ -61,8 +63,8 @@ export const signInWithGoogle = async (): Promise<{ user: User; token: string }>
     });
 
     if (data.success) {
-      // Save token and user data
-      await AsyncStorage.setItem('token', data.data.token);
+      // Save token and user data using tokenManager
+      await saveToken(data.data.token, data.data.refreshToken);
       await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
 
       return data.data;
@@ -92,8 +94,7 @@ export const signOutFromGoogle = async (): Promise<void> => {
     await GoogleSignin.signOut();
 
     // Clear local storage
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('user');
+    await clearTokens();
   } catch (error) {
     throw new Error('Unable to sign out. Please try again.');
   }

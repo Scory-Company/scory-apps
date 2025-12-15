@@ -75,7 +75,6 @@ export function useGamificationStats(): UseGamificationStatsResult {
   const fetchStats = useCallback(async () => {
     // Check if request is already in progress
     if (isRequestInProgress.current) {
-      console.log('[GAMIFICATION_STATS] Request already in progress, skipping...');
       return;
     }
 
@@ -84,7 +83,6 @@ export function useGamificationStats(): UseGamificationStatsResult {
     const cacheAge = now - lastFetchTime;
 
     if (cachedStats && cacheAge < CACHE_DURATION) {
-      console.log('[GAMIFICATION_STATS] Using cached data (age:', Math.round(cacheAge / 1000), 'seconds)');
       setStats(cachedStats);
       return;
     }
@@ -94,7 +92,6 @@ export function useGamificationStats(): UseGamificationStatsResult {
     setError(null);
 
     try {
-      console.log('[GAMIFICATION_STATS] Fetching gamification stats...');
       const data = await gamificationService.getStats();
 
       // Update cache
@@ -102,22 +99,14 @@ export function useGamificationStats(): UseGamificationStatsResult {
       lastFetchTime = Date.now();
 
       setStats(data);
-      console.log('[GAMIFICATION_STATS] Stats loaded:', {
-        streak: data.streak.current,
-        articlesThisWeek: data.articlesRead.thisWeek,
-        minutesThisWeek: data.readingTime.thisWeek,
-      });
     } catch (err: any) {
-      console.error('[GAMIFICATION_STATS] Error fetching stats:', err);
 
       if (err.response?.status === 401) {
         setError('Please login to view your stats');
       } else if (err.response?.status === 404) {
         setError('Gamification feature not available');
-        console.warn('[GAMIFICATION_STATS] Endpoint not found - backend may not have implemented this yet');
       } else if (err.response?.status === 429) {
         setError('Too many requests. Please wait a moment.');
-        console.warn('[GAMIFICATION_STATS] Rate limited (429). Using cached data if available.');
         // Use cached data if available
         if (cachedStats) {
           setStats(cachedStats);
@@ -139,7 +128,6 @@ export function useGamificationStats(): UseGamificationStatsResult {
   const refreshStats = useCallback(async () => {
     // Check if request is already in progress
     if (isRequestInProgress.current) {
-      console.log('[GAMIFICATION_STATS] Request already in progress, skipping refresh...');
       return;
     }
 
@@ -148,7 +136,6 @@ export function useGamificationStats(): UseGamificationStatsResult {
     setError(null);
 
     try {
-      console.log('[GAMIFICATION_STATS] Refreshing stats...');
       const data = await gamificationService.getStats();
 
       // Update cache
@@ -156,12 +143,9 @@ export function useGamificationStats(): UseGamificationStatsResult {
       lastFetchTime = Date.now();
 
       setStats(data);
-      console.log('[GAMIFICATION_STATS] Stats refreshed');
     } catch (err: any) {
-      console.error('[GAMIFICATION_STATS] Error refreshing stats:', err);
 
       if (err.response?.status === 429) {
-        console.warn('[GAMIFICATION_STATS] Rate limited (429) on refresh. Using cached data.');
         // Don't show error, just use cached data
         if (cachedStats) {
           setStats(cachedStats);
@@ -179,7 +163,6 @@ export function useGamificationStats(): UseGamificationStatsResult {
    * Forces next fetch to retrieve fresh data from server
    */
   const invalidateCache = useCallback(() => {
-    console.log('[GAMIFICATION_STATS] Cache invalidated');
     cachedStats = null;
     lastFetchTime = 0;
   }, []);

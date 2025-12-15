@@ -72,7 +72,6 @@ export default function ArticleDetailScreen() {
 
   // Handle gamification result from quiz completion
   const handleGamificationResult = useCallback((result: GamificationResult) => {
-    console.log('[ARTICLE] Gamification result:', result);
 
     // Invalidate all gamification caches to refresh stats and For You feed
     invalidateStatsCache();
@@ -82,20 +81,10 @@ export default function ArticleDetailScreen() {
     // Show appropriate feedback based on completion type and streak
     if (result.completionType === 'verified' && result.streakUpdated && result.newStreak) {
       // Streak celebration 🔥
-      toast.success(`🔥 ${result.newStreak} day streak!`, 3000);
-
-      // Navigate to Learn tab to show updated stats
-      setTimeout(() => {
-        router.push('/(tabs)/explore');
-      }, 3500); // Wait for toast to finish
+      toast.success(`🔥 ${result.newStreak} day streak!`, 2000);
     } else if (result.completionType === 'verified') {
       // Completed but streak didn't update (already completed today)
-      toast.success('Article completed!', 2000);
-
-      // Still navigate to show updated stats
-      setTimeout(() => {
-        router.push('/(tabs)/explore');
-      }, 2500);
+      toast.success('Article completed!', 1500);
     } else if (result.completionType === 'basic') {
       // Too fast - didn't meet verification criteria
       toast.warning('⚡ Read carefully to earn streak points!', 2500);
@@ -323,7 +312,8 @@ export default function ArticleDetailScreen() {
     const success = await resimplify(article.id, selectedReadingLevel as string);
 
     if (success) {
-      // Reload article to get the new content
+      // ✅ OPTIMIZED: Directly fetch article instead of router.replace
+      // This is faster because backend already cached the result
       await fetchArticle();
     }
   }, [article?.id, selectedReadingLevel, resimplify, fetchArticle]);
@@ -340,7 +330,8 @@ export default function ArticleDetailScreen() {
     const success = await resimplifyManual(article.id, selectedReadingLevel as string);
 
     if (success) {
-      // Reload article to get the new content
+      // ✅ OPTIMIZED: Directly fetch article instead of router.replace
+      // This is faster because backend already cached the result
       await fetchArticle();
     }
   }, [article?.id, selectedReadingLevel, resimplifyManual, fetchArticle]);

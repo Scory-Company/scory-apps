@@ -143,7 +143,6 @@ export default function ExploreScreen() {
       if (categoriesData && Array.isArray(categoriesData)) {
         const categoryNames = ['All', ...categoriesData.map((cat: any) => cat.name)];
         setCategoryList(categoryNames);
-        console.log('[Categories] Loaded:', categoryNames.length);
       }
     } catch {
       // Use mock data
@@ -165,7 +164,6 @@ export default function ExploreScreen() {
           rating: article.rating,
         }));
         setTopRatedArticles(transformed);
-        console.log('[Top Rated] Loaded:', transformed.length);
       }
     } catch {
       // Use mock data
@@ -188,7 +186,6 @@ export default function ExploreScreen() {
           date: new Date(article.publishedAt).toLocaleDateString(),
         }));
         setRecentlyAddedArticles(transformed);
-        console.log('[Recently Added] Loaded:', transformed.length);
       }
     } catch {
       // Use mock data
@@ -251,14 +248,12 @@ export default function ExploreScreen() {
         setExternalResults(external);
         setHasMore(externalResponse.data.meta.hasMore);
         setCurrentPage(1);
-        console.log('[Search] External:', external.length);
       } else {
         setExternalResults([]);
         setHasMore(true);
       }
 
     } catch (error) {
-      console.error('[Search] Error:', error);
       setAllFetchedArticles(allArticlesData);
       setExternalResults([]);
     } finally {
@@ -327,9 +322,7 @@ export default function ExploreScreen() {
       setExternalResults(prev => [...prev, ...external]);
       setHasMore(response.data.meta.hasMore);
       setCurrentPage(nextPage);
-      console.log('[Search] Page', nextPage, ':', external.length);
     } catch (error) {
-      console.error('[Search] Load more error:', error);
       setHasMore(false);
     } finally {
       setIsLoadingMore(false);

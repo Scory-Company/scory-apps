@@ -48,8 +48,6 @@ export function useStudyCollections(): UseStudyCollectionsResult {
    */
   const fetchCollections = useCallback(async (isRefresh = false) => {
     try {
-      console.log('[useStudyCollections] Fetching collections...', { isRefresh });
-
       // Set appropriate loading state
       if (isRefresh) {
         setIsRefreshing(true);
@@ -63,8 +61,6 @@ export function useStudyCollections(): UseStudyCollectionsResult {
       // Fetch from API
       const data = await collectionService.getAllCollections();
 
-      console.log('[useStudyCollections] Collections fetched:', data.length);
-
       // Sync bookmark cache with fetched collections
       // Get all article IDs from all collections and sync cache
       const fetchCollectionDetails = async () => {
@@ -75,25 +71,21 @@ export function useStudyCollections(): UseStudyCollectionsResult {
             const detail = await collectionService.getCollectionDetail(collection.id);
             detail.articles.forEach(article => allArticleIds.push(article.id));
           } catch (error) {
-            console.error('[useStudyCollections] Error fetching collection detail:', error);
           }
         }
 
         // Sync cache with actual bookmarked articles
         await BookmarkCache.syncBookmarkCache(allArticleIds);
-        console.log('[useStudyCollections] Cache synced with', allArticleIds.length, 'articles');
       };
 
       // Sync cache in background (don't block UI)
       fetchCollectionDetails().catch(error => {
-        console.error('[useStudyCollections] Cache sync error:', error);
       });
 
       // Update state
       setCollections(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load collections';
-      console.error('[useStudyCollections] Error fetching collections:', errorMessage);
       setError(errorMessage);
     } finally {
       setIsLoading(false);

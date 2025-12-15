@@ -61,7 +61,6 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
   const fetchInsights = useCallback(async () => {
     // Check if request is already in progress
     if (isRequestInProgress.current) {
-      console.log('[USER_INSIGHTS] Request already in progress, skipping...');
       return;
     }
 
@@ -70,7 +69,6 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
     const cacheAge = now - lastFetchTime;
 
     if (cachedInsights && cacheAge < CACHE_DURATION) {
-      console.log('[USER_INSIGHTS] Using cached data (age:', Math.round(cacheAge / 1000), 'seconds)');
       setInsights(cachedInsights);
       return;
     }
@@ -80,7 +78,6 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
     setError(null);
 
     try {
-      console.log('[USER_INSIGHTS] Fetching all user insights...');
       const response = await insightsApi.getUserInsightNotes();
 
       if (response.success && response.data) {
@@ -94,21 +91,17 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
         lastFetchTime = Date.now();
 
         setInsights(sortedInsights);
-        console.log('[USER_INSIGHTS] Loaded', sortedInsights.length, 'insights');
       } else {
         setError(response.message || 'Failed to load insights');
       }
     } catch (err: any) {
-      console.error('[USER_INSIGHTS] Error fetching insights:', err);
 
       if (err.response?.status === 401) {
         setError('Please login to view your insights');
       } else if (err.response?.status === 404) {
         setError('Insights feature not available yet');
-        console.warn('[USER_INSIGHTS] Endpoint not found - backend may not have implemented this yet');
       } else if (err.response?.status === 429) {
         setError('Too many requests. Please wait a moment.');
-        console.warn('[USER_INSIGHTS] Rate limited (429). Using cached data if available.');
         // Use cached data if available
         if (cachedInsights) {
           setInsights(cachedInsights);
@@ -130,7 +123,6 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
   const refreshInsights = useCallback(async () => {
     // Check if request is already in progress
     if (isRequestInProgress.current) {
-      console.log('[USER_INSIGHTS] Request already in progress, skipping refresh...');
       return;
     }
 
@@ -139,7 +131,6 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
     setError(null);
 
     try {
-      console.log('[USER_INSIGHTS] Refreshing insights...');
       const response = await insightsApi.getUserInsightNotes();
 
       if (response.success && response.data) {
@@ -152,13 +143,9 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
         lastFetchTime = Date.now();
 
         setInsights(sortedInsights);
-        console.log('[USER_INSIGHTS] Refreshed', sortedInsights.length, 'insights');
       }
     } catch (err: any) {
-      console.error('[USER_INSIGHTS] Error refreshing insights:', err);
-
       if (err.response?.status === 429) {
-        console.warn('[USER_INSIGHTS] Rate limited (429) on refresh. Using cached data.');
         // Don't show error, just use cached data
         if (cachedInsights) {
           setInsights(cachedInsights);
@@ -180,7 +167,6 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
   const deleteInsight = useCallback(
     async (noteId: string | number): Promise<boolean> => {
       try {
-        console.log('[USER_INSIGHTS] Deleting note:', noteId);
         const response = await insightsApi.deleteInsightNote(noteId);
 
         if (response.success) {
@@ -194,14 +180,12 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
           cachedInsights = updatedInsights;
           lastFetchTime = Date.now();
 
-          console.log('[USER_INSIGHTS] Note deleted successfully');
           return true;
         } else {
           setError(response.message || 'Failed to delete note');
           return false;
         }
       } catch (err: any) {
-        console.error('[USER_INSIGHTS] Error deleting note:', err);
 
         if (err.response?.status === 403) {
           setError('You are not authorized to delete this note');
@@ -219,7 +203,6 @@ export const useUserInsights = (autoFetch: boolean = true): UseUserInsightsRetur
    * Invalidate cache - useful after adding/updating notes
    */
   const invalidateCache = useCallback(() => {
-    console.log('[USER_INSIGHTS] Cache invalidated');
     cachedInsights = null;
     lastFetchTime = 0;
   }, []);

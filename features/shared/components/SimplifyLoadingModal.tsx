@@ -44,20 +44,33 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
   const [fadeAnim] = useState(new Animated.Value(1));
   const [progressWidthAnim] = useState(new Animated.Value(0));
 
-  // Animate progress bar
+  // Clamp and round progress value for display
+  const normalizedProgress = progressValue !== undefined 
+    ? Math.min(100, Math.max(0, Math.round(progressValue)))
+    : undefined;
+
+  // Animate progress bar with smoother animation
   useEffect(() => {
-    if (progressValue !== undefined) {
+    if (normalizedProgress !== undefined) {
       Animated.timing(progressWidthAnim, {
-        toValue: progressValue,
-        duration: 500,
+        toValue: normalizedProgress,
+        duration: 300, // Faster animation for smoother updates
         useNativeDriver: false,
       }).start();
     }
-  }, [progressValue]);
+  }, [normalizedProgress, progressWidthAnim]);
 
-  // Rotate progress messages during simplification
+  // Reset progress when modal closes
   useEffect(() => {
-    if (step === 'simplifying') {
+    if (!visible) {
+      progressWidthAnim.setValue(0);
+      setCurrentMessageIndex(0);
+    }
+  }, [visible, progressWidthAnim]);
+
+  // Rotate progress messages during simplification (only if no custom message)
+  useEffect(() => {
+    if (step === 'simplifying' && !message) {
       const interval = setInterval(() => {
         // Fade out
         Animated.timing(fadeAnim, {
@@ -78,7 +91,7 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
 
       return () => clearInterval(interval);
     }
-  }, [step, fadeAnim]);
+  }, [step, message, fadeAnim]);
 
   const getStepIcon = () => {
     switch (step) {
@@ -140,7 +153,7 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
           )}
 
           {/* Progress Bar */}
-          {step === 'simplifying' && progressValue !== undefined && (
+          {step === 'simplifying' && normalizedProgress !== undefined && (
             <View style={styles.progressContainer}>
               <View style={[styles.progressBarBackground, { backgroundColor: colors.border }]}>
                 <Animated.View 
@@ -157,20 +170,20 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
                 />
               </View>
               <Text style={[styles.progressText, { color: colors.textMuted }]}>
-                {progressValue}%
+                {normalizedProgress}%
               </Text>
             </View>
           )}
 
           {/* Loading Indicator (if no progress value or checking) */}
-          {(step === 'checking' || (step === 'simplifying' && progressValue === undefined)) && (
+          {(step === 'checking' || (step === 'simplifying' && normalizedProgress === undefined)) && (
             <View style={styles.loaderContainer}>
               <ActivityIndicator size="large" color={getStepColor()} />
             </View>
           )}
 
           {/* Estimated Time (for simplifying step) */}
-          {step === 'simplifying' && progressValue === undefined && (
+          {step === 'simplifying' && normalizedProgress === undefined && (
             <Text style={[styles.estimatedTime, { color: colors.textMuted }]}>
               This usually takes 20-30 seconds
             </Text>
@@ -244,9 +257,15 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   progressText: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.base,
+    fontWeight: '600',
     fontVariant: ['tabular-nums'],
   }
 });

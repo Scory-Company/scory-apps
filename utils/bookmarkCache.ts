@@ -19,7 +19,6 @@ export async function getBookmarkCache(): Promise<BookmarkCache> {
     const cache = await AsyncStorage.getItem(BOOKMARK_CACHE_KEY);
     return cache ? JSON.parse(cache) : {};
   } catch (error) {
-    console.error('[BookmarkCache] Error getting cache:', error);
     return {};
   }
 }
@@ -40,9 +39,7 @@ export async function addToBookmarkCache(articleId: string): Promise<void> {
     const cache = await getBookmarkCache();
     cache[articleId] = true;
     await AsyncStorage.setItem(BOOKMARK_CACHE_KEY, JSON.stringify(cache));
-    console.log('[BookmarkCache] Added:', articleId);
   } catch (error) {
-    console.error('[BookmarkCache] Error adding to cache:', error);
   }
 }
 
@@ -54,9 +51,7 @@ export async function removeFromBookmarkCache(articleId: string): Promise<void> 
     const cache = await getBookmarkCache();
     delete cache[articleId];
     await AsyncStorage.setItem(BOOKMARK_CACHE_KEY, JSON.stringify(cache));
-    console.log('[BookmarkCache] Removed:', articleId);
   } catch (error) {
-    console.error('[BookmarkCache] Error removing from cache:', error);
   }
 }
 
@@ -70,9 +65,7 @@ export async function syncBookmarkCache(bookmarkedArticleIds: string[]): Promise
       cache[id] = true;
     });
     await AsyncStorage.setItem(BOOKMARK_CACHE_KEY, JSON.stringify(cache));
-    console.log('[BookmarkCache] Synced:', bookmarkedArticleIds.length, 'articles');
   } catch (error) {
-    console.error('[BookmarkCache] Error syncing cache:', error);
   }
 }
 
@@ -82,8 +75,6 @@ export async function syncBookmarkCache(bookmarkedArticleIds: string[]): Promise
 export async function clearBookmarkCache(): Promise<void> {
   try {
     await AsyncStorage.removeItem(BOOKMARK_CACHE_KEY);
-    console.log('[BookmarkCache] Cleared');
   } catch (error) {
-    console.error('[BookmarkCache] Error clearing cache:', error);
   }
 }

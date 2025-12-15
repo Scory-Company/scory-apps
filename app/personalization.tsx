@@ -66,7 +66,6 @@ export default function PersonalizationScreen() {
   // Fetch categories from API
   const fetchCategories = async () => {
     try {
-      console.log('[Personalization] Fetching categories...');
       const response = await categoriesApi.getAll();
       const categoriesData = response.data?.data || response.data;
 
@@ -79,10 +78,8 @@ export default function PersonalizationScreen() {
           label: cat.name,
         }));
         setTopicOptions(transformedCategories);
-        console.log('[Personalization] ✅ Loaded categories:', transformedCategories.length);
       }
     } catch (error) {
-      console.log('[Personalization] ❌ API unavailable, using mock');
       // Keep mockCategoryCards as fallback
     }
   };
@@ -214,37 +211,20 @@ export default function PersonalizationScreen() {
     const readingLevelUppercase = recommendedLevel.toUpperCase();
 
     try {
-      console.log('=================================');
-      console.log('[Personalization API] 💾 Saving personalization...');
-      console.log('[Personalization API] Reading level (lowercase):', recommendedLevel);
-      console.log('[Personalization API] Reading level (UPPERCASE):', readingLevelUppercase);
-      console.log('[Personalization API] Selected topic IDs:', selectedTopics);
-
       // Save reading level to backend (must be UPPERCASE)
       await personalizationApi.saveSettings(readingLevelUppercase);
-      console.log('[Personalization API] ✅ Reading level saved to backend');
 
       // Save reading level to AsyncStorage for article content rendering
       await AsyncStorage.setItem('preferredReadingLevel', readingLevelUppercase);
-      console.log('[Personalization API] ✅ Reading level saved to AsyncStorage:', readingLevelUppercase);
 
       // Save topic interests to backend
       await personalizationApi.saveTopicInterests(selectedTopics);
-      console.log('[Personalization API] ✅ Topic interests saved');
 
       // Mark tutorial as seen locally
       await AsyncStorage.setItem('hasSeenPersonalizationTutorial', 'true');
-      console.log('[Personalization API] ✅ Tutorial flag saved locally');
-
-      console.log('[Personalization API] 🎉 All personalization saved successfully!');
-      console.log('=================================');
 
       router.back();
     } catch (error: any) {
-      console.log('=================================');
-      console.error('[Personalization API] ❌ Error saving personalization');
-      console.error('[Personalization API] Error:', error?.message || error);
-      console.log('=================================');
       // TODO: Show error toast to user
     }
   };

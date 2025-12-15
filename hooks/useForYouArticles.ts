@@ -20,6 +20,7 @@ interface ForYouFilters {
 
 interface UseForYouArticlesOptions {
   limit?: number;
+  readingLevel?: string; // User's preferred reading level for personalization
 }
 
 interface CacheEntry {
@@ -29,19 +30,18 @@ interface CacheEntry {
 
 // Module-level cache (same pattern as useGamificationStats)
 let cache: CacheEntry | null = null;
-const CACHE_TTL = 60000; // 60 seconds (articles change less frequently than stats)
+const CACHE_TTL = 30000; // 30 seconds (reduced from 60s for fresher content)
 
 /**
  * Invalidate For You cache from outside the hook (e.g., after quiz completion)
  * This is exported so other components can invalidate without using the hook
  */
 export const invalidateForYouCache = (): void => {
-  console.log('[useForYouArticles] Cache invalidated (external call)');
   cache = null;
 };
 
 export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
-  const { limit = 5 } = options;
+  const { limit = 5, readingLevel } = options;
 
   const [articles, setArticles] = useState<ArticleResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,6 +91,11 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
           params.sort = 'random';
         }
 
+        // Add reading level for personalization
+        if (readingLevel) {
+          params.readingLevel = readingLevel;
+        }
+
         const response = await articlesApi.getForYou(params);
         const apiData = response.data?.data;
 
@@ -104,7 +109,6 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
           };
 
           setArticles(fetchedArticles);
-          console.log('[ForYou] Fetched:', fetchedArticles.length);
           return fetchedArticles;
         } else {
           setArticles([]);
@@ -112,7 +116,6 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
         }
       } catch (err: any) {
         const errorMessage = err?.response?.data?.message || err?.message || 'Failed to fetch articles';
-        console.error('[ForYou] Error:', errorMessage);
         setError(errorMessage);
 
         if (cache) {

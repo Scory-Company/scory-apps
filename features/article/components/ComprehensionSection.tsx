@@ -14,6 +14,7 @@ import {
 import { useQuiz } from '@/hooks/useQuiz';
 import { QuizAnswer } from '@/services';
 import { useToast } from '@/features/shared/hooks/useToast';
+import { router } from 'expo-router';
 
 interface ComprehensionSectionProps {
   articleSlug: string;
@@ -113,19 +114,21 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
 
       if (allQuestionsAnswered) {
         // All questions answered correctly, submit quiz
+        // ✅ OPTIMIZED: Reduced delay from 500ms to 200ms
         setTimeout(() => {
           handleSubmitQuiz(newSelectedAnswers); // Pass the fresh answers to avoid stale state
-        }, 500);
+        }, 200);
       } else {
         // Auto-advance to next unanswered question
         const currentQuestionIndex = quizData?.questions.findIndex((q) => q.id === questionId);
         if (currentQuestionIndex !== undefined && quizData && currentQuestionIndex < quizData.questions.length - 1) {
+          // ✅ OPTIMIZED: Reduced delay from 500ms to 300ms
           setTimeout(() => {
             flatListRef.current?.scrollToIndex({
               index: currentQuestionIndex + 1,
               animated: true,
             });
-          }, 500);
+          }, 300);
         }
       }
     } else {
@@ -347,11 +350,11 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
               </Text>
             </View>
             <TouchableOpacity
-              style={[styles.retryAllButton, { borderColor: colors.primary }]}
-              onPress={handleRetakeQuiz}
+              style={[styles.exploreButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.push('/(tabs)/explore')}
             >
-              <Ionicons name="refresh" size={18} color={colors.primary} />
-              <Text style={[styles.retryAllText, { color: colors.primary }]}>Take Quiz Again</Text>
+              <Ionicons name="compass" size={20} color={colors.textwhite} />
+              <Text style={[styles.exploreButtonText, { color: colors.textwhite }]}>Explore More Articles</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -554,6 +557,20 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   retryAllText: {
+    fontSize: Typography.fontSize.base,
+    fontWeight: '600',
+  },
+  // Explore button (after quiz completion)
+  exploreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: Radius.lg,
+    gap: Spacing.sm,
+  },
+  exploreButtonText: {
     fontSize: Typography.fontSize.base,
     fontWeight: '600',
   },

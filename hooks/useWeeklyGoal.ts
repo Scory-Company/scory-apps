@@ -82,7 +82,6 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
   const fetchGoal = useCallback(async () => {
     // Check if request is already in progress
     if (isRequestInProgress.current) {
-      console.log('[WEEKLY_GOAL] Request already in progress, skipping...');
       return;
     }
 
@@ -91,7 +90,6 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
     const cacheAge = now - lastFetchTime;
 
     if (cachedGoal && cacheAge < CACHE_DURATION) {
-      console.log('[WEEKLY_GOAL] Using cached data (age:', Math.round(cacheAge / 1000), 'seconds)');
       setGoal(cachedGoal);
       return;
     }
@@ -101,7 +99,6 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
     setError(null);
 
     try {
-      console.log('[WEEKLY_GOAL] Fetching weekly goal...');
       const data = await gamificationService.getWeeklyGoal();
 
       // Update cache
@@ -109,25 +106,14 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
       lastFetchTime = Date.now();
 
       setGoal(data);
-      console.log('[WEEKLY_GOAL] Goal loaded:', {
-        target: data.target,
-        completed: data.completed,
-        daysLeft: data.daysLeft,
-        isActive: data.isActive,
-      });
     } catch (err: any) {
-      console.error('[WEEKLY_GOAL] Error fetching goal:', err);
 
       if (err.response?.status === 401) {
         setError('Please login to view your goal');
       } else if (err.response?.status === 404) {
-        // 404 might mean user hasn't set a goal yet - this is okay
-        console.log('[WEEKLY_GOAL] No goal set yet (404)');
         setGoal(null);
         setError(null);
       } else if (err.response?.status === 429) {
-        setError('Too many requests. Please wait a moment.');
-        console.warn('[WEEKLY_GOAL] Rate limited (429). Using cached data if available.');
         // Use cached data if available
         if (cachedGoal) {
           setGoal(cachedGoal);
@@ -149,7 +135,6 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
   const refreshGoal = useCallback(async () => {
     // Check if request is already in progress
     if (isRequestInProgress.current) {
-      console.log('[WEEKLY_GOAL] Request already in progress, skipping refresh...');
       return;
     }
 
@@ -158,7 +143,6 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
     setError(null);
 
     try {
-      console.log('[WEEKLY_GOAL] Refreshing goal...');
       const data = await gamificationService.getWeeklyGoal();
 
       // Update cache
@@ -166,22 +150,16 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
       lastFetchTime = Date.now();
 
       setGoal(data);
-      console.log('[WEEKLY_GOAL] Goal refreshed');
     } catch (err: any) {
-      console.error('[WEEKLY_GOAL] Error refreshing goal:', err);
 
       if (err.response?.status === 404) {
-        // User hasn't set a goal yet
         setGoal(null);
         setError(null);
       } else if (err.response?.status === 429) {
-        console.warn('[WEEKLY_GOAL] Rate limited (429) on refresh. Using cached data.');
-        // Don't show error, just use cached data
         if (cachedGoal) {
           setGoal(cachedGoal);
         }
       }
-      // Don't show error on refresh for other errors, just silently fail
     } finally {
       setIsRefreshing(false);
       isRequestInProgress.current = false;
@@ -200,7 +178,6 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
     if (target < 1 || target > 50) {
       const errorMsg = 'Target must be between 1 and 50 articles';
       setError(errorMsg);
-      console.error('[WEEKLY_GOAL]', errorMsg);
       return null;
     }
 
@@ -208,7 +185,6 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
     setError(null);
 
     try {
-      console.log('[WEEKLY_GOAL] Updating goal to target:', target);
       const data = await gamificationService.updateWeeklyGoal(target);
 
       // Update cache
@@ -216,15 +192,8 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
       lastFetchTime = Date.now();
 
       setGoal(data);
-      console.log('[WEEKLY_GOAL] Goal updated successfully:', {
-        target: data.target,
-        completed: data.completed,
-      });
-
       return data;
     } catch (err: any) {
-      console.error('[WEEKLY_GOAL] Error updating goal:', err);
-
       if (err.response?.status === 400) {
         setError('Invalid goal target');
       } else if (err.response?.status === 401) {
@@ -244,7 +213,6 @@ export function useWeeklyGoal(): UseWeeklyGoalResult {
    * Forces next fetch to retrieve fresh data from server
    */
   const invalidateCache = useCallback(() => {
-    console.log('[WEEKLY_GOAL] Cache invalidated');
     cachedGoal = null;
     lastFetchTime = 0;
   }, []);

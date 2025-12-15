@@ -95,7 +95,6 @@ export async function unifiedSearch(
   options: SearchOptions = {}
 ): Promise<SearchResponse> {
   try {
-    console.log('[SearchAPI] 🔍 Searching:', query, options);
 
     const params = new URLSearchParams();
     params.append('q', query);
@@ -109,12 +108,8 @@ export async function unifiedSearch(
 
     const response = await api.get<SearchResponse>(`/search?${params.toString()}`);
 
-    console.log('[SearchAPI] ✅ Found:', response.data.data.results.length, 'results');
-    console.log('[SearchAPI] Sources:', response.data.data.meta.sources);
-
     return response.data;
   } catch (error: any) {
-    console.error('[SearchAPI] ❌ Search failed:', error);
     throw error;
   }
 }
@@ -140,7 +135,6 @@ export async function searchHealthCheck(): Promise<{
     const response = await api.get('/search/health');
     return response.data;
   } catch (error: any) {
-    console.error('[SearchAPI] Health check failed:', error);
     throw error;
   }
 }
@@ -154,22 +148,16 @@ export async function searchHealthCheck(): Promise<{
  */
 export async function searchWithFallback(query: string): Promise<SearchResult[]> {
   try {
-    // Step 1: Try internal first (fast)
-    console.log('[SearchAPI] 🔍 Trying internal search first...');
     const internalResults = await unifiedSearch(query, { sources: 'internal', limit: 20 });
 
     if (internalResults.data.results.length > 0) {
-      console.log('[SearchAPI] ✅ Found results in internal DB');
       return internalResults.data.results;
     }
 
-    // Step 2: No internal results, try external
-    console.log('[SearchAPI] 🔍 No internal results, trying external sources...');
     const externalResults = await unifiedSearch(query, { sources: 'auto', limit: 20 });
 
     return externalResults.data.results;
   } catch (error) {
-    console.error('[SearchAPI] ❌ Search with fallback failed:', error);
     return [];
   }
 }
@@ -182,7 +170,6 @@ export async function searchInternal(query: string, limit = 20): Promise<SearchR
     const response = await unifiedSearch(query, { sources: 'internal', limit });
     return response.data.results;
   } catch (error) {
-    console.error('[SearchAPI] Internal search failed:', error);
     return [];
   }
 }
@@ -195,7 +182,6 @@ export async function searchExternal(query: string, limit = 20): Promise<SearchR
     const response = await unifiedSearch(query, { sources: 'auto', limit });
     return response.data.results.filter((r) => r.source !== 'internal');
   } catch (error) {
-    console.error('[SearchAPI] External search failed:', error);
     return [];
   }
 }
