@@ -21,7 +21,7 @@ export type {
   ExternalSource,
   SimplifyCacheCheckResponse,
   SimplifyExternalRequest,
-  SimplifyExternalResponse,
+  SimplifyResponse,
   GetSimplifiedArticleResponse,
   ContentBlock as SimplifyContentBlock,
   QuizQuestion,

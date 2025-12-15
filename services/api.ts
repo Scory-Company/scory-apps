@@ -3,8 +3,8 @@ import axios from 'axios';
 
 // Base URL configuration
 const API_URL = __DEV__
-  ? 'http://172.16.90.121:5000/api/v1'
-  : 'https://api.scory.app/api/v1';
+  ? 'https://scory-backend-production.up.railway.app/api/v1'
+  : 'https://scory-backend-production.up.railway.app/api/v1';
 
 // Create axios instance
 const api = axios.create({

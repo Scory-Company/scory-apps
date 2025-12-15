@@ -150,7 +150,7 @@ export function EditProfileModal({
           />
 
           {/* Avatar URL Input */}
-          <Input
+          {/* <Input
             label={t('profile.form.avatarUrl')}
             icon="image"
             placeholder={t('profile.form.avatarUrlPlaceholder')}
@@ -159,7 +159,7 @@ export function EditProfileModal({
             autoCapitalize="none"
             keyboardType="url"
             editable={!loading}
-          />
+          /> */}
 
           {/* Info Text */}
           <View style={styles.infoBox}>
