@@ -40,19 +40,19 @@ export const learningStats = [
   {
     id: 1,
     icon: 'flame' as const,
-    value: 30,
+    value: 0,
     label: 'Day Streak',
   },
   {
     id: 2,
     icon: 'book' as const,
-    value: 12,
+    value: 0,
     label: 'Articles Read',
   },
   {
     id: 3,
     icon: 'time' as const,
-    value: 450,
+    value: 0,
     label: 'Minutes',
   },
 ];

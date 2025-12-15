@@ -42,6 +42,7 @@ interface UseResimplifyResult {
 
 interface UseResimplifyOptions {
   onError?: (message: string) => void;
+  onSuccess?: (message: string) => void;
 }
 
 export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResult {
@@ -59,14 +60,10 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
 
   // Auto re-simplify (called automatically when level not available, requires premium)
   const resimplify = useCallback(async (articleId: string, readingLevel: string) => {
-    console.log('='.repeat(60));
-    console.log('[🔄 AUTO-RESIMPLIFY] Level not available, checking premium...');
-    console.log('[🔄 AUTO-RESIMPLIFY] Article ID:', articleId);
-    console.log('[🔄 AUTO-RESIMPLIFY] Target Level:', readingLevel);
-    console.log('='.repeat(60));
+    console.log('[Auto-Resimplify]', readingLevel);
 
-    // Check if user has premium (placeholder - backend not implemented yet)
-    const hasPremium = false; // TODO: Get from user context/auth state
+    // Allow all users to re-simplify articles (premium requirement removed)
+    const hasPremium = true; // Enabled for all users
 
     if (!hasPremium) {
       console.log('[⚠️ AUTO-RESIMPLIFY] Premium required for this reading level!');
@@ -101,22 +98,23 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
         }
       });
 
-      console.log('[✅ AUTO-RESIMPLIFY] Success!', {
-        articleId: result.articleId,
-        isCached: result.isCached,
-        isNew: result.isNewSimplification
-      });
+      const successMessage = result.isCached
+        ? 'Content loaded from cache!'
+        : `Article simplified to ${readingLevel} level!`;
 
       setProgress({
         step: 'done',
-        message: result.isCached ? 'Loaded from cache!' : `Successfully simplified to ${readingLevel} level!`,
+        message: successMessage,
       });
+
+      // Call onSuccess callback if provided
+      options?.onSuccess?.(successMessage);
 
       setIsResimplifying(false);
       return true;
 
     } catch (err: any) {
-      console.error('[❌ AUTO-RESIMPLIFY ERROR]', err.message);
+      console.error('[Auto-Resimplify] Error:', err.message);
 
       // Simplified error handling
       const errorMessage = err.response?.data?.message || err.message || 'Failed to re-simplify article. Please try again.';
@@ -143,8 +141,8 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
     console.log('[🔄 MANUAL-RESIMPLIFY] Target Level:', readingLevel);
     console.log('='.repeat(60));
 
-    // Check if user has premium (placeholder - backend not implemented yet)
-    const hasPremium = false; // TODO: Get from user context/auth state
+    // Allow all users to manually re-simplify articles (premium requirement removed)
+    const hasPremium = true; // Enabled for all users
 
     if (!hasPremium) {
       console.log('[⚠️ MANUAL-RESIMPLIFY] Premium required!');
@@ -179,22 +177,23 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
         }
       });
 
-      console.log('[✅ MANUAL-RESIMPLIFY] Success!', {
-        articleId: result.articleId,
-        isCached: result.isCached,
-        isNew: result.isNewSimplification
-      });
+      const successMessage = result.isCached
+        ? 'Content loaded from cache!'
+        : `Article re-simplified to ${readingLevel} level!`;
 
       setProgress({
         step: 'done',
-        message: result.isCached ? 'Loaded from cache!' : `Successfully re-simplified to ${readingLevel} level!`,
+        message: successMessage,
       });
+
+      // Call onSuccess callback if provided
+      options?.onSuccess?.(successMessage);
 
       setIsResimplifying(false);
       return true;
 
     } catch (err: any) {
-      console.error('[❌ MANUAL-RESIMPLIFY ERROR]', err.message);
+      console.error('[Manual-Resimplify] Error:', err.message);
 
       // Simplified error handling
       const errorMessage = err.response?.data?.message || err.message || 'Failed to re-simplify article. Please try again.';

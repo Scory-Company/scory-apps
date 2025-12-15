@@ -263,7 +263,7 @@ export default function LearnScreen() {
             />
           ) : studyCollections.length > 0 ? (
             <View style={styles.collectionsContainer}>
-              {studyCollections.map((collection) => (
+              {studyCollections.slice(0, 3).map((collection) => (
                 <StudyCollectionCard
                   key={collection.id}
                   title={collection.title}

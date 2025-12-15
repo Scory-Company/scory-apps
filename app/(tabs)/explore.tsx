@@ -10,6 +10,7 @@ import {
   FilteredContentView
 } from '@/features/explore/components';
 import { ForYouSection } from '@/features/home/components';
+import { EmptyState } from '@/features/shared/components';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +18,7 @@ import { useNavigation, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { articlesApi, categoriesApi, personalizationApi, searchApi, SearchResult } from '@/services';
 import { ReadingLevel } from '@/constants/readingLevels';
+import { filterContent } from '@/utils/filterContent';
 import {
   trendingTopics,
   recentlyAddedArticles as mockRecentlyAdded,
@@ -51,27 +53,36 @@ export default function ExploreScreen() {
   const [hasPersonalizationData, setHasPersonalizationData] = useState(false);
   const [userReadingLevel, setUserReadingLevel] = useState<ReadingLevel>('student');
 
+  // Fetch ALL articles from API for filtering (instant category filter)
+  const [allFetchedArticles, setAllFetchedArticles] = useState<DisplayArticle[]>([]);
+  const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
+
+  // External search results (OpenAlex + Scholar) state
+  const [externalResults, setExternalResults] = useState<SearchResult[]>([]);
+  const [isSearchingExternal, setIsSearchingExternal] = useState(false);
+
+  // Track if user has initiated search (button click or Enter)
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Pagination state for external search
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   // Check personalization status from API
   const checkPersonalizationStatus = useCallback(async () => {
     try {
-      console.log('[Explore - Personalization] Checking status...');
       const response = await personalizationApi.getSettings();
 
       if (response.data?.data && response.data.data.readingLevel) {
-        // User has completed personalization
         const readingLevel = response.data.data.readingLevel.toLowerCase() as ReadingLevel;
         setUserReadingLevel(readingLevel);
         setHasPersonalizationData(true);
-        console.log('[Explore - Personalization] ✅ User has personalization data, level:', readingLevel);
       } else {
-        // User hasn't completed personalization
         setHasPersonalizationData(false);
-        console.log('[Explore - Personalization] ❌ No personalization data');
       }
     } catch (error) {
-      // API error - assume not completed
       setHasPersonalizationData(false);
-      console.log('[Explore - Personalization] ❌ Error checking, using mock');
     }
   }, []);
 
@@ -91,23 +102,51 @@ export default function ExploreScreen() {
     }, [checkPersonalizationStatus])
   );
 
+  // Auto-fetch internal articles when category changes (for instant filtering)
+  useEffect(() => {
+    if (selectedCategory !== 'All' && allFetchedArticles.length === 0) {
+      // Fetch articles in background for instant category filtering
+      const fetchForCategory = async () => {
+        try {
+          const params: any = { page: 1, limit: 50 };
+          const response = await articlesApi.getArticles(params);
+          const apiData = response.data?.data;
+
+          if (apiData?.articles && apiData.articles.length > 0) {
+            const transformed = apiData.articles.map((article: any) => ({
+              id: article.id,
+              slug: article.slug,
+              image: { uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' },
+              title: article.title,
+              author: article.authorName,
+              category: article.category?.name || 'General',
+              rating: article.rating,
+              reads: article.viewCount >= 1000
+                ? `${(article.viewCount / 1000).toFixed(1)}k reads`
+                : `${article.viewCount || 0} reads`,
+            }));
+            setAllFetchedArticles(transformed);
+          }
+        } catch (error) {
+          console.error('[Category Filter] Error:', error);
+        }
+      };
+      fetchForCategory();
+    }
+  }, [selectedCategory, allFetchedArticles.length]);
+
   const fetchCategories = async () => {
     try {
-      console.log('Fetching categories...');
       const response = await categoriesApi.getAll();
-      console.log('Categories API Response:', response.data);
-
-      // Check if response has nested data structure
       const categoriesData = response.data?.data || response.data;
 
       if (categoriesData && Array.isArray(categoriesData)) {
-        // Transform API response to category names array
         const categoryNames = ['All', ...categoriesData.map((cat: any) => cat.name)];
         setCategoryList(categoryNames);
-        console.log('Loaded categories from API:', categoryNames);
+        console.log('[Categories] Loaded:', categoryNames.length);
       }
     } catch {
-      console.log('Categories API unavailable, using mock');
+      // Use mock data
     }
   };
 
@@ -126,10 +165,10 @@ export default function ExploreScreen() {
           rating: article.rating,
         }));
         setTopRatedArticles(transformed);
-        console.log('Loaded top rated from API:', transformed.length);
+        console.log('[Top Rated] Loaded:', transformed.length);
       }
     } catch {
-      console.log('Top rated API unavailable, using mock');
+      // Use mock data
     }
   };
 
@@ -149,10 +188,10 @@ export default function ExploreScreen() {
           date: new Date(article.publishedAt).toLocaleDateString(),
         }));
         setRecentlyAddedArticles(transformed);
-        console.log('Loaded recently added from API:', transformed.length);
+        console.log('[Recently Added] Loaded:', transformed.length);
       }
     } catch {
-      console.log('Recently added API unavailable, using mock');
+      // Use mock data
     }
   };
 
@@ -172,32 +211,14 @@ export default function ExploreScreen() {
     return [...recentlyAddedArticles, ...topRatedArticles];
   }, [recentlyAddedArticles, topRatedArticles]);
 
-  // Fetch ALL articles from API (no category filter - backend doesn't support it)
-  const [allFetchedArticles, setAllFetchedArticles] = useState<DisplayArticle[]>([]);
-  const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
 
-  // External search results (OpenAlex + Scholar) state
-  const [externalResults, setExternalResults] = useState<SearchResult[]>([]);
-  const [isSearchingExternal, setIsSearchingExternal] = useState(false);
-
-  // Track if user has initiated search (button click or Enter)
-  const [hasSearched, setHasSearched] = useState(false);
-
-  // Pagination state for external search
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const fetchAllArticles = useCallback(async () => {
     setIsLoadingFiltered(true);
     setIsSearchingExternal(true);
 
     try {
-      console.log('[Explore] Fetching ALL articles (internal + external)...');
-
-      // Fetch ALL internal articles (no search param - we'll filter on client side)
       const params: any = { page: 1, limit: 50 };
-
       const internalResponse = await articlesApi.getArticles(params);
       const apiData = internalResponse.data?.data;
 
@@ -215,38 +236,29 @@ export default function ExploreScreen() {
             : `${article.viewCount || 0} reads`,
         }));
         setAllFetchedArticles(transformed);
-        console.log(`[Explore] ✅ Loaded ${transformed.length} internal articles (will filter by search query on client)`);
       } else {
         setAllFetchedArticles([]);
-        console.log('[Explore] ⚠️ No internal articles found');
       }
 
-      // Fetch external results (OpenAlex + Scholar) if search query exists
       if (searchQuery.trim()) {
-        console.log('[Explore] 🔍 Fetching external results (OpenAlex + Scholar)...');
-
         const externalResponse = await searchApi.search(searchQuery.trim(), {
           sources: 'auto',
           page: 1,
           limit: 20
         });
 
-        // Filter only external results (exclude internal duplicates)
         const external = externalResponse.data.results.filter(r => r.source !== 'internal');
         setExternalResults(external);
         setHasMore(externalResponse.data.meta.hasMore);
         setCurrentPage(1);
-
-        console.log(`[Explore] ✅ Loaded ${external.length} external results`);
-        console.log('[Explore] Sources:', externalResponse.data.meta.sources);
+        console.log('[Search] External:', external.length);
       } else {
-        // No search query, clear external results
         setExternalResults([]);
         setHasMore(true);
       }
 
     } catch (error) {
-      console.log('[Explore] ❌ Fetch failed:', error);
+      console.error('[Search] Error:', error);
       setAllFetchedArticles(allArticlesData);
       setExternalResults([]);
     } finally {
@@ -266,38 +278,30 @@ export default function ExploreScreen() {
     }
   }, [searchQuery, selectedCategory, fetchAllArticles]);
 
-  // Note: Category filter is no longer instant/live
-  // User needs to click search button after selecting category
-
-  // Apply client-side filtering to fetched articles (only if search was triggered)
+  // Instant category filtering for better UX (like popular-articles)
+  // Search query still requires button click (for external search)
+  
+  // Apply client-side filtering to fetched articles
   const filteredResults = useMemo(() => {
-    if (!hasSearched || !hasActiveFilters) return [];
-
-    console.log(`[Explore Filter] Total articles: ${allFetchedArticles.length}`);
-    console.log(`[Explore Filter] Selected category: "${selectedCategory}"`);
-    console.log(`[Explore Filter] Search query: "${searchQuery}"`);
-
-    let filtered = allFetchedArticles;
-
-    // Filter by search query (match in title or author)
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(article =>
-        article.title.toLowerCase().includes(query) ||
-        article.author.toLowerCase().includes(query) ||
-        article.category.toLowerCase().includes(query)
-      );
+    // If no search triggered but category selected, show instant filtered results
+    if (!hasSearched && selectedCategory !== 'All') {
+      return filterContent({
+        searchQuery: '',
+        selectedCategory,
+        allData: allFetchedArticles,
+      });
     }
 
-    // Filter by category if not "All"
-    if (selectedCategory !== 'All') {
-      filtered = filtered.filter(article =>
-        article.category.toLowerCase() === selectedCategory.toLowerCase()
-      );
+    // If search was triggered, apply both filters
+    if (hasSearched && hasActiveFilters) {
+      return filterContent({
+        searchQuery,
+        selectedCategory,
+        allData: allFetchedArticles,
+      });
     }
 
-    console.log(`[Explore Filter] ✅ Filtered to ${filtered.length} internal articles`);
-    return filtered;
+    return [];
   }, [hasSearched, hasActiveFilters, allFetchedArticles, searchQuery, selectedCategory]);
 
   // Note: External search is now fetched together with internal search in fetchAllArticles()
@@ -306,12 +310,10 @@ export default function ExploreScreen() {
   // Load more external results (infinite scroll)
   const handleLoadMore = useCallback(async () => {
     if (!hasMore || isLoadingMore || isSearchingExternal) {
-      console.log('[Explore] Cannot load more:', { hasMore, isLoadingMore, isSearchingExternal });
       return;
     }
 
     const nextPage = currentPage + 1;
-    console.log(`[Explore] 📄 Loading page ${nextPage}...`);
     setIsLoadingMore(true);
 
     try {
@@ -321,18 +323,13 @@ export default function ExploreScreen() {
         limit: 20
       });
 
-      // Filter only external results
       const external = response.data.results.filter(r => r.source !== 'internal');
-
-      // Append new results to existing ones
       setExternalResults(prev => [...prev, ...external]);
       setHasMore(response.data.meta.hasMore);
       setCurrentPage(nextPage);
-
-      console.log(`[Explore] ✅ Loaded ${external.length} more results (page ${nextPage})`);
-      console.log('[Explore] Has more:', response.data.meta.hasMore);
+      console.log('[Search] Page', nextPage, ':', external.length);
     } catch (error) {
-      console.log('[Explore] ❌ Load more failed', error);
+      console.error('[Search] Load more error:', error);
       setHasMore(false);
     } finally {
       setIsLoadingMore(false);
@@ -359,6 +356,9 @@ export default function ExploreScreen() {
 
   const handleClearCategory = () => {
     setSelectedCategory('All');
+    setAllFetchedArticles([]); // Clear fetched articles
+    setHasSearched(false); // Reset search state
+    setExternalResults([]); // Clear external results
   };
 
   return (
@@ -384,6 +384,7 @@ export default function ExploreScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           onSearch={handleSearch}
+          onClear={handleClearSearch}
           placeholder="Search journals, topics, authors..."
           isSearchingScholar={isSearchingExternal}
         />
@@ -401,9 +402,11 @@ export default function ExploreScreen() {
           onSelectCategory={setSelectedCategory}
         />
 
-        {/* CONDITIONAL RENDERING: Filtered View vs Default View */}
-        {hasSearched && hasActiveFilters ? (
-          // ========== FILTERED VIEW ==========
+
+        {/* CONDITIONAL RENDERING: Filtered View vs Empty State vs Default View */}
+        {/* Show filtered view if: category selected OR search triggered */}
+        {(selectedCategory !== 'All' || hasSearched) && (filteredResults.length > 0 || externalResults.length > 0 || isLoadingFiltered) ? (
+          // ========== FILTERED VIEW (Has Results) ==========
           <FilteredContentView
             results={filteredResults}
             searchQuery={searchQuery}
@@ -417,6 +420,18 @@ export default function ExploreScreen() {
             onLoadMore={handleLoadMore}
             isLoadingMore={isLoadingMore}
           />
+        ) : (selectedCategory !== 'All' && !isLoadingFiltered && externalResults.length === 0) ? (
+          // ========== EMPTY STATE (Category selected but no results) ==========
+          <View style={{ paddingVertical: Spacing['4xl'] }}>
+            <EmptyState
+              icon="search-outline"
+              title="No Articles Found"
+              message={`No articles found in "${selectedCategory}" category. Try selecting a different category.`}
+              actionLabel="Clear Filter"
+              actionIcon="close-circle"
+              onActionPress={handleClearCategory}
+            />
+          </View>
         ) : (
           // ========== DEFAULT VIEW ==========
           <>

@@ -69,7 +69,6 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
     async (forceRefresh = false): Promise<ArticleResponse[]> => {
       // Use cache if valid and not forcing refresh
       if (!forceRefresh && isCacheValid() && cache) {
-        console.log('[useForYouArticles] Using cached data');
         setArticles(cache.data);
         setError(null);
         return cache.data;
@@ -78,8 +77,6 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
       try {
         setIsLoading(true);
         setError(null);
-
-        console.log('[useForYouArticles] Fetching from API with filters:', filters);
 
         // Build API params
         const params: any = { page: 1, limit };
@@ -107,21 +104,18 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
           };
 
           setArticles(fetchedArticles);
-          console.log(`[useForYouArticles] ✅ Fetched ${fetchedArticles.length} articles`);
+          console.log('[ForYou] Fetched:', fetchedArticles.length);
           return fetchedArticles;
         } else {
-          console.log('[useForYouArticles] ⚠️ No articles in response');
           setArticles([]);
           return [];
         }
       } catch (err: any) {
         const errorMessage = err?.response?.data?.message || err?.message || 'Failed to fetch articles';
-        console.error('[useForYouArticles] ❌ Error:', errorMessage);
+        console.error('[ForYou] Error:', errorMessage);
         setError(errorMessage);
 
-        // On error, use cache if available (graceful degradation)
         if (cache) {
-          console.log('[useForYouArticles] Using stale cache due to error');
           setArticles(cache.data);
           return cache.data;
         }
@@ -148,13 +142,8 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
    * Shuffle articles (force random sort + refresh)
    */
   const shuffleArticles = useCallback(async (): Promise<void> => {
-    console.log('[useForYouArticles] 🔀 Shuffling articles...');
     setFilters((prev) => ({ ...prev, shuffle: true }));
-
-    // Force refresh with shuffle
     await fetchArticles(true);
-
-    // Reset shuffle flag after fetch
     setFilters((prev) => ({ ...prev, shuffle: false }));
   }, [fetchArticles]);
 
@@ -163,11 +152,7 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
    */
   const toggleExcludeRead = useCallback(async (): Promise<void> => {
     const newValue = !filters.excludeRead;
-    console.log('[useForYouArticles] Toggling excludeRead:', newValue);
-
     setFilters((prev) => ({ ...prev, excludeRead: newValue }));
-
-    // Invalidate cache and fetch with new filter
     cache = null;
     await fetchArticles(true);
   }, [filters.excludeRead, fetchArticles]);
@@ -176,7 +161,6 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
    * Invalidate cache (called after quiz completion)
    */
   const invalidateCache = useCallback((): void => {
-    console.log('[useForYouArticles] Cache invalidated');
     cache = null;
   }, []);
 

@@ -161,6 +161,7 @@ export default function CategoryDetailScreen() {
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
+          onSearch={() => {}} // No-op: instant filtering
           placeholder={`Search ${categoryName} articles...`}
         />
       </View>

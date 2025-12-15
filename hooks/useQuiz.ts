@@ -29,12 +29,13 @@ interface UseQuizOptions {
  * Custom hook for managing quiz functionality
  *
  * @param articleSlug - The article slug to fetch quiz for
+ * @param readingLevel - Optional reading level for quiz questions
  * @param options - Optional configuration including error callback
  * @returns Quiz state and actions
  *
  * @example
  * ```tsx
- * const { questions, fetchQuestions, submitQuiz, isLoadingQuestions } = useQuiz('ai-in-healthcare', {
+ * const { questions, fetchQuestions, submitQuiz, isLoadingQuestions } = useQuiz('ai-in-healthcare', 'STUDENT', {
  *   onError: (message) => toast.error(message)
  * });
  *
@@ -49,7 +50,7 @@ interface UseQuizOptions {
  * ]);
  * ```
  */
-export const useQuiz = (articleSlug: string, options?: UseQuizOptions): UseQuizReturn => {
+export const useQuiz = (articleSlug: string, readingLevel?: string, options?: UseQuizOptions): UseQuizReturn => {
 
   // Data state
   const [questions, setQuestions] = useState<QuizQuestionsResponse | null>(null);
@@ -76,17 +77,14 @@ export const useQuiz = (articleSlug: string, options?: UseQuizOptions): UseQuizR
     setQuestionsError(null);
 
     try {
-      console.log('[QUIZ] Fetching questions for:', articleSlug);
-      const response = await quizApi.getQuizQuestions(articleSlug);
+      const response = await quizApi.getQuizQuestions(articleSlug, readingLevel);
 
       if (response.success && response.data) {
         setQuestions(response.data);
         console.log('[QUIZ] Questions loaded:', response.data.questions.length);
       } else {
-        // Quiz not available (404 handled gracefully by API)
-        console.log('[QUIZ] Quiz not available for this article');
-        setQuestionsError(null); // Don't show error, just show empty state
-        setQuestions(null); // Will show "No quiz available"
+        setQuestionsError(null);
+        setQuestions(null);
       }
     } catch (error: any) {
       // Handle remaining errors (401, 500, etc.)
@@ -104,7 +102,7 @@ export const useQuiz = (articleSlug: string, options?: UseQuizOptions): UseQuizR
     } finally {
       setIsLoadingQuestions(false);
     }
-  }, [articleSlug]); // Removed 'options' from dependency to prevent re-creation
+  }, [articleSlug, readingLevel]); // Added readingLevel to dependencies
 
   /**
    * Submit quiz answers and get results

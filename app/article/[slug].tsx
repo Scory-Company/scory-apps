@@ -37,6 +37,7 @@ export default function ArticleDetailScreen() {
 
   // Reading level state
   const [selectedReadingLevel, setSelectedReadingLevel] = useState<ReadingLevel>(ReadingLevel.SIMPLE);
+  const [isReadingLevelLoaded, setIsReadingLevelLoaded] = useState(false);
 
   // Reading progress state
   const [readingProgress, setReadingProgress] = useState(0);
@@ -55,9 +56,14 @@ export default function ArticleDetailScreen() {
   // Toast hook
   const toast = useToast();
 
+  // Track if we've already attempted auto-resimplify for this article+level combo
+  // This prevents infinite loops when backend doesn't actually create the content
+  const autoResimplifyAttempted = React.useRef<string | null>(null);
+
   // Re-simplify hook with error handling via toast
   const { resimplify, resimplifyManual, isResimplifying, progress: resimplifyProgress, PremiumModal } = useResimplify({
     onError: (message) => toast.error(message),
+    onSuccess: (message) => toast.success(message),
   });
 
   // Gamification hooks (for cache invalidation)
@@ -119,6 +125,9 @@ export default function ArticleDetailScreen() {
       }
     } catch (err) {
       console.error('Failed to load preferred reading level:', err);
+    } finally {
+      // Mark as loaded even if there's an error (use default SIMPLE)
+      setIsReadingLevelLoaded(true);
     }
   }, []);
 
@@ -162,9 +171,16 @@ export default function ArticleDetailScreen() {
     }
   }, [slug]);
 
+  // Load preferred reading level on mount (before fetching article)
+  useEffect(() => {
+    loadPreferredReadingLevel();
+  }, [loadPreferredReadingLevel]);
+
   // Fetch article from API
   useEffect(() => {
     if (slug) {
+      // Reset auto-resimplify flag when navigating to a new article
+      autoResimplifyAttempted.current = null;
       fetchArticle();
     }
   }, [slug, fetchArticle]);
@@ -316,6 +332,10 @@ export default function ArticleDetailScreen() {
   const handleManualResimplify = useCallback(async () => {
     if (!article?.id) return;
 
+    // Mark that we're attempting resimplify for this combo (prevent auto-trigger after manual)
+    const attemptKey = `${article.id}-${selectedReadingLevel}`;
+    autoResimplifyAttempted.current = attemptKey;
+
     // Convert to string for API
     const success = await resimplifyManual(article.id, selectedReadingLevel as string);
 
@@ -327,24 +347,35 @@ export default function ArticleDetailScreen() {
 
   // Auto-trigger resimplify when preferred reading level is not available
   useEffect(() => {
+    // Create a unique key for this article + reading level combination
+    const attemptKey = `${article?.id}-${selectedReadingLevel}`;
+    
     // Only trigger if:
     // 1. Article is loaded
     // 2. Not already resimplifying
     // 3. Not loading article
     // 4. Preferred level is not available
     // 5. Article has at least some content (to avoid triggering on empty articles)
+    // 6. We haven't already attempted resimplify for this article+level combo
+    // 7. Reading level has been loaded from storage (IMPORTANT!)
     if (
       article &&
       !isResimplifying &&
       !isLoading &&
       !isPreferredLevelAvailable &&
       article.contents &&
-      article.contents.length > 0
+      article.contents.length > 0 &&
+      autoResimplifyAttempted.current !== attemptKey &&
+      isReadingLevelLoaded  // ✅ WAIT for reading level to be loaded!
     ) {
+      // Mark that we've attempted resimplify for this combo
+      autoResimplifyAttempted.current = attemptKey;
+      
       // Trigger resimplify automatically
+      console.log('[ArticleDetail] Auto-triggering resimplify for:', attemptKey);
       handleResimplify();
     }
-  }, [article, isResimplifying, isLoading, isPreferredLevelAvailable, selectedReadingLevel, handleResimplify]);
+  }, [article, isResimplifying, isLoading, isPreferredLevelAvailable, selectedReadingLevel, isReadingLevelLoaded, handleResimplify]);
 
   // Loading state with skeleton
   if (isLoading) {
@@ -474,7 +505,7 @@ export default function ArticleDetailScreen() {
                 </Text>
               </View>
               <Text style={[styles.resimplifyCardDescription, { color: colors.textMuted }]}>
-                Re-simplify this article to match your preferred {selectedReadingLevel} reading level for better understanding.
+                Re-simplify this article to match your preferred {selectedReadingLevel.charAt(0) + selectedReadingLevel.slice(1).toLowerCase()} reading level for better understanding.
               </Text>
               <TouchableOpacity
                 style={[styles.resimplifyCardButton, { backgroundColor: colors.primary }]}
@@ -484,9 +515,6 @@ export default function ArticleDetailScreen() {
                 <Text style={[styles.resimplifyCardButtonText, { color: colors.textwhite }]}>
                   Re-simplify Now
                 </Text>
-                <View style={[styles.premiumBadge, { backgroundColor: colors.textwhite + '30' }]}>
-                  <Text style={[styles.premiumBadgeText, { color: colors.textwhite }]}>PREMIUM</Text>
-                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -495,6 +523,7 @@ export default function ArticleDetailScreen() {
           <ComprehensionSection
             articleSlug={article.slug}
             category={article.category.name}
+            readingLevel={selectedReadingLevel}
             onQuizAvailabilityChange={setIsQuizAvailable}
             readingStartTime={readingStartTime}
             onGamificationResult={handleGamificationResult}
@@ -661,8 +690,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.base,
     fontWeight: '600',
     fontFamily: Typography.fontFamily.semiBold,
-    flex: 1,
-    textAlign: 'center',
   },
   premiumBadge: {
     paddingHorizontal: Spacing.sm,

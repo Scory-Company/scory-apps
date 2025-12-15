@@ -79,15 +79,24 @@ export interface QuizAttempt {
  * Auth: Optional (for reading level adjustment)
  *
  * @param slug - Article slug
+ * @param readingLevel - Optional reading level to get quiz for specific level
  * @returns Quiz questions data
  */
-export const getQuizQuestions = async (slug: string) => {
+export const getQuizQuestions = async (slug: string, readingLevel?: string) => {
   try {
+    // Build query params
+    const params = new URLSearchParams();
+    if (readingLevel) {
+      params.append('readingLevel', readingLevel);
+    }
+
+    const url = `/articles/${slug}/quiz${params.toString() ? `?${params}` : ''}`;
+
     const response = await api.get<{
       success: boolean;
       message: string;
       data: QuizQuestionsResponse;
-    }>(`/articles/${slug}/quiz`);
+    }>(url);
 
     return response.data;
   } catch (error: any) {

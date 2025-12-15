@@ -7,6 +7,7 @@ interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   onSearch: () => void; // Trigger search on button click or Enter
+  onClear?: () => void; // Optional callback when clear button is pressed
   placeholder?: string;
   isSearchingScholar?: boolean;
 }
@@ -15,6 +16,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChangeText,
   onSearch,
+  onClear,
   placeholder = 'Search journals, topics, authors...',
   isSearchingScholar = false,
 }) => {
@@ -24,6 +26,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     if (value.trim()) {
       onSearch();
     }
+  };
+
+  const handleClear = () => {
+    onChangeText('');
+    onClear?.(); // Call onClear callback if provided
   };
 
   return (
@@ -46,7 +53,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       )}
       {/* Clear Button */}
       {value.length > 0 && !isSearchingScholar && (
-        <TouchableOpacity onPress={() => onChangeText('')}>
+        <TouchableOpacity onPress={handleClear}>
           <Ionicons name="close-circle" size={20} color={colors.textMuted} />
         </TouchableOpacity>
       )}

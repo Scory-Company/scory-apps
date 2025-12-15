@@ -66,9 +66,9 @@ export const settingsMenu = [
       },
       {
         id: 2,
-        labelKey: 'profile.menu.topicInterests',
-        icon: 'heart' as const,
-        action: 'TOPIC_INTERESTS',
+        labelKey: 'profile.menu.personalization',
+        icon: 'sparkles' as const,
+        action: 'PERSONALIZATION',
       },
       {
         id: 3,

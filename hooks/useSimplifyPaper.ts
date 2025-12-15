@@ -68,10 +68,6 @@ export function useSimplifyPaper(options?: UseSimplifyPaperOptions): UseSimplify
   });
 
   const simplify = useCallback(async (request: SimplifyExternalRequest) => {
-    console.log('='.repeat(60));
-    console.log('[🔍 SIMPLIFY] Starting simplify workflow');
-    console.log('[🔍 SIMPLIFY] Paper:', request.title);
-    console.log('='.repeat(60));
 
     try {
       setIsSimplifying(true);

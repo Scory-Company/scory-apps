@@ -21,28 +21,18 @@ export default function RootLayout() {
     try {
       const token = await AsyncStorage.getItem('token');
 
-      // Only sync if user is logged in
       if (!token) {
-        console.log('🔄 [Sync] No token found, skipping personalization sync');
         return;
       }
 
-      console.log('🔄 [Sync] Fetching personalization from API...');
       const response = await personalizationApi.getSettings();
 
       if (response.data?.data?.readingLevel) {
         const apiLevel = response.data.data.readingLevel;
-        console.log('🔄 [Sync] API Reading Level:', apiLevel);
-
-        // Sync to AsyncStorage
         await AsyncStorage.setItem('preferredReadingLevel', apiLevel);
-        console.log('✅ [Sync] Reading level synced to AsyncStorage:', apiLevel);
-      } else {
-        console.log('⚠️ [Sync] No personalization data in API, using local cache');
       }
     } catch (error) {
-      console.error('❌ [Sync] Failed to sync personalization:', error);
-      // Don't throw error - fallback to AsyncStorage or default
+      console.error('[Sync] Error:', error);
     }
   };
 

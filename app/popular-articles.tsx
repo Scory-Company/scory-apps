@@ -89,6 +89,7 @@ export default function PopularArticlesScreen() {
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
+          onSearch={() => {}} // No-op: instant filtering, no search button needed
           placeholder="Search articles..."
         />
       </View>

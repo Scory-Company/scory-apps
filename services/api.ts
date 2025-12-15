@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Base URL configuration
 const API_URL = __DEV__
-  ? 'http://10.65.240.94:5000/api/v1'
+  ? 'http://10.60.240.213:5000/api/v1'
   : 'https://api.scory.app/api/v1';
 
 // Create axios instance
@@ -21,34 +21,24 @@ const api = axios.create({
 // Request interceptor - Auto-attach JWT token
 api.interceptors.request.use(
   async (config) => {
-    // 🔍 DEBUG LOGGING
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('[API INTERCEPTOR] Request Details:');
-    console.log('  Method:', config.method?.toUpperCase());
-    console.log('  URL Path:', config.url);
-    console.log('  Full URL:', (config.baseURL || '') + (config.url || ''));
-    console.log('  Base URL:', config.baseURL);
+    // Minimal logging - only show method and path
+    const method = config.method?.toUpperCase() || 'GET';
+    const path = config.url || '';
+    console.log(`[API] ${method} ${path}`);
 
     try {
       const token = await AsyncStorage.getItem('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('  Token:', token.substring(0, 30) + '...' + token.substring(token.length - 10));
-        console.log('  ✅ Token attached');
-      } else {
-        console.log('  ⚠️ No token found in AsyncStorage');
       }
     } catch (error) {
-      console.log('  ❌ Error getting token:', error);
+      console.error('[API] Error getting token:', error);
     }
-
-    console.log('  Headers:', JSON.stringify(config.headers, null, 2));
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     return config;
   },
   (error) => {
-    console.log('[API INTERCEPTOR] ❌ Request Error:', error);
+    console.error('[API] Request Error:', error.message);
     return Promise.reject(error);
   }
 );

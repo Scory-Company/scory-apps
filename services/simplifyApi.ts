@@ -86,6 +86,7 @@ export interface SimplifyJobCreatedResponse {
   };
 }
 
+
 // 2. Response when already cached (200 OK)
 export interface SimplifyCachedResponse {
   success: true;
@@ -99,7 +100,26 @@ export interface SimplifyCachedResponse {
   };
 }
 
-export type SimplifyResponse = SimplifyJobCreatedResponse | SimplifyCachedResponse;
+// 3. Response when processed synchronously (200 OK, direct content)
+export interface SimplifySynchronousResponse {
+  success: true;
+  message: string;
+  data: {
+    articleId: string;
+    isNewSimplification: boolean;
+    isCached: false;
+    content: ContentBlock[];
+    quiz?: QuizQuestion[];
+    metadata?: {
+      extractionMethod: string;
+      aiCost: number;
+      processingTime: number;
+      readingLevel: string;
+    };
+  };
+}
+
+export type SimplifyResponse = SimplifyJobCreatedResponse | SimplifyCachedResponse | SimplifySynchronousResponse;
 
 // Response when polling job status
 export interface JobStatusResponse {
@@ -155,16 +175,42 @@ export interface GetSimplifiedArticleResponse {
 
 /**
  * Type guard to check if response is cached
+ * More robust to handle various response formats
  */
-function isCachedResponse(response: SimplifyResponse): response is SimplifyCachedResponse {
-  return response.data.isCached === true && 'articleId' in response.data;
+function isCachedResponse(response: any): response is SimplifyCachedResponse {
+  return (
+    response &&
+    response.data &&
+    response.data.isCached === true &&
+    'articleId' in response.data
+  );
 }
 
 /**
  * Type guard to check if response is job created
+ * More robust to handle various response formats
  */
-function isJobCreatedResponse(response: SimplifyResponse): response is SimplifyJobCreatedResponse {
-  return response.data.isCached === false && 'jobId' in response.data;
+function isJobCreatedResponse(response: any): response is SimplifyJobCreatedResponse {
+  return (
+    response &&
+    response.data &&
+    response.data.isCached === false &&
+    'jobId' in response.data
+  );
+}
+
+/**
+ * Type guard to check if response is synchronous (direct content)
+ * Backend processed immediately and returned content without job
+ */
+function isSynchronousResponse(response: any): response is SimplifySynchronousResponse {
+  return (
+    response &&
+    response.data &&
+    'articleId' in response.data &&
+    'content' in response.data &&
+    !('jobId' in response.data)
+  );
 }
 
 // ==================== API FUNCTIONS ====================
@@ -489,8 +535,6 @@ export async function resimplifyArticle(
   readingLevel: string
 ): Promise<SimplifyResponse> {
   try {
-    console.log('[SimplifyAPI] Re-simplifying article:', articleId, 'to level:', readingLevel);
-
     const response = await api.post<SimplifyResponse>(
       `/simplify/${articleId}/resimplify`,
       { readingLevel }
@@ -498,8 +542,28 @@ export async function resimplifyArticle(
 
     return response.data;
   } catch (error: any) {
-    console.error('[SimplifyAPI] Re-simplify error:', error);
-    throw error;
+    // Extract detailed error information
+    const statusCode = error.response?.status;
+    const errorMessage = error.response?.data?.message || error.message;
+    const errorDetails = error.response?.data?.error;
+
+    // Log detailed error for debugging
+    console.error('[Resimplify] Error:', {
+      status: statusCode,
+      message: errorMessage,
+      details: errorDetails,
+    });
+
+    // Throw user-friendly error message
+    if (statusCode === 500) {
+      throw new Error('Server error while re-simplifying article. Please try again later.');
+    } else if (statusCode === 404) {
+      throw new Error('Article not found. Please refresh and try again.');
+    } else if (statusCode === 400) {
+      throw new Error(errorMessage || 'Invalid request. Please check your selection.');
+    } else {
+      throw new Error(errorMessage || 'Failed to re-simplify article');
+    }
   }
 }
 
@@ -524,12 +588,12 @@ export async function resimplifyWorkflow(
   const { onProgress, pollingTimeout = 120000, signal } = options || {};
 
   try {
-    console.log('[ResimplifyWorkflow] ⏳ Requesting re-simplification...');
+    console.log('[Resimplify] Requesting:', readingLevel);
     const response = await resimplifyArticle(articleId, readingLevel);
 
     // Check if it was a Cache Hit (already simplified to this level)
     if (isCachedResponse(response)) {
-      console.log('[ResimplifyWorkflow] ✅ Instant response (Cached):', response.data.articleId);
+      console.log('[Resimplify] ✅ Cached');
       onProgress?.(100);
       return {
         articleId: response.data.articleId,
@@ -538,11 +602,22 @@ export async function resimplifyWorkflow(
       };
     }
 
+    // Check if it's a Synchronous Response (backend processed immediately)
+    if (isSynchronousResponse(response)) {
+      console.log('[Resimplify] ✅ Success (Direct)');
+      onProgress?.(100);
+      return {
+        articleId: response.data.articleId,
+        isCached: false,
+        isNewSimplification: response.data.isNewSimplification || true
+      };
+    }
+
     // It's a Job Created (async processing needed)
     if (isJobCreatedResponse(response)) {
       const { jobId, pollingInterval = 3000 } = response.data;
 
-      console.log('[ResimplifyWorkflow] 🔄 Polling job:', jobId);
+      console.log('[Resimplify] 🔄 Polling job:', jobId);
 
       // Persist job for recovery
       await JobPersistence.saveJob({
@@ -574,6 +649,9 @@ export async function resimplifyWorkflow(
       }
     }
 
+    // If we reach here, the response format is unexpected
+    console.error('[Resimplify] ❌ Unexpected response format!');
+    console.error('[ResimplifyWorkflow] Full response:', JSON.stringify(response, null, 2));
     throw new Error('Unexpected response format from resimplify endpoint');
 
   } catch (error: any) {

@@ -74,74 +74,39 @@ export default function HomeScreen() {
   // Fetch categories from API
   const fetchCategories = async () => {
     try {
-      console.log('=================================');
-      console.log('[Categories API] 🚀 Starting fetch...');
-      console.log('[Categories API] Current state:', categoryCards.length, 'categories');
-
       const response = await categoriesApi.getAll();
-      console.log('[Categories API] 📦 Raw response received');
-      console.log('[Categories API] Response structure:', {
-        hasData: !!response.data,
-        dataKeys: response.data ? Object.keys(response.data) : [],
-      });
-
       const categoriesData = response.data?.data || response.data;
-      console.log('[Categories API] Categories data:', {
-        isArray: Array.isArray(categoriesData),
-        length: categoriesData?.length,
-      });
 
       if (categoriesData && Array.isArray(categoriesData)) {
-        console.log('[Categories API] First raw category:', categoriesData[0]);
-
-        // Transform API response to match mock structure with icons
         const transformedCategories = categoriesData.map((cat: any) => ({
-          id: cat.id, // Use UUID from API
-          slug: cat.slug, // Keep slug for routing
-          icon: categoryIconMap[cat.name] || categoryIconMap['Science'], // fallback icon
+          id: cat.id,
+          slug: cat.slug,
+          icon: categoryIconMap[cat.name] || categoryIconMap['Science'],
           label: cat.name,
         }));
 
-        console.log('[Categories API] 🔄 Transformed categories:', transformedCategories.length);
-        console.log('[Categories API] First transformed:', transformedCategories[0]);
-
         setCategoryCards(transformedCategories);
-        console.log('[Categories API] ✅ State updated successfully!');
-      } else {
-        console.log('[Categories API] ⚠️ Invalid data structure, keeping mock');
+        console.log('[Categories] Loaded:', transformedCategories.length);
       }
-      console.log('=================================');
     } catch (error: any) {
-      console.log('=================================');
-      console.log('[Categories API] ❌ API unavailable, using mock data');
-      console.log('[Categories API] Error message:', error?.message || 'Unknown error');
-      console.log('[Categories API] Error details:', error);
-      console.log('=================================');
+      console.error('[Categories] Error:', error?.message);
     }
   };
 
   // Check personalization status from API
   const checkPersonalizationStatus = async () => {
     try {
-      console.log('[Personalization Status] Checking...');
       const response = await personalizationApi.getSettings();
-      console.log('[Personalization Status] Response:', response.data);
 
       if (response.data?.data && response.data.data.readingLevel) {
-        // User has completed personalization
         const readingLevel = response.data.data.readingLevel.toLowerCase() as ReadingLevel;
         setUserReadingLevel(readingLevel);
         setHasCompletedPersonalization(true);
-        console.log('[Personalization Status] ✅ Completed - Level:', readingLevel);
       } else {
-        // User hasn't completed personalization
         setHasCompletedPersonalization(false);
-        console.log('[Personalization Status] ❌ Not completed');
       }
     } catch (error) {
-      // API error or user not found - assume not completed
       setHasCompletedPersonalization(false);
-      console.log('[Personalization Status] ❌ Error or not found, showing PersonalizationCard');
     }
   };
 
@@ -157,13 +122,10 @@ export default function HomeScreen() {
 
   // Fetch popular articles from API with fallback to mock
   const fetchPopularArticles = async () => {
-    console.log('Fetching popular articles...');
     try {
       const response = await articlesApi.getPopular({ page: 1, limit: INITIAL_LOAD });
-      console.log('API Response:', response.data);
       const apiData = response.data?.data;
       if (apiData?.articles?.length > 0) {
-        // Transform API response to match mock data structure
         const articles = apiData.articles.map((article: any) => ({
           id: article.id,
           slug: article.slug,
@@ -179,11 +141,9 @@ export default function HomeScreen() {
         setDisplayedArticles(articles);
         setIsUsingApi(true);
         setHasMoreArticles(apiData.pagination.page < apiData.pagination.totalPages);
-        console.log('Loaded popular articles from API:', articles.length);
+        console.log('[Popular] Loaded:', articles.length);
       }
     } catch {
-      // Fallback to mock data (already set as default)
-      console.log('API unavailable, using mock data for popular articles');
       setHasMoreArticles(popularArticles.length > INITIAL_LOAD);
     }
   };

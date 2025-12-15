@@ -79,15 +79,11 @@ export const saveInsightNote = async (
  * @returns Array of all user's notes (both article notes and standalone notes)
  */
 export const getUserInsightNotes = async () => {
-  console.log('[INSIGHTS_API] Fetching all user notes');
 
   // Get all notes (both article notes and standalone notes)
   const response = await notesApi.getAllNotes();
 
-  console.log('[INSIGHTS_API] Response:', response);
-
   if (response.success && response.data) {
-    console.log('[INSIGHTS_API] Loaded', response.data.length, 'total notes');
 
     return {
       success: true,
@@ -108,12 +104,9 @@ export const getUserInsightNotes = async () => {
  * @returns User's notes for this article (array)
  */
 export const getUserInsightNoteByArticle = async (slug: string) => {
-  console.log('[INSIGHTS_API] Fetching notes for article:', slug);
 
   // Use unified Notes API with articleSlug filter
   const response = await notesApi.getArticleNotes(slug);
-
-  console.log('[INSIGHTS_API] Found', response.data?.length || 0, 'notes for article');
 
   return response;
 };
@@ -127,7 +120,6 @@ export const getUserInsightNoteByArticle = async (slug: string) => {
  * @returns Success response
  */
 export const deleteInsightNote = async (noteId: string | number) => {
-  console.log('[INSIGHTS_API] Deleting note:', noteId);
 
   // Convert to string if number (for backward compatibility)
   const noteIdStr = String(noteId);

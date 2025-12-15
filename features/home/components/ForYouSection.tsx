@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Colors, Spacing, Typography, Radius } from '@/constants/theme';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { CardArticle, SkeletonCardArticle } from '@/features/shared/components';
-import { ReadingLevel, getReadingLevel } from '@/constants/readingLevels';
+import { ReadingLevel } from '@/constants/readingLevels';
 import { router } from 'expo-router';
 import { useForYouArticles } from '@/hooks/useForYouArticles';
 import { ArticleResponse } from '@/services';
@@ -14,7 +14,6 @@ interface ForYouSectionProps {
 
 export function ForYouSection({ readingLevel }: ForYouSectionProps) {
   const colors = Colors.light;
-  const levelInfo = getReadingLevel(readingLevel);
 
   // Fetch personalized articles with auto-exclude read articles
   const {
@@ -38,12 +37,6 @@ export function ForYouSection({ readingLevel }: ForYouSectionProps) {
         <View style={[styles.header, styles.contentPadding]}>
           <View style={styles.titleRow}>
             <Text style={[styles.title, { color: colors.text }]}>For You</Text>
-            <View style={[styles.levelBadge, { backgroundColor: 'rgba(129, 90, 255, 0.2)' }]}>
-              <Text style={styles.levelEmoji}>{levelInfo?.emoji}</Text>
-              <Text style={[styles.levelText, { color: colors.third }]}>
-                {levelInfo?.label}
-              </Text>
-            </View>
           </View>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Curating articles for you...
@@ -73,12 +66,6 @@ export function ForYouSection({ readingLevel }: ForYouSectionProps) {
         <View style={[styles.header, styles.contentPadding]}>
           <View style={styles.titleRow}>
             <Text style={[styles.title, { color: colors.text }]}>For You</Text>
-            <View style={[styles.levelBadge, { backgroundColor: 'rgba(129, 90, 255, 0.2)' }]}>
-              <Text style={styles.levelEmoji}>{levelInfo?.emoji}</Text>
-              <Text style={[styles.levelText, { color: colors.third }]}>
-                {levelInfo?.label}
-              </Text>
-            </View>
           </View>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             All caught up! No new articles available.

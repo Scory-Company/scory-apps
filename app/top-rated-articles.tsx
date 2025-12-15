@@ -58,6 +58,7 @@ export default function TopRatedArticlesScreen() {
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
+          onSearch={() => {}} // No-op: instant filtering
           placeholder="Search top rated articles..."
         />
       </View>

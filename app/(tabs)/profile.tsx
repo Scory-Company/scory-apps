@@ -6,12 +6,14 @@ import {
   LogoutButton,
   EditProfileModal,
 } from '@/features/profile/components';
+import { SetWeeklyGoalModal } from '@/features/learn/components';
 import { getProfile, updateProfile, logout, User } from '@/services/auth';
 import { personalizationApi } from '@/services';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { quickStats as quickStatsMock, settingsMenu as settingsMenuData } from '@/data/mock';
 import React, { useEffect, useState } from 'react';
 import { useGamificationStats } from '@/hooks/useGamificationStats';
+import { useWeeklyGoal } from '@/hooks/useWeeklyGoal';
 import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -28,6 +30,7 @@ export default function ProfileScreen() {
   const toast = useToast();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showGoalModal, setShowGoalModal] = useState(false);
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +40,13 @@ export default function ProfileScreen() {
     isLoading: isLoadingStats,
     fetchStats,
   } = useGamificationStats();
+
+  // Fetch weekly goal from API
+  const {
+    goal: weeklyGoal,
+    updateGoal,
+    invalidateCache: invalidateGoalCache,
+  } = useWeeklyGoal();
 
   // Load user profile on mount
   useEffect(() => {
@@ -195,10 +205,10 @@ export default function ProfileScreen() {
         console.log('Email Preferences');
         break;
       case 'READING_GOALS':
-        console.log('Reading Goals');
+        setShowGoalModal(true);
         break;
-      case 'TOPIC_INTERESTS':
-        console.log('Topic Interests');
+      case 'PERSONALIZATION':
+        router.push('/personalization');
         break;
       case 'NOTIFICATIONS':
         console.log('Notifications');
@@ -398,6 +408,18 @@ export default function ProfileScreen() {
       <LanguageModal
         visible={showLanguageModal}
         onClose={() => setShowLanguageModal(false)}
+      />
+
+      {/* Set Weekly Goal Modal */}
+      <SetWeeklyGoalModal
+        visible={showGoalModal}
+        currentTarget={weeklyGoal?.target}
+        onClose={() => setShowGoalModal(false)}
+        onGoalSet={async (target) => {
+          await updateGoal(target);
+          invalidateGoalCache(); // Refresh stats after goal update
+          fetchStats(); // Refresh gamification stats
+        }}
       />
 
       {/* Alert Component */}

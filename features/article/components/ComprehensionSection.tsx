@@ -18,6 +18,7 @@ import { useToast } from '@/features/shared/hooks/useToast';
 interface ComprehensionSectionProps {
   articleSlug: string;
   category: string;
+  readingLevel?: string; // Reading level for quiz questions
   onQuizAvailabilityChange?: (isAvailable: boolean) => void;
   readingStartTime?: number; // Timestamp when article reading started
   onGamificationResult?: (result: any) => void; // Callback for gamification result
@@ -31,6 +32,7 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
 export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
   articleSlug,
+  readingLevel,
   onQuizAvailabilityChange,
   readingStartTime,
   onGamificationResult,
@@ -52,7 +54,7 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
     fetchQuestions,
     submitQuiz: submitQuizApi,
     resetQuiz,
-  } = useQuiz(articleSlug, {
+  } = useQuiz(articleSlug, readingLevel, {
     onError: (message) => toast.error(message),
   });
 
@@ -111,7 +113,6 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
 
       if (allQuestionsAnswered) {
         // All questions answered correctly, submit quiz
-        console.log('[COMPREHENSION] All questions answered! Auto-submitting...');
         setTimeout(() => {
           handleSubmitQuiz(newSelectedAnswers); // Pass the fresh answers to avoid stale state
         }, 500);
@@ -143,15 +144,11 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
     // Use provided finalAnswers or fall back to state (for manual submit button clicks)
     const answersToSubmit = finalAnswers || selectedAnswers;
 
-    console.log('[COMPREHENSION] Quiz data:', JSON.stringify(quizData, null, 2));
-    console.log('[COMPREHENSION] Answers to submit:', answersToSubmit);
-
     // VALIDATION: Check for unanswered questions
     const unansweredQuestions = quizData.questions.filter((q) => answersToSubmit[q.id] === undefined);
 
     if (unansweredQuestions.length > 0) {
       console.error(
-        '[COMPREHENSION] ERROR: Cannot submit incomplete quiz! Unanswered questions:',
         unansweredQuestions.map((q) => `Q${q.order + 1}`).join(', ')
       );
       return; // Block submission
@@ -164,18 +161,12 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
       // Use questionId or id field (both should be UUID string from backend)
       const questionId = q.questionId || q.id;
 
-      console.log(`[COMPREHENSION] Question ${q.order + 1}:`);
-      console.log(`  - id: ${q.id} (type: ${typeof q.id})`);
-      console.log(`  - questionId: ${q.questionId}`);
-      console.log(`  - Using: ${questionId}`);
-
       // Get the selected answer for this question
       const selectedIndex = answersToSubmit[q.id];
 
       // This should never happen now due to validation above
       // But keeping as safety check
       if (selectedIndex === undefined) {
-        console.error(`[COMPREHENSION] CRITICAL: Question ${q.order + 1} has no answer after validation!`);
       }
 
       return {
@@ -193,40 +184,20 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
       // Backend validation: reading time must be between 0.1 and 240 minutes
       if (durationInMinutes < 0.1) {
         readingTime = 0.1; // Use minimum valid value
-        console.log('[COMPREHENSION] Reading time too short, using minimum 0.1 minutes');
       } else {
         readingTime = Math.round(durationInMinutes * 10) / 10; // Round to 1 decimal place
       }
-
-      console.log('[COMPREHENSION] ============================================');
-      console.log('[COMPREHENSION] Reading time calculation:');
-      console.log('[COMPREHENSION]   Start time:', new Date(readingStartTime).toISOString());
-      console.log('[COMPREHENSION]   End time:', new Date(endTime).toISOString());
-      console.log('[COMPREHENSION]   Duration (ms):', endTime - readingStartTime);
-      console.log('[COMPREHENSION]   Reading time (minutes):', readingTime);
-      console.log('[COMPREHENSION] ============================================');
     } else {
-      console.warn('[COMPREHENSION] ⚠️ readingStartTime is undefined! Gamification will not work!');
       toast.warning('Reading time not tracked');
     }
-
-    console.log('[COMPREHENSION] Submitting to API with:');
-    console.log('[COMPREHENSION]   Answers:', JSON.stringify(answers, null, 2));
-    console.log('[COMPREHENSION]   Reading time:', readingTime);
 
     // Submit quiz with reading time (triggers gamification)
     const gamificationResult = await submitQuizApi(answers, readingTime);
 
     // Handle gamification result if present
     if (gamificationResult) {
-      console.log('[COMPREHENSION] ✅ Gamification result received:');
-      console.log('[COMPREHENSION]   Completion Type:', gamificationResult.completionType);
-      console.log('[COMPREHENSION]   Streak Updated:', gamificationResult.streakUpdated);
-      console.log('[COMPREHENSION]   New Streak:', gamificationResult.newStreak);
-      console.log('[COMPREHENSION]   Weekly Goal Progress:', gamificationResult.weeklyGoalProgress);
       onGamificationResult?.(gamificationResult);
     } else {
-      console.warn('[COMPREHENSION] ⚠️ No gamification result received from backend!');
       if (!readingStartTime) {
         // Don't show toast again if already shown above
         return;
