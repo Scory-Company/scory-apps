@@ -336,12 +336,12 @@ export default function ProfileScreen() {
         <LogoutButton onPress={handleLogout} />
 
         {/* Debug: Reset Personalization Button */}
-        {__DEV__ && (
-          <View style={styles.debugSection}>
-            <Text style={[styles.debugLabel, { color: colors.textMuted }]}>
+        {/* {__DEV__ && (
+          <View style={styles.debugSection}> */}
+            {/* <Text style={[styles.debugLabel, { color: colors.textMuted }]}>
               🐛 Debug Tools
-            </Text>
-            <TouchableOpacity
+            </Text> */}
+            {/* <TouchableOpacity
               style={[styles.debugButton, { backgroundColor: colors.error + '20', borderColor: colors.error }]}
               onPress={handleResetPersonalization}
               activeOpacity={0.7}
@@ -349,9 +349,9 @@ export default function ProfileScreen() {
               <Text style={[styles.debugButtonText, { color: colors.error }]}>
                 Reset Personalization
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[styles.debugButton, { backgroundColor: '#3498db' + '20', borderColor: '#3498db', marginTop: Spacing.sm }]}
               onPress={handleClearReadingLevel}
               activeOpacity={0.7}
@@ -359,9 +359,9 @@ export default function ProfileScreen() {
               <Text style={[styles.debugButtonText, { color: '#3498db' }]}>
                 Clear Reading Level (AsyncStorage)
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[styles.debugButton, { backgroundColor: colors.third + '20', borderColor: colors.third, marginTop: Spacing.sm }]}
               onPress={handleShowOnboarding}
               activeOpacity={0.7}
@@ -369,9 +369,9 @@ export default function ProfileScreen() {
               <Text style={[styles.debugButtonText, { color: colors.third }]}>
                 Trigger Onboarding
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[styles.debugButton, { backgroundColor: '#FF9500' + '20', borderColor: '#FF9500', marginTop: Spacing.sm }]}
               onPress={handleResetWelcomeScreen}
               activeOpacity={0.7}
@@ -379,9 +379,9 @@ export default function ProfileScreen() {
               <Text style={[styles.debugButtonText, { color: '#FF9500' }]}>
                 Reset Welcome Screen + Logout
               </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+            </TouchableOpacity> */}
+          {/* </View>
+        )} */}
 
         {/* App Version */}
         <Text style={[styles.versionText, { color: colors.textMuted }]}>{t('profile.version')} 1.0.0</Text>

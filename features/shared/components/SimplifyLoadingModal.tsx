@@ -2,11 +2,11 @@
  * SimplifyLoadingModal Component
  *
  * Loading modal for paper simplification process
- * Shows progress messages during the 20-30 second simplification
+ * Shows progress messages and engaging visual feedback
  */
 
 import { Colors, Spacing, Typography, Radius } from '@/constants/theme';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,11 @@ import {
   Modal,
   ActivityIndicator,
   Animated,
+  Easing,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface SimplifyLoadingModalProps {
   visible: boolean;
@@ -25,13 +28,15 @@ interface SimplifyLoadingModalProps {
 }
 
 const PROGRESS_MESSAGES = [
-  'Analyzing paper structure...',
-  'Extracting key concepts...',
+  'Reading the paper...',
+  'Connecting dots...',
+  'Extracting wisdom...',
   'Simplifying complex terms...',
-  'Generating insights...',
-  'Creating quiz questions...',
-  'Almost done...',
+  'Crafting your summary...',
+  'Almost ready...',
 ];
+
+const { width } = Dimensions.get('window');
 
 export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
   visible,
@@ -41,66 +46,109 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
 }) => {
   const colors = Colors.light;
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
-  const [fadeAnim] = useState(new Animated.Value(1));
-  const [progressWidthAnim] = useState(new Animated.Value(0));
+  
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const progressWidthAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
-  // Clamp and round progress value for display
+  // Clamp progress value
   const normalizedProgress = progressValue !== undefined 
-    ? Math.min(100, Math.max(0, Math.round(progressValue)))
+    ? Math.min(100, Math.max(0, courseProgress(progressValue)))
     : undefined;
 
-  // Animate progress bar with smoother animation
+  // Helper to make progress feel smoother/faster at start
+  function courseProgress(value: number) {
+    return value;
+  }
+
+  // Animate progress bar
   useEffect(() => {
     if (normalizedProgress !== undefined) {
       Animated.timing(progressWidthAnim, {
         toValue: normalizedProgress,
-        duration: 300, // Faster animation for smoother updates
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: false,
       }).start();
     }
-  }, [normalizedProgress, progressWidthAnim]);
+  }, [normalizedProgress]);
 
-  // Reset progress when modal closes
+  // Pulse Animation Loop
+  useEffect(() => {
+    if (visible && step !== 'done') {
+      const pulseLoop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseLoop.start();
+
+      // Slow rotation for background decorative elements if we had them, 
+      // or just rotate the icon slightly for dynamic feel? 
+      // Let's stick to pulse for the icon to keep it clean.
+      
+      return () => {
+        pulseLoop.stop();
+        pulseAnim.setValue(1);
+      };
+    }
+  }, [visible, step]);
+
+  // Reset state when modal closes
   useEffect(() => {
     if (!visible) {
       progressWidthAnim.setValue(0);
       setCurrentMessageIndex(0);
     }
-  }, [visible, progressWidthAnim]);
+  }, [visible]);
 
-  // Rotate progress messages during simplification (only if no custom message)
+  // Cycle messages
   useEffect(() => {
-    if (step === 'simplifying' && !message) {
+    if (visible && step === 'simplifying' && !message) {
       const interval = setInterval(() => {
-        // Fade out
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start(() => {
-          // Change message
-          setCurrentMessageIndex((prev) => (prev + 1) % PROGRESS_MESSAGES.length);
-          // Fade in
+        Animated.sequence([
+          Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
           Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 300,
             useNativeDriver: true,
-          }).start();
-        });
-      }, 3000);
+          }),
+        ]).start();
+
+        setTimeout(() => {
+          setCurrentMessageIndex((prev) => (prev + 1) % PROGRESS_MESSAGES.length);
+        }, 300); // Change text in middle of fade
+      }, 2500);
 
       return () => clearInterval(interval);
     }
-  }, [step, message, fadeAnim]);
+  }, [visible, step, message, fadeAnim]);
 
   const getStepIcon = () => {
     switch (step) {
       case 'checking':
-        return 'search-outline';
+        return 'scan-outline';
       case 'simplifying':
-        return 'sparkles-outline';
+        return 'sparkles';
       case 'done':
-        return 'checkmark-circle-outline';
+        return 'checkmark-circle';
       default:
         return 'hourglass-outline';
     }
@@ -109,18 +157,20 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
   const getStepColor = () => {
     switch (step) {
       case 'checking':
-        return '#6366F1'; // Purple
+        return ['#6366F1', '#818CF8']; // Indigo
       case 'simplifying':
-        return '#F59E0B'; // Orange
+        return ['#F59E0B', '#FCD34D']; // Amber
       case 'done':
-        return '#10B981'; // Green
+        return ['#10B981', '#34D399']; // Emerald
       default:
-        return colors.textMuted;
-      }
+        return ['#9CA3AF', '#D1D5DB'];
+    }
   };
 
   const displayMessage =
     message || (step === 'simplifying' ? PROGRESS_MESSAGES[currentMessageIndex] : '');
+
+  const gradientColors = getStepColor();
 
   return (
     <Modal
@@ -131,63 +181,64 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
-          {/* Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: getStepColor() + '15' }]}>
-            <Ionicons name={getStepIcon() as any} size={48} color={getStepColor()} />
-          </View>
+          
+          {/* Animated Icon Container */}
+          <Animated.View 
+            style={[
+              styles.iconContainer, 
+              { 
+                backgroundColor: gradientColors[0] + '10',
+                transform: [{ scale: pulseAnim }]
+              }
+            ]}
+          >
+            <LinearGradient
+              colors={gradientColors as [string, string]}
+              style={styles.iconBackground}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Ionicons 
+                name={getStepIcon() as any} 
+                size={42} 
+                color="#FFFFFF" 
+              />
+            </LinearGradient>
+          </Animated.View>
 
           {/* Title */}
           <Text style={[styles.title, { color: colors.text }]}>
-            {step === 'checking' && 'Checking Cache...'}
-            {step === 'simplifying' && 'Simplifying Paper'}
-            {step === 'done' && 'Done!'}
+            {step === 'checking' && 'Analyzing...'}
+            {step === 'simplifying' && 'Simplifying'}
+            {step === 'done' && 'Success!'}
           </Text>
 
-          {/* Message */}
-          {displayMessage && (
-            <Animated.View style={{ opacity: fadeAnim }}>
-              <Text style={[styles.message, { color: colors.textSecondary }]}>
+          {/* Dynamic Message */}
+          <View style={styles.messageContainer}>
+            {displayMessage ? (
+              <Animated.Text 
+                style={[
+                  styles.message, 
+                  { 
+                    color: colors.textSecondary,
+                    opacity: fadeAnim 
+                  }
+                ]}
+              >
                 {displayMessage}
-              </Text>
-            </Animated.View>
+              </Animated.Text>
+            ) : null}
+          </View>
+
+          {/* Indeterminate Loading */}
+          {(step === 'checking' ||step === 'simplifying') && (
+            <ActivityIndicator 
+              size="small" 
+              color={gradientColors[0]} 
+              style={{ marginTop: 10 }} 
+            />
           )}
 
-          {/* Progress Bar */}
-          {step === 'simplifying' && normalizedProgress !== undefined && (
-            <View style={styles.progressContainer}>
-              <View style={[styles.progressBarBackground, { backgroundColor: colors.border }]}>
-                <Animated.View 
-                  style={[
-                    styles.progressBarFill, 
-                    { 
-                      backgroundColor: getStepColor(),
-                      width: progressWidthAnim.interpolate({
-                        inputRange: [0, 100],
-                        outputRange: ['0%', '100%']
-                      })
-                    }
-                  ]} 
-                />
-              </View>
-              <Text style={[styles.progressText, { color: colors.textMuted }]}>
-                {normalizedProgress}%
-              </Text>
-            </View>
-          )}
-
-          {/* Loading Indicator (if no progress value or checking) */}
-          {(step === 'checking' || (step === 'simplifying' && normalizedProgress === undefined)) && (
-            <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color={getStepColor()} />
-            </View>
-          )}
-
-          {/* Estimated Time (for simplifying step) */}
-          {step === 'simplifying' && normalizedProgress === undefined && (
-            <Text style={[styles.estimatedTime, { color: colors.textMuted }]}>
-              This usually takes 20-30 seconds
-            </Text>
-          )}
         </View>
       </View>
     </Modal>
@@ -197,75 +248,59 @@ export const SimplifyLoadingModal: React.FC<SimplifyLoadingModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)', // Darker overlay for better focus
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.xl,
   },
   container: {
-    borderRadius: Radius.xl,
-    padding: Spacing.xl,
+    borderRadius: 24, // Softer corners
+    paddingVertical: 32,
+    paddingHorizontal: 24,
     alignItems: 'center',
     width: '100%',
-    maxWidth: 340,
+    maxWidth: 320,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
   },
   iconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: 20,
+  },
+  iconBackground: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   title: {
-    fontSize: Typography.fontSize.xl,
+    fontSize: 20,
     fontWeight: '700',
-    marginBottom: Spacing.sm,
+    marginBottom: 8,
     textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  messageContainer: {
+    height: 24, // Fixed height to prevent jumping
+    marginBottom: 24,
+    justifyContent: 'center',
   },
   message: {
-    fontSize: Typography.fontSize.base,
+    fontSize: 15,
     textAlign: 'center',
-    marginBottom: Spacing.lg,
-    minHeight: 48,
+    fontWeight: '500',
   },
-  loaderContainer: {
-    marginBottom: Spacing.md,
-  },
-  estimatedTime: {
-    fontSize: Typography.fontSize.sm,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  progressContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  progressBarBackground: {
-    width: '100%',
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: Spacing.xs,
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  progressText: {
-    fontSize: Typography.fontSize.base,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  }
 });

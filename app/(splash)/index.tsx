@@ -4,15 +4,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkSession } from '@/services/auth';
 import { useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, View, Animated, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
+import { StatusBar } from 'expo-status-bar';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function SplashScreenPage() {
   const router = useRouter();
   const colors = Colors.light;
+  const { width, height } = useWindowDimensions();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
   const [fontsLoaded] = useFonts({
     'Poppins-Regular': Poppins_400Regular,
@@ -24,6 +28,21 @@ export default function SplashScreenPage() {
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
+
+      // Start Info Animation
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
 
       // Initialize app and navigate accordingly
       const timer = setTimeout(async () => {
@@ -46,7 +65,7 @@ export default function SplashScreenPage() {
           // First-time user, show onboarding
           router.replace('/(onboarding)/welcome');
         }
-      }, 2000);
+      }, 2500); // Slightly longer to show animation
 
       return () => clearTimeout(timer);
     }
@@ -56,16 +75,30 @@ export default function SplashScreenPage() {
     return null;
   }
 
+  // Responsive calculations
+  const logoWidth = Math.min(width * 0.5, 240); // 50% of screen width, max 240px
+  const logoHeight = logoWidth * (84 / 200); // Maintain original aspect ratio (84/200 = 0.42)
+
   return (
     <View style={[styles.container, { backgroundColor: colors.primaryDark }]}>
-      {/* Logo only - centered */}
-      <View style={styles.logoContainer}>
+      <StatusBar style="light" />
+      
+      {/* Animated Logo */}
+      <Animated.View 
+        style={[
+          styles.logoContainer, 
+          { 
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }]
+          }
+        ]}
+      >
         <Image
           source={require('@/assets/images/onboarding/logo-white.svg')}
-          style={styles.logo}
+          style={{ width: logoWidth, height: logoHeight }}
           contentFit="contain"
         />
-      </View>
+      </Animated.View>
     </View>
   );
 }
@@ -79,9 +112,11 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  logo: {
-    width: 200,
-    height: 84,
+    // Add shadow/glow effect for premium feel
+    shadowColor: '#fff', 
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 5,
   },
 });
