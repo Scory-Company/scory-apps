@@ -32,8 +32,8 @@ export default function RootLayout() {
         const apiLevel = response.data.data.readingLevel;
         await AsyncStorage.setItem('preferredReadingLevel', apiLevel);
       }
-    } catch (error) {
-      console.error('[Sync] Error:', error);
+    } catch {
+      // Silent error
     }
   };
 

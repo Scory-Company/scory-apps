@@ -60,13 +60,11 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
 
   // Auto re-simplify (called automatically when level not available, requires premium)
   const resimplify = useCallback(async (articleId: string, readingLevel: string) => {
-    console.log('[Auto-Resimplify]', readingLevel);
 
     // Allow all users to re-simplify articles (premium requirement removed)
     const hasPremium = true; // Enabled for all users
 
     if (!hasPremium) {
-      console.log('[⚠️ AUTO-RESIMPLIFY] Premium required for this reading level!');
       // Show premium upgrade modal
       showPremiumModal(`Level ${readingLevel}`);
       return false;
@@ -116,7 +114,6 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
       return true;
 
     } catch (err: any) {
-      console.error('[Auto-Resimplify] Error:', err.message);
 
       // Simplified error handling
       const errorMessage = err.response?.data?.message || err.message || 'Failed to re-simplify article. Please try again.';
@@ -137,17 +134,10 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
 
   // Manual re-simplify (triggered by user, requires premium)
   const resimplifyManual = useCallback(async (articleId: string, readingLevel: string) => {
-    console.log('='.repeat(60));
-    console.log('[🔄 MANUAL-RESIMPLIFY] User triggered manual re-simplify');
-    console.log('[🔄 MANUAL-RESIMPLIFY] Article ID:', articleId);
-    console.log('[🔄 MANUAL-RESIMPLIFY] Target Level:', readingLevel);
-    console.log('='.repeat(60));
-
     // Allow all users to manually re-simplify articles (premium requirement removed)
     const hasPremium = true; // Enabled for all users
 
     if (!hasPremium) {
-      console.log('[⚠️ MANUAL-RESIMPLIFY] Premium required!');
       // Show premium upgrade modal
       showPremiumModal('Re-simplify Artikel');
       return false;
@@ -197,7 +187,6 @@ export function useResimplify(options?: UseResimplifyOptions): UseResimplifyResu
       return true;
 
     } catch (err: any) {
-      console.error('[Manual-Resimplify] Error:', err.message);
 
       // Simplified error handling
       const errorMessage = err.response?.data?.message || err.message || 'Failed to re-simplify article. Please try again.';

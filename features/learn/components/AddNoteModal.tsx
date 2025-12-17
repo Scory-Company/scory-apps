@@ -42,27 +42,15 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
       return;
     }
 
-    console.log('[ADD_NOTE_MODAL] Starting save...');
-    console.log('[ADD_NOTE_MODAL] Title:', title.trim() || '(empty)');
-    console.log('[ADD_NOTE_MODAL] Content length:', content.trim().length);
-
     setIsSaving(true);
 
     try {
-      console.log('[ADD_NOTE_MODAL] Calling API...');
-      const startTime = Date.now();
-
       const response = await standaloneNotesApi.createStandaloneNote(
         title.trim() || undefined,
         content.trim()
       );
 
-      const endTime = Date.now();
-      console.log('[ADD_NOTE_MODAL] API response received in', endTime - startTime, 'ms');
-      console.log('[ADD_NOTE_MODAL] Response:', response);
-
       if (response.success) {
-        console.log('[ADD_NOTE_MODAL] ✅ Save successful!');
         setTitle('');
         setContent('');
         onClose();
@@ -72,20 +60,13 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
 
         // Trigger refresh
         if (onNoteAdded) {
-          console.log('[ADD_NOTE_MODAL] Triggering refresh...');
           onNoteAdded();
         }
       } else {
-        console.log('[ADD_NOTE_MODAL] ❌ Save failed:', response.message);
         toast.error(response.message || t('learn.components.addNoteModal.errors.failed'), 3000);
       }
     } catch (error: any) {
-      console.error('[ADD_NOTE_MODAL] ❌ Error saving note:', error);
-      console.error('[ADD_NOTE_MODAL] Error details:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
+      // Silent error
 
       // Better error messages
       let errorMsg = t('learn.components.addNoteModal.errors.failed');
@@ -104,7 +85,6 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
       toast.error(errorMsg, 3000);
     } finally {
       setIsSaving(false);
-      console.log('[ADD_NOTE_MODAL] Save process completed');
     }
   };
 

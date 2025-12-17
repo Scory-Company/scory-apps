@@ -106,7 +106,6 @@ export function useSimplifyPaper(options?: UseSimplifyPaperOptions): UseSimplify
       });
 
       // Success
-      console.log('[✅ SUCCESS] Workflow completed:', {
         articleId: result.articleId,
         isCached: result.isCached,
         isNew: result.isNewSimplification
@@ -126,7 +125,6 @@ export function useSimplifyPaper(options?: UseSimplifyPaperOptions): UseSimplify
       };
 
     } catch (err: any) {
-      console.error('[❌ ERROR] Simplify failed:', err.message);
 
       // Simplified error handling - backend should return structured errors
       const errorTitle = err.response?.data?.title || 'Simplification Failed';
@@ -168,36 +166,28 @@ export function useSimplifyAndNavigate(options?: UseSimplifyPaperOptions) {
 
   const simplifyAndNavigate = useCallback(
     async (request: SimplifyExternalRequest) => {
-      console.log('[useSimplifyAndNavigate] Starting simplification...');
 
       const result = await simplify(request);
 
       if (result) {
-        console.log('[useSimplifyAndNavigate] ✅ Simplification complete:', result.articleId);
 
         // Try to get slug, but don't fail if network error
         try {
-          console.log('[useSimplifyAndNavigate] Fetching article details for slug...');
           const articleDetails = await simplifyApi.getArticle(result.articleId);
 
           if (articleDetails.data.article.slug) {
-            console.log('[useSimplifyAndNavigate] ✅ Got slug, navigating to:', articleDetails.data.article.slug);
             router.push(`/article/${articleDetails.data.article.slug}` as any);
           } else {
-            console.log('[useSimplifyAndNavigate] ⚠️ No slug, using articleId');
             router.push(`/article/${result.articleId}` as any);
           }
         } catch (fetchError: any) {
           // Network error or other issues - just navigate with articleId
           const errorType = fetchError.message || 'Unknown error';
-          console.warn('[useSimplifyAndNavigate] ⚠️ Failed to fetch slug:', errorType);
-          console.warn('[useSimplifyAndNavigate] Falling back to articleId navigation');
 
           // Navigate anyway - article exists, we just couldn't get the slug
           router.push(`/article/${result.articleId}` as any);
         }
       } else {
-        console.error('[useSimplifyAndNavigate] ❌ Simplification returned no result');
       }
     },
     [simplify]

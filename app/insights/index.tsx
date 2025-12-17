@@ -39,7 +39,6 @@ export default function AllInsightsScreen() {
   // Refresh insights when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      console.log('[ALL_INSIGHTS] Screen focused - refreshing insights');
       invalidateCache();
       refreshInsights();
     }, [invalidateCache, refreshInsights])

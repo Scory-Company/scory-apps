@@ -36,7 +36,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         await i18n.changeLanguage(savedLanguage);
       }
     } catch (error) {
-      console.error('Error loading saved language:', error);
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +47,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       await i18n.changeLanguage(lang);
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
     } catch (error) {
-      console.error('Error setting language:', error);
     }
   };
 

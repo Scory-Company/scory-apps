@@ -24,8 +24,6 @@ export function usePremiumModal(): UsePremiumModalResult {
 
   const handleUpgrade = useCallback(() => {
     // TODO: Navigate to payment/subscription page when ready
-    console.log('[💎 PREMIUM] User wants to upgrade!');
-    console.log('[💎 PREMIUM] Triggered by:', triggerFeature || 'manual');
 
     // For now, just close the modal
     // In production, this should navigate to payment flow

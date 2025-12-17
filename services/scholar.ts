@@ -103,7 +103,6 @@ export const scholarApi = {
       });
       return response.data;
     } catch (error) {
-      console.error('Scholar API Error:', error);
       throw error;
     }
   },
@@ -123,7 +122,6 @@ export const scholarApi = {
       });
       return response.data;
     } catch (error) {
-      console.error('Scholar Author API Error:', error);
       throw error;
     }
   },
@@ -143,7 +141,6 @@ export const scholarApi = {
       });
       return response.data;
     } catch (error) {
-      console.error('Scholar Citations API Error:', error);
       throw error;
     }
   },
@@ -168,7 +165,6 @@ export const scholarApi = {
       });
       return response.data;
     } catch (error) {
-      console.error('Scholar Year Search Error:', error);
       throw error;
     }
   },

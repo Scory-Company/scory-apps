@@ -19,7 +19,6 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
       {/* <TouchableOpacity
         style={styles.uploadButton}
         onPress={() => {
-          console.log('Upload pressed');
         }}
       >
         <Image

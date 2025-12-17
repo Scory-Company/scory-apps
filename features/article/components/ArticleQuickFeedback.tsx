@@ -35,8 +35,7 @@ export const ArticleQuickFeedback: React.FC<ArticleQuickFeedbackProps> = ({
       setTimeout(() => {
         handleClose();
       }, 500);
-    } catch (error) {
-      console.error('Error submitting quick feedback:', error);
+    } catch {
       setIsSubmitting(false);
     }
   };

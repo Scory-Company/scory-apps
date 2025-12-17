@@ -46,8 +46,6 @@ export default function CategoryDetailScreen() {
         setLoadingMore(true);
       }
 
-      console.log(`[Category Detail] Fetching articles (page ${pageNum})...`);
-
       // Fetch ALL articles without category filter (backend doesn't support it properly)
       const response = await articlesApi.getArticles({
         page: pageNum,
@@ -81,14 +79,11 @@ export default function CategoryDetailScreen() {
         // Check if there are more pages
         const { page: currentPage, totalPages } = apiData.pagination;
         setHasMore(currentPage < totalPages);
-
-        console.log(`[Category Detail] ✅ Loaded ${transformedArticles.length} articles (page ${currentPage}/${totalPages})`);
       } else {
         setArticles([]);
         setHasMore(false);
       }
     } catch (err: any) {
-      console.error('[Category Detail] ❌ Error fetching articles:', err);
       setError(err?.message || 'Failed to load articles');
       if (!append) {
         setArticles([]);

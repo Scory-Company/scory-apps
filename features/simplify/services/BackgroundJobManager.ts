@@ -84,8 +84,7 @@ export class BackgroundJobManager {
       }
 
       return { canStart: true, limits };
-    } catch (error) {
-      console.error('Failed to check job limits:', error);
+    } catch {
       // Allow job if check fails (fail open)
       return { canStart: true };
     }
@@ -96,7 +95,6 @@ export class BackgroundJobManager {
    */
   async startSimplification(options: StartJobOptions): Promise<string | null> {
     if (!this.toastAPI || !this.apiClient) {
-      console.error('BackgroundJobManager not initialized');
       return null;
     }
 
@@ -147,8 +145,6 @@ export class BackgroundJobManager {
 
       return jobId;
     } catch (error: any) {
-      console.error('Failed to start simplification:', error);
-
       // Handle rate limit errors
       if (error.response?.status === 429) {
         const errorData = error.response.data;
@@ -277,7 +273,6 @@ export class BackgroundJobManager {
 
         // Check if max retries reached
         if (retryCount >= MAX_RETRIES) {
-          console.error(`Polling failed after ${MAX_RETRIES} retries:`, error);
           this.handleFailed(jobId, {
             error: 'Network error: Unable to check simplification status. Please check your connection.'
           });
@@ -292,7 +287,6 @@ export class BackgroundJobManager {
 
         // Network error or other errors - retry with exponential backoff
         const delay = Math.min(BASE_DELAY * Math.pow(1.5, retryCount - 1), 10000); // Max 10 seconds
-        console.warn(`Polling retry ${retryCount}/${MAX_RETRIES} in ${delay}ms:`, error.message);
 
         // Update toast to show retry status
         this.toastAPI?.updateToast(job.toastId, {
@@ -321,8 +315,8 @@ export class BackgroundJobManager {
     // Cancel on backend (optional)
     try {
       await this.apiClient?.delete(`/jobs/${jobId}`);
-    } catch (error) {
-      console.error('Failed to cancel job on backend:', error);
+    } catch {
+      // Silent error
     }
 
     // Cleanup

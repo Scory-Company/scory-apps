@@ -152,14 +152,12 @@ export default function HomeScreen() {
   // Check if this is first-time user
   const checkFirstTimeUser = async () => {
     try {
-      // TEMPORARY: Show for ALL users (for testing)
-      // TODO: Uncomment line below to enable first-time user detection
-      // const hasSeenTutorial = await AsyncStorage.getItem('hasSeenPersonalizationTutorial');
-      // if (!hasSeenTutorial) {
+      const hasSeenTutorial = await AsyncStorage.getItem('hasSeenPersonalizationTutorial');
+      if (!hasSeenTutorial) {
         setShowPersonalizationIndicator(true);
-      // }
-    } catch (error) {
-      console.error('Error checking first-time user:', error);
+      }
+    } catch {
+      // Silent error
     }
   };
 
@@ -185,8 +183,6 @@ export default function HomeScreen() {
           user.avatarUrl !== parsedUser.avatarUrl
         ) {
           setUser(parsedUser);
-        } else {
-          // No changes detected, skipping reload
         }
       }
     } catch {
@@ -297,7 +293,7 @@ export default function HomeScreen() {
           <HeroBanner
             title={t('home.heroBanner.title')}
             subtitle={t('home.heroBanner.subtitle')}
-            onPress={() => console.log('Hero banner pressed')}
+            onPress={() => {}}
           />
         </View>
 

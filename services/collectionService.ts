@@ -30,7 +30,6 @@ export const collectionService = {
       const response = await api.get<GetCollectionsResponse>('/collections');
       return response.data.data.collections;
     } catch (error: any) {
-      console.error('[collectionService] getAllCollections error:', error);
       throw new Error(error.response?.data?.error || 'Failed to fetch collections');
     }
   },
@@ -47,7 +46,6 @@ export const collectionService = {
       );
       return response.data.data;
     } catch (error: any) {
-      console.error('[collectionService] getCollectionDetail error:', error);
       throw new Error(error.response?.data?.error || 'Failed to fetch collection details');
     }
   },
@@ -65,7 +63,6 @@ export const collectionService = {
       });
       return response.data.data;
     } catch (error: any) {
-      console.error('[collectionService] bookmarkArticle error:', error);
 
       // Handle specific error cases
       if (error.response?.status === 400) {
@@ -92,7 +89,6 @@ export const collectionService = {
       );
       return response.data.data;
     } catch (error: any) {
-      console.error('[collectionService] unbookmarkArticle error:', error);
 
       if (error.response?.status === 404) {
         throw new Error('Bookmark not found');
@@ -116,7 +112,6 @@ export const collectionService = {
       );
       return response.data.data;
     } catch (error: any) {
-      console.error('[collectionService] markAsRead error:', error);
 
       if (error.response?.status === 404) {
         throw new Error('Article not found in collection');
@@ -138,7 +133,6 @@ export const collectionService = {
       );
       return response.data.data.mappings;
     } catch (error: any) {
-      console.error('[collectionService] getCategoryMappings error:', error);
       throw new Error('Failed to fetch category mappings');
     }
   },

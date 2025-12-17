@@ -21,7 +21,6 @@ const languageDetector = {
         callback('id');
       }
     } catch (error) {
-      console.error('Error loading language:', error);
       callback('id');
     }
   },
@@ -30,7 +29,6 @@ const languageDetector = {
     try {
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
     } catch (error) {
-      console.error('Error saving language:', error);
     }
   },
 };

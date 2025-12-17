@@ -525,7 +525,6 @@ export async function resimplifyArticle(
     const errorDetails = error.response?.data?.error;
 
     // Log detailed error for debugging
-    console.error('[Resimplify] Error:', {
       status: statusCode,
       message: errorMessage,
       details: errorDetails,
@@ -565,12 +564,10 @@ export async function resimplifyWorkflow(
   const { onProgress, pollingTimeout = 120000, signal } = options || {};
 
   try {
-    console.log('[Resimplify] Requesting:', readingLevel);
     const response = await resimplifyArticle(articleId, readingLevel);
 
     // Check if it was a Cache Hit (already simplified to this level)
     if (isCachedResponse(response)) {
-      console.log('[Resimplify] ✅ Cached');
       onProgress?.(100);
       return {
         articleId: response.data.articleId,
@@ -581,7 +578,6 @@ export async function resimplifyWorkflow(
 
     // Check if it's a Synchronous Response (backend processed immediately)
     if (isSynchronousResponse(response)) {
-      console.log('[Resimplify] ✅ Success (Direct)');
       onProgress?.(100);
       return {
         articleId: response.data.articleId,
@@ -594,7 +590,6 @@ export async function resimplifyWorkflow(
     if (isJobCreatedResponse(response)) {
       const { jobId, pollingInterval = 3000 } = response.data;
 
-      console.log('[Resimplify] 🔄 Polling job:', jobId);
 
       // Persist job for recovery
       await JobPersistence.saveJob({
@@ -627,12 +622,9 @@ export async function resimplifyWorkflow(
     }
 
     // If we reach here, the response format is unexpected
-    console.error('[Resimplify] ❌ Unexpected response format!');
-    console.error('[ResimplifyWorkflow] Full response:', JSON.stringify(response, null, 2));
     throw new Error('Unexpected response format from resimplify endpoint');
 
   } catch (error: any) {
-    console.error('[ResimplifyWorkflow] ❌ Error:', error);
     throw error;
   }
 }
@@ -656,7 +648,6 @@ export async function resumeJob(
 }> {
   const { onProgress, pollingTimeout = 120000, signal } = options || {};
 
-  console.log('[ResumeJob] Resuming job:', jobId);
 
   try {
     // Check current job status
@@ -665,7 +656,6 @@ export async function resumeJob(
 
     // If already completed, return immediately
     if (status === 'completed' && result) {
-      console.log('[ResumeJob] ✅ Job already completed');
       await JobPersistence.removeJob(jobId);
       return {
         articleId: result.articleId,
@@ -677,13 +667,11 @@ export async function resumeJob(
 
     // If failed, throw error
     if (status === 'failed') {
-      console.log('[ResumeJob] ❌ Job failed');
       await JobPersistence.removeJob(jobId);
       throw new Error('Job failed during processing');
     }
 
     // Otherwise, continue polling
-    console.log('[ResumeJob] 🔄 Continuing to poll...');
     const pollResult = await pollJobUntilComplete(jobId, {
       pollingInterval: 3000,
       timeout: pollingTimeout,
@@ -696,7 +684,6 @@ export async function resumeJob(
 
     return pollResult;
   } catch (error: any) {
-    console.error('[ResumeJob] Error:', error);
     throw error;
   }
 }

@@ -55,8 +55,8 @@ export const ArticleFeedbackModal: React.FC<ArticleFeedbackModalProps> = ({
         improvementText: improvementText.trim() || undefined,
       });
       handleClose();
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
+    } catch {
+      // Silent error
     } finally {
       setIsSubmitting(false);
     }

@@ -58,7 +58,7 @@ export default function PopularArticlesScreen() {
         setArticles(transformed);
       }
     } catch {
-      console.log('API unavailable, using mock data');
+      // API unavailable, using mock data
       setArticles(popularArticles);
     } finally {
       setIsLoading(false);

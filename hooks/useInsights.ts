@@ -70,25 +70,20 @@ export const useInsights = (
     setInsightsError(null);
 
     try {
-      console.log('[INSIGHTS] Fetching insights for:', articleSlug);
       const response = await insightsApi.getInsights(articleSlug);
 
       if (response.success && response.data) {
         setInsights(response.data);
         const count = response.data.insights?.length || 0;
-        console.log('[INSIGHTS] Insights loaded:', count);
       } else {
         setInsightsError(response.message || 'Failed to load insights');
       }
     } catch (error: any) {
-      console.error('[INSIGHTS] Error fetching insights:', error);
 
       if (error.response?.status === 404) {
         setInsightsError('Insights not available for this article');
-        console.log('[INSIGHTS] 404 - Insights not available');
       } else if (error.response?.status === 500) {
         setInsightsError('Server error loading insights');
-        console.log('[INSIGHTS] 500 - Server error');
       } else {
         setInsightsError(error.response?.data?.message || 'Failed to load insights');
       }
@@ -108,19 +103,15 @@ export const useInsights = (
     setIsLoadingNote(true);
 
     try {
-      console.log('[INSIGHTS] Fetching user note for:', articleSlug);
       const response = await insightsApi.getUserInsightNoteByArticle(articleSlug);
 
       if (response.success && response.data && response.data.length > 0) {
         // User has a saved note for this article
         setUserNote(response.data[0]);
-        console.log('[INSIGHTS] User note found');
       } else {
         setUserNote(null);
-        console.log('[INSIGHTS] No user note found');
       }
     } catch (error: any) {
-      console.error('[INSIGHTS] Error fetching user note:', error);
       // Don't show error to user, just assume no note exists
       setUserNote(null);
     } finally {
@@ -157,20 +148,17 @@ export const useInsights = (
       setNoteError(null);
 
       try {
-        console.log('[INSIGHTS] Saving note:', { content: content.substring(0, 50), isCustom });
         const response = await insightsApi.saveInsightNote(articleSlug, content, isCustom);
 
         if (response.success && response.data) {
           // Optimistically update local state
           setUserNote(response.data);
-          console.log('[INSIGHTS] Note saved successfully');
           return true;
         } else {
           setNoteError(response.message || 'Failed to save note');
           return false;
         }
       } catch (error: any) {
-        console.error('[INSIGHTS] Error saving note:', error);
 
         if (error.response?.status === 401) {
           setNoteError('Please login to save notes');
@@ -203,21 +191,18 @@ export const useInsights = (
     setNoteError(null);
 
     try {
-      console.log('[INSIGHTS] Deleting note:', userNote.id);
       // Note: userNote.id is now a UUID string (not number)
       const response = await insightsApi.deleteInsightNote(userNote.id);
 
       if (response.success) {
         // Optimistically update local state
         setUserNote(null);
-        console.log('[INSIGHTS] Note deleted successfully');
         return true;
       } else {
         setNoteError(response.message || 'Failed to delete note');
         return false;
       }
     } catch (error: any) {
-      console.error('[INSIGHTS] Error deleting note:', error);
 
       if (error.response?.status === 403) {
         setNoteError('You are not authorized to delete this note');

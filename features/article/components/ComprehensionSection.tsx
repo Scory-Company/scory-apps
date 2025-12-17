@@ -151,10 +151,8 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
     const unansweredQuestions = quizData.questions.filter((q) => answersToSubmit[q.id] === undefined);
 
     if (unansweredQuestions.length > 0) {
-      console.error(
-        unansweredQuestions.map((q) => `Q${q.order + 1}`).join(', ')
-      );
-      return; // Block submission
+      // Block submission
+      return;
     }
 
     // Build answers array in API format
@@ -166,11 +164,6 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
 
       // Get the selected answer for this question
       const selectedIndex = answersToSubmit[q.id];
-
-      // This should never happen now due to validation above
-      // But keeping as safety check
-      if (selectedIndex === undefined) {
-      }
 
       return {
         questionId: String(questionId), // Ensure it's string

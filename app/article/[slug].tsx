@@ -158,8 +158,8 @@ export default function ArticleDetailScreen() {
       if (storedLevel && Object.values(ReadingLevel).includes(storedLevel as ReadingLevel)) {
         setSelectedReadingLevel(storedLevel as ReadingLevel);
       }
-    } catch (err) {
-      console.error('Failed to load preferred reading level:', err);
+    } catch {
+      // Silent error
     } finally {
       // Mark as loaded even if there's an error (use default SIMPLE)
       setIsReadingLevelLoaded(true);
@@ -197,8 +197,7 @@ export default function ArticleDetailScreen() {
       } else {
         setError(true);
       }
-    } catch (err: any) {
-      console.error('Failed to fetch article:', err);
+    } catch {
       setError(true);
     } finally {
       setIsLoading(false);
@@ -322,8 +321,6 @@ export default function ArticleDetailScreen() {
         }
       }
     } catch (err: any) {
-      console.error('Bookmark error:', err);
-
       // ROLLBACK: Revert UI on error
       setIsBookmarked(previousState);
 
@@ -406,9 +403,8 @@ export default function ArticleDetailScreen() {
     ) {
       // Mark that we've attempted resimplify for this combo
       autoResimplifyAttempted.current = attemptKey;
-      
+
       // Trigger resimplify automatically
-      console.log('[ArticleDetail] Auto-triggering resimplify for:', attemptKey);
       handleResimplify();
     }
   }, [article, isResimplifying, isLoading, isPreferredLevelAvailable, selectedReadingLevel, isReadingLevelLoaded, handleResimplify]);
@@ -668,17 +664,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resimplifyButtonText: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: '600',
-  },
-  // Debug Badge (only in dev mode)
-  debugBadge: {
-    padding: Spacing.sm,
-    borderRadius: Radius.md,
-    marginBottom: Spacing.md,
-    alignItems: 'center',
-  },
-  debugText: {
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
   },

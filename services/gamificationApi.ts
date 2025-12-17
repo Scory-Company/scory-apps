@@ -36,7 +36,6 @@ export const gamificationService = {
       );
       return response.data.data;
     } catch (error: any) {
-      console.error('[gamificationService] getStats error:', error);
       throw new Error(error.response?.data?.error || 'Failed to fetch gamification stats');
     }
   },
@@ -53,7 +52,6 @@ export const gamificationService = {
       );
       return response.data.data.goal;
     } catch (error: any) {
-      console.error('[gamificationService] getWeeklyGoal error:', error);
       throw new Error(error.response?.data?.error || 'Failed to fetch weekly goal');
     }
   },
@@ -78,7 +76,6 @@ export const gamificationService = {
       );
       return response.data.data.goal;
     } catch (error: any) {
-      console.error('[gamificationService] updateWeeklyGoal error:', error);
 
       // Handle specific error cases
       if (error.response?.status === 400) {
@@ -110,7 +107,6 @@ export const gamificationService = {
       );
       return response.data.data;
     } catch (error: any) {
-      console.error('[gamificationService] recordActivity error:', error);
 
       // Handle specific error cases
       if (error.response?.status === 400) {

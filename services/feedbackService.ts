@@ -21,8 +21,6 @@ export const submitArticleFeedback = async (
   params: FeedbackSubmitParams
 ): Promise<ArticleFeedback> => {
   try {
-    console.log('📤 Submitting feedback to API:', params);
-
     // Call backend API
     const response = await api.post('/feedback/article', params);
 
@@ -42,15 +40,11 @@ export const submitArticleFeedback = async (
     // Update local feedback history (for quick UI checks)
     await markFeedbackGiven(params.articleId);
 
-    console.log('✅ Feedback submitted successfully:', feedback.id);
     return feedback;
   } catch (error: any) {
-    console.error('❌ Error submitting feedback:', error);
-
     // Handle specific error cases
     if (error.response?.status === 409) {
       // Duplicate feedback - user already submitted
-      console.log('⚠️ User already submitted feedback for this article');
       await markFeedbackGiven(params.articleId); // Update local cache
       throw new Error('You have already submitted feedback for this article');
     } else if (error.response?.status === 404) {
@@ -77,8 +71,7 @@ export const hasFeedbackForArticle = async (articleId: string): Promise<boolean>
 
     const history: FeedbackHistory = JSON.parse(historyData);
     return history[articleId]?.hasFeedback || false;
-  } catch (error) {
-    console.error('❌ Error checking feedback history:', error);
+  } catch {
     return false;
   }
 };
@@ -97,8 +90,8 @@ const markFeedbackGiven = async (articleId: string): Promise<void> => {
     };
 
     await AsyncStorage.setItem(FEEDBACK_HISTORY_KEY, JSON.stringify(history));
-  } catch (error) {
-    console.error('❌ Error marking feedback given:', error);
+  } catch {
+    // Silent error
   }
 };
 
@@ -109,8 +102,7 @@ const markFeedbackGiven = async (articleId: string): Promise<void> => {
 export const clearFeedbackHistory = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(FEEDBACK_HISTORY_KEY);
-    console.log('✅ Feedback history cleared');
-  } catch (error) {
-    console.error('❌ Error clearing feedback history:', error);
+  } catch {
+    // Silent error
   }
 };

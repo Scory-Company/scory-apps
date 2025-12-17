@@ -39,7 +39,6 @@ export function SourceLinks({ externalMetadata }: SourceLinksProps) {
         toast.error(`Unable to open ${label}`, 2500);
       }
     } catch (error) {
-      console.error(`Error opening ${label}:`, error);
       toast.error(`Failed to open ${label}`, 2500);
     }
   };

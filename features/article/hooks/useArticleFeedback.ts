@@ -66,7 +66,6 @@ export const useArticleFeedback = ({
         return;
       }
 
-      console.log('🎯 Triggering feedback after quiz completion');
       setCurrentQuizScore(score);
       setFeedbackTrigger('quiz_completion');
 
@@ -91,11 +90,9 @@ export const useArticleFeedback = ({
     // Only show if user has read for at least 10 seconds (reduced from 60 for better UX)
     // TODO: Consider A/B testing this threshold (10s vs 30s vs 60s)
     if (readingTime < 10) {
-      console.log('⏭️ Reading time too short for feedback request');
       return false;
     }
 
-    console.log('🚪 Triggering quick feedback on exit intent');
     setFeedbackTrigger('exit_intent');
     setShowQuickFeedback(true);
     return true;
@@ -105,7 +102,6 @@ export const useArticleFeedback = ({
    * Trigger manual feedback (from feedback card)
    */
   const triggerManualFeedback = useCallback(() => {
-    console.log('👆 Triggering manual feedback from card');
     setFeedbackTrigger('manual');
     setShowFeedbackModal(true);
   }, []);
@@ -128,14 +124,12 @@ export const useArticleFeedback = ({
 
         setHasFeedback(true);
         showToast({ type: 'success', message: 'Thank you for your feedback! 🎉' });
-        console.log('✅ Feedback submitted successfully');
 
         // Navigate to explore after feedback submission
         setTimeout(() => {
           router.push('/(tabs)/explore');
         }, 1000); // Small delay to show toast
       } catch (error) {
-        console.error('❌ Error submitting feedback:', error);
         showToast({ type: 'error', message: 'Failed to submit feedback. Please try again.' });
         throw error;
       }
@@ -158,9 +152,7 @@ export const useArticleFeedback = ({
 
         setHasFeedback(true);
         showToast({ type: 'success', message: 'Thanks for the quick rating! ⭐' });
-        console.log('✅ Quick feedback submitted');
       } catch (error) {
-        console.error('❌ Error submitting quick feedback:', error);
         showToast({ type: 'error', message: 'Failed to submit rating.' });
         throw error;
       }

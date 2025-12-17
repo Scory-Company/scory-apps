@@ -30,17 +30,14 @@ api.interceptors.request.use(
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-      } else {
-        console.warn('[API] ⚠️ No valid token available for request:', config.url);
       }
-    } catch (error: any) {
-      console.error('[API] ❌ Error getting token:', error.message);
+    } catch {
+      // Silent error
     }
 
     return config;
   },
   (error) => {
-    console.error('[API] ❌ Request interceptor error:', error.message);
     return Promise.reject(error);
   }
 );
@@ -69,21 +66,8 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Log network errors for debugging
-    if (error.message === 'Network Error') {
-      console.error('[API] 🌐 Network Error:', {
-        url: originalRequest?.url,
-        method: originalRequest?.method,
-        baseURL: originalRequest?.baseURL,
-        message: 'Cannot connect to backend. Check if backend is running and IP address is correct.'
-      });
-    } else if (error.code === 'ECONNABORTED') {
-      console.error('[API] ⏱️ Request timeout:', originalRequest?.url);
-    }
-
     // Handle 401 errors (token expired/invalid)
     if (error.response?.status === 401 && !originalRequest._retry) {
-      console.log('[API] 🔐 401 Unauthorized - attempting token refresh...');
 
       if (isRefreshing) {
         // If already refreshing, queue this request
@@ -108,13 +92,11 @@ api.interceptors.response.use(
 
         if (newToken) {
           // Refresh successful, retry original request
-          console.log('[API] ✅ Token refreshed, retrying request');
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           processQueue();
           return api(originalRequest);
         } else {
           // Refresh failed, clear tokens and reject
-          console.log('[API] ❌ Token refresh failed, clearing tokens');
           const { clearTokens } = await import('./tokenManager');
           await clearTokens();
           processQueue(error);
@@ -122,7 +104,6 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed, clear tokens
-        console.error('[API] ❌ Token refresh error:', refreshError);
         const { clearTokens } = await import('./tokenManager');
         await clearTokens();
         processQueue(refreshError);

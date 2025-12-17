@@ -135,7 +135,7 @@ export default function ExploreScreen() {
             setAllFetchedArticles(transformed);
           }
         } catch (error) {
-          console.error('[Category Filter] Error:', error);
+          // Silent error
         }
       };
       fetchForCategory();
@@ -480,7 +480,7 @@ export default function ExploreScreen() {
             icon="flame"
             iconColor={colors.error}
             offViewAll={true}
-            onViewAllPress={() => console.log('View all trending')}
+            onViewAllPress={() => {}}
           />
 
           <View style={styles.trendingGrid}>
@@ -565,7 +565,7 @@ export default function ExploreScreen() {
             <ViewAllPrompt
               count={recentlyAddedArticles.length - 3}
               label="article"
-              onPress={() => console.log('View all recently added')}
+              onPress={() => {}}
             />
           )} */}
         </View>

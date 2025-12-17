@@ -10,14 +10,12 @@ import {
 } from '@/features/profile/components';
 import { SetWeeklyGoalModal } from '@/features/learn/components';
 import { getProfile, updateProfile, logout, User } from '@/services/auth';
-import { personalizationApi } from '@/services';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { quickStats as quickStatsMock, settingsMenu as settingsMenuData } from '@/data/mock';
 import React, { useEffect, useState } from 'react';
 import { useGamificationStats } from '@/hooks/useGamificationStats';
 import { useWeeklyGoal } from '@/hooks/useWeeklyGoal';
  
-import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlert } from '@/features/shared/hooks/useAlert';
@@ -68,7 +66,6 @@ export default function ProfileScreen() {
         setUserData(profile);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
       alert.error('Error', 'Failed to load profile');
     } finally {
       setLoading(false);
@@ -106,100 +103,18 @@ export default function ProfileScreen() {
     );
   };
 
-  // Debug: Reset personalization (deletes backend data)
-  const handleResetPersonalization = () => {
-    alert.confirm(
-      'Reset Personalization',
-      'This will delete all your personalization data (reading level & topic interests). You will need to complete the onboarding quiz again. Continue?',
-      async () => {
-        try {
-
-          // 1. Call backend API to delete personalization
-          await personalizationApi.resetPersonalization();
-
-          // 2. Clear local AsyncStorage (tutorial flag + reading level preference)
-          await AsyncStorage.multiRemove(['hasSeenPersonalizationTutorial', 'preferredReadingLevel']);
-
-          toast.success('Personalization reset! Navigate to Home to see PersonalizationCard.');
-        } catch (error: any) {
-          alert.error('Error', `Failed to reset: ${error?.message || 'Unknown error'}`);
-        }
-      }
-    );
-  };
-
-  // Debug: Show onboarding again (keeps backend data)
-  const handleShowOnboarding = async () => {
-    try {
-
-      // Clear only local flag (backend data stays intact)
-      await AsyncStorage.removeItem('hasSeenPersonalizationTutorial');
-      toast.success('Onboarding triggered! Navigate to Home to see PersonalizationCard.');
-    } catch (error: any) {
-      alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
-    }
-  };
-
-  // Debug: Clear reading level preference only
-  const handleClearReadingLevel = async () => {
-    try {
-
-      const currentLevel = await AsyncStorage.getItem('preferredReadingLevel');
-
-      await AsyncStorage.removeItem('preferredReadingLevel');
-
-      toast.success('Reading level cleared! Will use default (SIMPLE) or API sync.');
-    } catch (error: any) {
-      alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
-    }
-  };
-
-  // Debug: Reset welcome screen and logout
-  const handleResetWelcomeScreen = () => {
-    alert.confirm(
-      'Reset Welcome Screen',
-      'This will reset the welcome onboarding screen and logout. You will see the 3-slide carousel when you restart the app. Continue?',
-      async () => {
-        try {
-
-          // 1. Clear welcome onboarding flag
-          await AsyncStorage.removeItem('onboarding_completed');
-          // 2. Logout user
-          await logout();
-
-          // 3. Navigate to login (Welcome will show on next app start)
-          router.replace('/(auth)/login');
-
-          toast.success('Welcome screen reset! Restart app to see welcome onboarding.');
-        } catch (error: any) {
-          alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
-        }
-      }
-    );
-  };
-
   // Handle menu item actions
   const handleMenuAction = (action: string) => {
     switch (action) {
       case 'EDIT_PROFILE':
         setShowEditModal(true);
         break;
-      // TODO: Uncomment for future development
-      // case 'CHANGE_PASSWORD':
-      //   console.log('Change Password');
-      //   break;
-      // case 'EMAIL_PREFERENCES':
-      //   console.log('Email Preferences');
-      //   break;
       case 'READING_GOALS':
         setShowGoalModal(true);
         break;
       case 'PERSONALIZATION':
         router.push('/personalization');
         break;
-      // case 'NOTIFICATIONS':
-      //   console.log('Notifications');
-      //   break;
       case 'LANGUAGE':
         setShowLanguageModal(true);
         break;
@@ -216,7 +131,8 @@ export default function ProfileScreen() {
         router.push('/about');
         break;
       default:
-        console.log('Unknown action:', action);
+        // Unknown action
+        break;
     }
   };
 
@@ -322,54 +238,6 @@ export default function ProfileScreen() {
         {/* Logout Button */}
         <LogoutButton onPress={handleLogout} />
 
-        {/* Debug: Reset Personalization Button */}
-        {/* {__DEV__ && (
-          <View style={styles.debugSection}> */}
-            {/* <Text style={[styles.debugLabel, { color: colors.textMuted }]}>
-              🐛 Debug Tools
-            </Text> */}
-            {/* <TouchableOpacity
-              style={[styles.debugButton, { backgroundColor: colors.error + '20', borderColor: colors.error }]}
-              onPress={handleResetPersonalization}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.debugButtonText, { color: colors.error }]}>
-                Reset Personalization
-              </Text>
-            </TouchableOpacity> */}
-
-            {/* <TouchableOpacity
-              style={[styles.debugButton, { backgroundColor: '#3498db' + '20', borderColor: '#3498db', marginTop: Spacing.sm }]}
-              onPress={handleClearReadingLevel}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.debugButtonText, { color: '#3498db' }]}>
-                Clear Reading Level (AsyncStorage)
-              </Text>
-            </TouchableOpacity> */}
-
-            {/* <TouchableOpacity
-              style={[styles.debugButton, { backgroundColor: colors.third + '20', borderColor: colors.third, marginTop: Spacing.sm }]}
-              onPress={handleShowOnboarding}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.debugButtonText, { color: colors.third }]}>
-                Trigger Onboarding
-              </Text>
-            </TouchableOpacity> */}
-
-            {/* <TouchableOpacity
-              style={[styles.debugButton, { backgroundColor: '#FF9500' + '20', borderColor: '#FF9500', marginTop: Spacing.sm }]}
-              onPress={handleResetWelcomeScreen}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.debugButtonText, { color: '#FF9500' }]}>
-                Reset Welcome Screen + Logout
-              </Text>
-            </TouchableOpacity> */}
-          {/* </View>
-        )} */}
-
         {/* App Version */}
         <Text style={[styles.versionText, { color: colors.textMuted }]}>{t('profile.version')} 1.0.0</Text>
 
@@ -449,27 +317,5 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     textAlign: 'center',
     marginTop: Spacing.md,
-  },
-  debugSection: {
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  debugLabel: {
-    fontSize: Typography.fontSize.xs,
-    fontWeight: '600',
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
-  },
-  debugButton: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  debugButtonText: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: '600',
   },
 });
