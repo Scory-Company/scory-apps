@@ -106,10 +106,6 @@ export function useSimplifyPaper(options?: UseSimplifyPaperOptions): UseSimplify
       });
 
       // Success
-        articleId: result.articleId,
-        isCached: result.isCached,
-        isNew: result.isNewSimplification
-      });
 
       setProgress({
         step: 'done',
@@ -130,13 +126,6 @@ export function useSimplifyPaper(options?: UseSimplifyPaperOptions): UseSimplify
       const errorTitle = err.response?.data?.title || 'Simplification Failed';
       const errorMessage = err.response?.data?.message || err.message || 'Failed to simplify paper. Please try again.';
 
-      setError(errorMessage);
-      setErrorTitle(errorTitle);
-      setProgress({
-        step: 'idle',
-        message: '',
-        value: 0
-      });
 
       // Call onError callback if provided
       options?.onError?.(errorTitle, errorMessage);

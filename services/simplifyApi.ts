@@ -524,12 +524,6 @@ export async function resimplifyArticle(
     const errorMessage = error.response?.data?.message || error.message;
     const errorDetails = error.response?.data?.error;
 
-    // Log detailed error for debugging
-      status: statusCode,
-      message: errorMessage,
-      details: errorDetails,
-    });
-
     // Throw user-friendly error message
     if (statusCode === 500) {
       throw new Error('Server error while re-simplifying article. Please try again later.');

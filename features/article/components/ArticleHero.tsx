@@ -55,12 +55,12 @@ export const ArticleHero: React.FC<ArticleHeroProps> = ({
               />
             )}
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
             onPress={onShare}
           >
             <Ionicons name="share-outline" size={22} color="#FFFFFF" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </SafeAreaView>
     </View>
