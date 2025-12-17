@@ -2,6 +2,7 @@ import { Colors, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface ViewAllPromptProps {
   count: number;
@@ -14,6 +15,7 @@ export const ViewAllPrompt: React.FC<ViewAllPromptProps> = ({
   label = 'item',
   onPress
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   return (
@@ -25,7 +27,7 @@ export const ViewAllPrompt: React.FC<ViewAllPromptProps> = ({
       <View style={styles.content}>
         <Ionicons name="arrow-forward-circle-outline" size={20} color={colors.textMuted} />
         <Text style={[styles.text, { color: colors.textSecondary }]}>
-          View all to see {count} more {label}{count > 1 ? 's' : ''}
+          {t('learn.components.viewAllPrompt', { count, label })}
         </Text>
       </View>
     </TouchableOpacity>

@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Typography, Radius } from '@/constants/theme';
 import { BottomSheetModal } from '@/features/shared/components/BottomSheetModal';
+import { useTranslation } from 'react-i18next';
 
 interface SetWeeklyGoalModalProps {
   visible: boolean;
@@ -31,6 +32,7 @@ export function SetWeeklyGoalModal({
   onClose,
   onGoalSet,
 }: SetWeeklyGoalModalProps) {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const [selectedTarget, setSelectedTarget] = useState(currentTarget > 0 ? currentTarget.toString() : '');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,7 +41,6 @@ export function SetWeeklyGoalModal({
   // Reset state when modal opens
   React.useEffect(() => {
     if (visible) {
-      console.log('[SetWeeklyGoalModal] Modal opened, currentTarget:', currentTarget);
       setSelectedTarget(currentTarget > 0 ? currentTarget.toString() : '');
       setErrorMessage(null);
     }
@@ -62,12 +63,12 @@ export function SetWeeklyGoalModal({
 
     // Validation
     if (!selectedTarget || isNaN(targetNum)) {
-      setErrorMessage('Please enter a target number');
+      setErrorMessage(t('learn.components.weeklyGoalModal.errors.enterTarget'));
       return;
     }
 
     if (targetNum < 1 || targetNum > 50) {
-      setErrorMessage('Target must be between 1-50 articles');
+      setErrorMessage(t('learn.components.weeklyGoalModal.errors.invalidRange'));
       return;
     }
 
@@ -78,8 +79,7 @@ export function SetWeeklyGoalModal({
       // Success - modal will close via onClose from parent
       onClose();
     } catch (error: any) {
-      console.error('[SetWeeklyGoalModal] Error setting goal:', error);
-      setErrorMessage(error.message || 'Failed to set goal. Please try again.');
+      setErrorMessage(error.message || t('learn.components.weeklyGoalModal.errors.failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +98,7 @@ export function SetWeeklyGoalModal({
           <View style={styles.headerLeft}>
             <Ionicons name="flag" size={24} color={colors.primary} />
             <Text style={[styles.title, { color: colors.text }]}>
-              Set Weekly Goal
+              {t('learn.components.weeklyGoalModal.title')}
             </Text>
           </View>
           <TouchableOpacity
@@ -112,13 +112,13 @@ export function SetWeeklyGoalModal({
 
         {/* Description */}
         <Text style={[styles.description, { color: colors.textSecondary }]}>
-          Challenge yourself to read more articles this week. Set a goal that motivates you!
+          {t('learn.components.weeklyGoalModal.description')}
         </Text>
 
         {/* Preset Goals */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.text }]}>
-            Quick Select
+            {t('learn.components.weeklyGoalModal.quickSelect')}
           </Text>
           <View style={styles.presetGrid}>
             {PRESET_GOALS.map((preset) => {
@@ -155,7 +155,7 @@ export function SetWeeklyGoalModal({
                       },
                     ]}
                   >
-                    articles
+                    {t('learn.components.weeklyGoalModal.articles')}
                   </Text>
                 </TouchableOpacity>
               );
@@ -166,7 +166,7 @@ export function SetWeeklyGoalModal({
         {/* Custom Input */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.text }]}>
-            Or Enter Custom Target
+            {t('learn.components.weeklyGoalModal.customTarget')}
           </Text>
           <View style={styles.inputContainer}>
             <TextInput
@@ -181,17 +181,17 @@ export function SetWeeklyGoalModal({
               value={selectedTarget}
               onChangeText={handleCustomInput}
               keyboardType="number-pad"
-              placeholder="1 - 50"
+              placeholder={t('learn.components.weeklyGoalModal.placeholder')}
               placeholderTextColor={colors.textSecondary}
               editable={!isSubmitting}
               maxLength={2}
             />
             <Text style={[styles.inputSuffix, { color: colors.textSecondary }]}>
-              articles
+              {t('learn.components.weeklyGoalModal.articles')}
             </Text>
           </View>
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            💡 Set a realistic goal to keep your streak going!
+            {t('learn.components.weeklyGoalModal.hint')}
           </Text>
         </View>
 
@@ -224,7 +224,7 @@ export function SetWeeklyGoalModal({
             <>
               <Ionicons name="checkmark-circle" size={20} color="#fff" />
               <Text style={styles.submitButtonText}>
-                {currentTarget > 0 ? 'Update Goal' : 'Set Goal'}
+                {currentTarget > 0 ? t('learn.components.weeklyGoalModal.updateGoal') : t('learn.components.weeklyGoalModal.setGoal')}
               </Text>
             </>
           )}
@@ -233,7 +233,7 @@ export function SetWeeklyGoalModal({
         {/* Current Goal Info */}
         {currentTarget > 0 && (
           <Text style={[styles.currentGoalInfo, { color: colors.textSecondary }]}>
-            Current goal: {currentTarget} articles/week
+            {t('learn.components.weeklyGoalModal.currentGoal', { target: currentTarget })}
           </Text>
         )}
       </View>

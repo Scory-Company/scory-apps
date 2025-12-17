@@ -2,6 +2,7 @@ import { Colors, Spacing, Typography, Radius, Shadows } from '@/constants/theme'
 import React, { forwardRef, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle, Animated } from 'react-native';
 import { Image } from 'expo-image';
+import { useTranslation } from 'react-i18next';
 
 interface PersonalizationCardProps {
   onPress?: () => void;
@@ -11,6 +12,7 @@ interface PersonalizationCardProps {
 
 export const PersonalizationCard = forwardRef<View, PersonalizationCardProps>(
   ({ onPress, style, showIndicator = false }, ref) => {
+    const { t } = useTranslation();
     const colors = Colors.light;
     const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -59,14 +61,14 @@ export const PersonalizationCard = forwardRef<View, PersonalizationCardProps>(
           {/* "Start Here" Badge for First-Time Users */}
           {showIndicator && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>👉 Start Here!</Text>
+              <Text style={styles.badgeText}>{t('home.personalizationCard.badge')}</Text>
             </View>
           )}
 
           <View style={styles.content}>
             <View style={styles.textContainer}>
-              <Text style={styles.title}>Personalize Your Reading Level</Text>
-              <Text style={styles.subtitle}>Choose how you want to read research</Text>
+              <Text style={styles.title}>{t('home.personalizationCard.title')}</Text>
+              <Text style={styles.subtitle}>{t('home.personalizationCard.subtitle')}</Text>
             </View>
             <View>
               <Image

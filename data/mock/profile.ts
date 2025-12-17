@@ -28,31 +28,32 @@ export const quickStats = [
 ];
 
 export const settingsMenu = [
-  {
-    id: 1,
-    titleKey: 'profile.menu.accountSettings',
-    icon: 'person' as const,
-    items: [
-      {
-        id: 1,
-        labelKey: 'profile.menu.editProfile',
-        icon: 'create' as const,
-        action: 'EDIT_PROFILE',
-      },
-      {
-        id: 2,
-        labelKey: 'profile.menu.changePassword',
-        icon: 'lock-closed' as const,
-        action: 'CHANGE_PASSWORD',
-      },
-      {
-        id: 3,
-        labelKey: 'profile.menu.emailPreferences',
-        icon: 'mail' as const,
-        action: 'EMAIL_PREFERENCES',
-      },
-    ],
-  },
+  // TODO: Uncomment for future development
+  // {
+  //   id: 1,
+  //   titleKey: 'profile.menu.accountSettings',
+  //   icon: 'person' as const,
+  //   items: [
+  //     {
+  //       id: 1,
+  //       labelKey: 'profile.menu.editProfile',
+  //       icon: 'create' as const,
+  //       action: 'EDIT_PROFILE',
+  //     },
+  //     {
+  //       id: 2,
+  //       labelKey: 'profile.menu.changePassword',
+  //       icon: 'lock-closed' as const,
+  //       action: 'CHANGE_PASSWORD',
+  //     },
+  //     {
+  //       id: 3,
+  //       labelKey: 'profile.menu.emailPreferences',
+  //       icon: 'mail' as const,
+  //       action: 'EMAIL_PREFERENCES',
+  //     },
+  //   ],
+  // },
   {
     id: 2,
     titleKey: 'profile.menu.preferences',
@@ -70,12 +71,12 @@ export const settingsMenu = [
         icon: 'sparkles' as const,
         action: 'PERSONALIZATION',
       },
-      {
-        id: 3,
-        labelKey: 'profile.menu.notifications',
-        icon: 'notifications' as const,
-        action: 'NOTIFICATIONS',
-      },
+      // {
+      //   id: 3,
+      //   labelKey: 'profile.menu.notifications',
+      //   icon: 'notifications' as const,
+      //   action: 'NOTIFICATIONS',
+      // },
       {
         id: 4,
         labelKey: 'profile.menu.language',

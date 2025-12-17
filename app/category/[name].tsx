@@ -115,19 +115,10 @@ export default function CategoryDetailScreen() {
 
   // Filter articles by category AND search query (client-side)
   const filteredArticles = useMemo(() => {
-    console.log(`[Filter] Total articles loaded: ${articles.length}`);
-    console.log(`[Filter] Looking for category: "${categoryName}"`);
-
-    // Debug: Log all unique categories
-    const uniqueCategories = [...new Set(articles.map(a => a.category))];
-    console.log(`[Filter] Available categories:`, uniqueCategories);
-
     // First, filter by category
     let filtered = articles.filter(
       article => article.category.toLowerCase() === categoryName.toLowerCase()
     );
-
-    console.log(`[Filter] After category filter: ${filtered.length} articles`);
 
     // Then, apply search filter if query exists
     if (searchQuery.trim()) {
@@ -137,7 +128,6 @@ export default function CategoryDetailScreen() {
           article.title.toLowerCase().includes(query) ||
           article.author.toLowerCase().includes(query)
       );
-      console.log(`[Filter] After search filter: ${filtered.length} articles`);
     }
 
     return filtered;

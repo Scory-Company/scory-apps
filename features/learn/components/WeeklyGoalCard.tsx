@@ -4,6 +4,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ProgressBar } from './ProgressBar';
+import { useTranslation } from 'react-i18next';
 
 interface WeeklyGoalCardProps {
   completed: number;
@@ -20,31 +21,40 @@ export const WeeklyGoalCard: React.FC<WeeklyGoalCardProps> = ({
   onContinuePress,
   onSetGoalPress,
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   // Determine states
   const hasGoal = target > 0;
   const isNotStarted = completed === 0;
+  const isCompleted = hasGoal && completed >= target;
 
   // Determine button config
-  let buttonText = 'Set Goal';
+  let buttonText = t('learn.components.weeklyGoalCard.setGoal');
   let buttonIcon: keyof typeof Ionicons.glyphMap = 'settings-outline';
   let buttonAction = onSetGoalPress;
 
-  if (hasGoal && isNotStarted) {
-    buttonText = 'Start Reading';
+  if (isCompleted) {
+    // Goal achieved! Allow setting new goal
+    buttonText = t('learn.components.weeklyGoalCard.setNewGoal');
+    buttonIcon = 'trophy';
+    buttonAction = onSetGoalPress;
+  } else if (hasGoal && isNotStarted) {
+    buttonText = t('learn.components.weeklyGoalCard.startReading');
     buttonIcon = 'book-outline';
     buttonAction = onContinuePress;
   } else if (hasGoal && !isNotStarted) {
-    buttonText = 'Continue Reading';
+    buttonText = t('learn.components.weeklyGoalCard.continueReading');
     buttonIcon = 'arrow-forward';
     buttonAction = onContinuePress;
   }
 
   // Determine title text
   const titleText = hasGoal
-    ? `${completed} of ${target} articles completed`
-    : 'Set your weekly reading goal';
+    ? isCompleted
+      ? t('learn.components.weeklyGoalCard.goalCompleted', { completed })
+      : t('learn.components.weeklyGoalCard.progress', { completed, target })
+    : t('learn.components.weeklyGoalCard.noGoalTitle');
 
   return (
     <View style={[styles.goalCard, Shadows.md, { backgroundColor: colors.surface }]}>
@@ -54,27 +64,40 @@ export const WeeklyGoalCard: React.FC<WeeklyGoalCardProps> = ({
         </Text>
         {hasGoal && (
           <Text style={[styles.goalDays, { color: colors.textSecondary }]}>
-            {daysLeft} days left
+            {t('learn.components.weeklyGoalCard.daysLeft', { days: daysLeft })}
           </Text>
         )}
       </View>
 
-      <ProgressBar current={completed} total={hasGoal ? target : 5} />
+      <ProgressBar
+        current={completed}
+        total={hasGoal ? target : 5}
+        fillColor={isCompleted ? colors.success : colors.third}
+      />
 
       {!hasGoal && (
         <View style={styles.motivationBadge}>
           <Ionicons name="bulb-outline" size={16} color={colors.warning} />
           <Text style={[styles.motivationText, { color: colors.textSecondary }]}>
-            Challenge yourself! Set a realistic weekly target
+            {t('learn.components.weeklyGoalCard.motivations.noGoal')}
           </Text>
         </View>
       )}
 
-      {hasGoal && isNotStarted && (
+      {isCompleted && (
+        <View style={styles.motivationBadge}>
+          <Ionicons name="trophy" size={16} color={colors.success} />
+          <Text style={[styles.motivationText, { color: colors.success, fontWeight: '600' }]}>
+            {t('learn.components.weeklyGoalCard.motivations.completed')}
+          </Text>
+        </View>
+      )}
+
+      {hasGoal && isNotStarted && !isCompleted && (
         <View style={styles.motivationBadge}>
           <Ionicons name="rocket-outline" size={16} color={colors.primary} />
           <Text style={[styles.motivationText, { color: colors.textSecondary }]}>
-            Start your reading journey this week!
+            {t('learn.components.weeklyGoalCard.motivations.notStarted')}
           </Text>
         </View>
       )}

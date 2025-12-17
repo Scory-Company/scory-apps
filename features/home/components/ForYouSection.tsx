@@ -23,9 +23,11 @@ export function ForYouSection({ readingLevel }: ForYouSectionProps) {
   } = useForYouArticles({ limit: 5, readingLevel });
 
   // Fetch articles on mount and when reading level changes
+  // Note: fetchArticles has built-in caching (30s TTL), so it won't refetch unnecessarily
   useEffect(() => {
     fetchArticles();
-  }, [fetchArticles, readingLevel]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readingLevel]); // Only refetch when reading level changes
 
   // Display max 5 articles
   const displayArticles = articles.slice(0, 5);

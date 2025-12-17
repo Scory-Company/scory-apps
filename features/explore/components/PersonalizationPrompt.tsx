@@ -2,6 +2,7 @@ import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme'
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Animated } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface PersonalizationPromptProps {
   onSetupPress?: () => void;
@@ -12,6 +13,7 @@ export const PersonalizationPrompt: React.FC<PersonalizationPromptProps> = ({
   onSetupPress,
   showIndicator = false
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -45,7 +47,7 @@ export const PersonalizationPrompt: React.FC<PersonalizationPromptProps> = ({
       <View style={[styles.wrapper, Shadows.md, showIndicator && styles.wrapperHighlight]}>
         {showIndicator && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>👉 Start Here!</Text>
+            <Text style={styles.badgeText}>{t('explore.personalizationPrompt.badge')}</Text>
           </View>
         )}
         <View style={styles.container}>
@@ -63,10 +65,10 @@ export const PersonalizationPrompt: React.FC<PersonalizationPromptProps> = ({
 
         {/* Content */}
         <Text style={styles.title}>
-          Personalize Your Feed
+          {t('explore.personalizationPrompt.title')}
         </Text>
         <Text style={styles.message}>
-          Set your interests to get article recommendations tailored for you
+          {t('explore.personalizationPrompt.message')}
         </Text>
 
         {/* CTA Button */}
@@ -76,7 +78,7 @@ export const PersonalizationPrompt: React.FC<PersonalizationPromptProps> = ({
           onPress={onSetupPress}
         >
           <Text style={[styles.buttonText, { color: colors.primaryDark }]}>
-            Get Started
+            {t('explore.personalizationPrompt.getStarted')}
           </Text>
           <Ionicons name="arrow-forward" size={18} color={colors.primaryDark} />
         </TouchableOpacity>

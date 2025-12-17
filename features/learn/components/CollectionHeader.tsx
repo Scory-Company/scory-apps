@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ProgressBar } from './ProgressBar';
+import { useTranslation } from 'react-i18next';
 
 interface CollectionHeaderProps {
   title: string;
@@ -21,6 +22,7 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
   articlesCount,
   progress,
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   // Calculate read articles count
@@ -45,7 +47,7 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
         <View style={styles.statItem}>
           <Ionicons name="book-outline" size={16} color={colors.textSecondary} />
           <Text style={[styles.statText, { color: colors.textSecondary }]}>
-            {articlesCount} {articlesCount === 1 ? 'article' : 'articles'}
+            {articlesCount} {articlesCount === 1 ? t('learn.components.collectionHeader.article') : t('learn.components.collectionHeader.article_plural')}
           </Text>
         </View>
 
@@ -54,7 +56,7 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
         <View style={styles.statItem}>
           <Ionicons name="checkmark-circle-outline" size={16} color={colors.textSecondary} />
           <Text style={[styles.statText, { color: colors.textSecondary }]}>
-            {progress}% completed
+            {t('learn.components.collectionHeader.completed', { progress })}
           </Text>
         </View>
       </View>
@@ -64,7 +66,7 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
         <View style={styles.progressSection}>
           <ProgressBar current={readCount} total={articlesCount} />
           <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
-            {readCount} of {articlesCount} read
+            {t('learn.components.collectionHeader.readProgress', { read: readCount, total: articlesCount })}
           </Text>
         </View>
       )}

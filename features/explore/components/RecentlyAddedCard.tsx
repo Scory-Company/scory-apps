@@ -10,6 +10,7 @@ interface RecentlyAddedCardProps {
   category: string;
   rating: number;
   date: string;
+  badge?: 'new' | 'updated' | null; // Badge indicator
   onPress: () => void;
 }
 
@@ -20,6 +21,7 @@ export const RecentlyAddedCard: React.FC<RecentlyAddedCardProps> = ({
   category,
   rating,
   date,
+  badge,
   onPress,
 }) => {
   const colors = Colors.light;
@@ -43,6 +45,13 @@ export const RecentlyAddedCard: React.FC<RecentlyAddedCardProps> = ({
       style={[styles.recentCard, { backgroundColor: colors.surface }, Shadows.sm]}
       onPress={onPress}
     >
+      {/* NEW Badge - Top Left Corner */}
+      {badge === 'new' && (
+        <View style={[styles.newBadge, { backgroundColor: colors.primary }]}>
+          <Text style={[styles.newBadgeText, { color: colors.primaryDark }]}>NEW</Text>
+        </View>
+      )}
+      
       <Image source={image} style={styles.recentImage} />
       <View style={styles.recentContent}>
         <Text style={[styles.recentTitle, { color: colors.text }]} numberOfLines={2}>
@@ -72,6 +81,26 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: Radius.lg,
     gap: Spacing.md,
+    position: 'relative', // For absolute badge positioning
+  },
+  newBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: Radius.sm,
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  newBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   recentImage: {
     width: 80,

@@ -15,7 +15,7 @@ const api = axios.create({
   // Increased timeout for job polling endpoints
   // Job creation and status polling should not timeout - backend handles the actual timeout
   // Only applies to network connection timeout, not job processing time
-  timeout: 30000, // 30 seconds for network operations
+  timeout: 120000, // 120 seconds for long-running AI jobs
 });
 
 // Request interceptor - Auto-attach JWT token with automatic refresh

@@ -77,7 +77,6 @@ export async function isTokenExpired(bufferMinutes: number = 5): Promise<boolean
 
         if (isExpired) {
             const timeUntilExpiry = expiry - now;
-            console.log(`[TokenManager] Token will expire in ${timeUntilExpiry}s (buffer: ${buffer}s)`);
         }
 
         return isExpired;
@@ -150,11 +149,8 @@ export async function refreshAccessToken(): Promise<string | null> {
         const refreshToken = await getRefreshToken();
 
         if (!refreshToken) {
-            console.log('[TokenManager] ⚠️ No refresh token available - backend may not support refresh tokens');
             return null;
         }
-
-        console.log('[TokenManager] 🔄 Attempting to refresh access token...');
 
         // Call backend refresh endpoint
         const response = await axios.post(
@@ -173,31 +169,20 @@ export async function refreshAccessToken(): Promise<string | null> {
             // Save new tokens
             await saveToken(newToken, newRefreshToken);
 
-            console.log('[TokenManager] ✅ Token refreshed successfully');
             return newToken;
         }
-
-        console.log('[TokenManager] ❌ Refresh response invalid:', response.data);
         return null;
     } catch (error: any) {
         const status = error.response?.status;
         const message = error.response?.data?.message || error.message;
 
-        console.error('[TokenManager] ❌ Refresh failed:', {
-            status,
-            message,
-            hasRefreshEndpoint: status !== 404
-        });
-
         // If refresh fails with 401, clear all tokens (refresh token is invalid)
         if (status === 401) {
-            console.log('[TokenManager] 🗑️ Refresh token invalid, clearing all tokens');
             await clearTokens();
         }
 
         // If endpoint doesn't exist (404), backend doesn't support refresh
         if (status === 404) {
-            console.log('[TokenManager] ⚠️ Backend does not support token refresh endpoint');
         }
 
         return null;
@@ -219,7 +204,6 @@ export async function getValidToken(): Promise<string | null> {
         }
 
         // Token is expired or will expire soon, try to refresh
-        console.log('[TokenManager] ⏰ Token expired, attempting refresh...');
         const newToken = await refreshAccessToken();
 
         if (newToken) {
@@ -227,11 +211,9 @@ export async function getValidToken(): Promise<string | null> {
         }
 
         // Refresh failed, clear tokens
-        console.log('[TokenManager] 🗑️ Refresh failed, clearing tokens');
         await clearTokens();
         return null;
     } catch (error) {
-        console.error('[TokenManager] ❌ Error getting valid token:', error);
         return null;
     }
 }

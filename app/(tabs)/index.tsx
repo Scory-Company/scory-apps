@@ -19,6 +19,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { ReadingLevel } from '@/constants/readingLevels';
+import { useTranslation } from 'react-i18next';
 
 // Article type for display
 interface DisplayArticle {
@@ -34,6 +35,7 @@ interface DisplayArticle {
 }
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const [user, setUser] = useState<User | null>(null);
 
@@ -87,6 +89,7 @@ export default function HomeScreen() {
 
         setCategoryCards(transformedCategories);
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: any) {
     }
   };
@@ -103,6 +106,7 @@ export default function HomeScreen() {
       } else {
         setHasCompletedPersonalization(false);
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setHasCompletedPersonalization(false);
     }
@@ -269,7 +273,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <GreetingsCard
           title={`Hello, ${displayName}🖐️`}
-          subtitle={'What do you want to learn today?'}
+          subtitle={t('home.greetingSubtitle')}
           onPress={() => setShowNotificationModal(true)}
           unreadCount={unreadCount}
         />
@@ -291,8 +295,8 @@ export default function HomeScreen() {
         {/* Hero Banner - Large with Gradient */}
         <View style={styles.heroSection}>
           <HeroBanner
-            title={'Discover Your Next\nResearch Journey'}
-            subtitle="Transform complex journals into engaging learning"
+            title={t('home.heroBanner.title')}
+            subtitle={t('home.heroBanner.subtitle')}
             onPress={() => console.log('Hero banner pressed')}
           />
         </View>
@@ -314,7 +318,7 @@ export default function HomeScreen() {
 
         {/* Categories Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Categories</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('home.categories')}</Text>
 
           <View style={styles.categoryGrid}>
             {categoryCards.slice(0, 8).map((category) => (
@@ -336,8 +340,8 @@ export default function HomeScreen() {
         {/* Most Popular Section - Optimized with Lazy Loading */}
         <View style={styles.section}>
           <SectionHeader
-            title="Most Popular"
-            actionText="View All"
+            title={t('home.mostPopular')}
+            actionText={t('home.viewAll')}
             onActionPress={() => router.push('/popular-articles')}
           />
 

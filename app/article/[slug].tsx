@@ -13,9 +13,12 @@ import {
   InsightNoteFAB,
   ComprehensionSection,
   SourceLinks,
+  ArticleFeedbackModal,
+  ArticleQuickFeedback,
+  FeedbackPromptCard,
 } from '@/features/article/components';
 import { articlesApi, ArticleResponse, ReadingLevel, ArticleContent as ArticleContentType } from '@/services';
-import { SkeletonArticleDetail, SimplifyLoadingModal } from '@/features/shared/components';
+import { SkeletonArticleDetail } from '@/features/shared/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useResimplify } from '@/hooks/useResimplify';
 import { collectionService } from '@/services/collectionService';
@@ -25,6 +28,8 @@ import { useGamificationStats } from '@/hooks/useGamificationStats';
 import { useWeeklyGoal } from '@/hooks/useWeeklyGoal';
 import { invalidateForYouCache } from '@/hooks/useForYouArticles';
 import type { GamificationResult } from '@/types/gamification';
+import { useArticleFeedback } from '@/features/article/hooks/useArticleFeedback';
+import { useExitIntent } from '@/features/article/hooks/useExitIntent';
 
 export default function ArticleDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -41,6 +46,7 @@ export default function ArticleDetailScreen() {
 
   // Reading progress state
   const [readingProgress, setReadingProgress] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [contentHeight, setContentHeight] = useState(0);
 
   // Quiz availability state
@@ -69,6 +75,43 @@ export default function ArticleDetailScreen() {
   // Gamification hooks (for cache invalidation)
   const { invalidateCache: invalidateStatsCache } = useGamificationStats();
   const { invalidateCache: invalidateGoalCache } = useWeeklyGoal();
+
+  // Reading time tracking state (for feedback)
+  const [currentReadingTime, setCurrentReadingTime] = useState(0);
+
+  // Track reading time
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const elapsedSeconds = Math.floor((Date.now() - readingStartTime) / 1000);
+      setCurrentReadingTime(elapsedSeconds);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [readingStartTime]);
+
+  // Article feedback hook
+  const {
+    showFeedbackModal,
+    showQuickFeedback,
+    feedbackTrigger,
+    hasFeedback,
+    triggerFeedbackAfterQuiz,
+    triggerQuickFeedback,
+    triggerManualFeedback,
+    handleFeedbackSubmit,
+    handleQuickFeedbackSubmit,
+    closeFeedbackModal,
+    closeQuickFeedback,
+  } = useArticleFeedback({
+    articleId: article?.id || '',
+    readingTime: currentReadingTime,
+  });
+
+  // Exit intent hook (for quick feedback on back button)
+  const { allowNavigation } = useExitIntent({
+    enabled: !showFeedbackModal && !showQuickFeedback,
+    onExitIntent: triggerQuickFeedback,
+  });
 
   // Handle gamification result from quiz completion
   const handleGamificationResult = useCallback((result: GamificationResult) => {
@@ -103,7 +146,10 @@ export default function ArticleDetailScreen() {
         }, 500);
       }
     }
-  }, [invalidateStatsCache, invalidateGoalCache, toast]);
+
+    // Trigger feedback modal after quiz completion
+    triggerFeedbackAfterQuiz();
+  }, [invalidateStatsCache, invalidateGoalCache, toast, triggerFeedbackAfterQuiz]);
 
   // Load user's preferred reading level from storage
   const loadPreferredReadingLevel = useCallback(async () => {
@@ -133,7 +179,6 @@ export default function ArticleDetailScreen() {
     setIsLoading(true);
 
     try {
-      // Try fetching by slug first
       let response;
       try {
         response = await articlesApi.getBySlug(slug as string);
@@ -520,6 +565,12 @@ export default function ArticleDetailScreen() {
             onGamificationResult={handleGamificationResult}
           />
 
+          {/* Feedback Prompt Card */}
+          <FeedbackPromptCard
+            onPress={triggerManualFeedback}
+            visible={!hasFeedback}
+          />
+
           {/* Related Articles - TODO: Fetch from API */}
           <RelatedArticles articles={[]} category={article.category.name} />
 
@@ -537,6 +588,24 @@ export default function ArticleDetailScreen() {
 
       {/* Premium Upgrade Modal */}
       <PremiumModal />
+
+      {/* Article Feedback Modal (after quiz completion) */}
+      <ArticleFeedbackModal
+        visible={showFeedbackModal}
+        onClose={closeFeedbackModal}
+        onSubmit={handleFeedbackSubmit}
+        trigger={feedbackTrigger || 'quiz_completion'}
+      />
+
+      {/* Quick Feedback (on exit intent) */}
+      <ArticleQuickFeedback
+        visible={showQuickFeedback}
+        onClose={() => {
+          closeQuickFeedback();
+          allowNavigation();
+        }}
+        onSubmit={handleQuickFeedbackSubmit}
+      />
 
       {/* Toast Notifications */}
       <toast.ToastComponent />

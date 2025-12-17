@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { filterContent } from '@/utils/filterContent';
 import { articlesApi } from '@/services';
 import { SkeletonListArticle } from '@/features/shared/components';
+import { useTranslation } from 'react-i18next';
 
 // Display article type for UI compatibility
 interface DisplayArticle {
@@ -24,6 +25,7 @@ interface DisplayArticle {
 }
 
 export default function PopularArticlesScreen() {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -49,10 +51,11 @@ export default function PopularArticlesScreen() {
           author: article.authorName,
           category: article.category?.name || 'General',
           rating: article.rating,
-          reads: `${(article.viewCount / 1000).toFixed(1)}k reads`,
+          reads: article.viewCount >= 1000
+            ? `${(article.viewCount / 1000).toFixed(1)}k reads`
+            : `${article.viewCount || 0} reads`,
         }));
         setArticles(transformed);
-        console.log('Loaded', transformed.length, 'popular articles from API');
       }
     } catch {
       console.log('API unavailable, using mock data');
@@ -80,7 +83,7 @@ export default function PopularArticlesScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Most Popular</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('popularArticles.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -90,7 +93,7 @@ export default function PopularArticlesScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           onSearch={() => {}} // No-op: instant filtering, no search button needed
-          placeholder="Search articles..."
+          placeholder={t('popularArticles.searchPlaceholder')}
         />
       </View>
 
@@ -146,10 +149,10 @@ export default function PopularArticlesScreen() {
           <View style={styles.emptyState}>
             <Text style={[styles.emptyIcon, { color: colors.textMuted }]}>🔍</Text>
             <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-              No articles found
+              {t('popularArticles.emptyState.title')}
             </Text>
             <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-              Try searching with different keywords
+              {t('popularArticles.emptyState.subtitle')}
             </Text>
           </View>
         )}

@@ -12,12 +12,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Typography, Radius } from '@/constants/theme';
+import { Colors, Spacing, Typography, Radius, Shadows } from '@/constants/theme';
 import { notesApi, type Note } from '@/services';
 import { useAlert } from '@/features/shared/hooks/useAlert';
 import { useToast } from '@/features/shared/hooks/useToast';
+import { useTranslation } from 'react-i18next';
 
 function InsightDetailScreen() {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -37,12 +39,13 @@ function InsightDetailScreen() {
   // Fetch insight detail
   useEffect(() => {
     if (!id) {
-      setError('Note ID is required');
+      setError(t('insightDetail.errors.idRequired'));
       setIsLoading(false);
       return;
     }
 
     fetchInsightDetail();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchInsightDetail = async () => {
@@ -50,20 +53,17 @@ function InsightDetailScreen() {
     setError(null);
 
     try {
-      console.log('[INSIGHT_DETAIL] Fetching note:', id);
       const response = await notesApi.getNoteById(id as string);
 
       if (response.success && response.data) {
         setInsight(response.data);
         setEditedContent(response.data.content);
         setEditedTitle(response.data.title || '');
-        console.log('[INSIGHT_DETAIL] Note loaded successfully');
       } else {
-        setError(response.message || 'Failed to load note');
+        setError(response.message || t('insightDetail.errors.loadFailed'));
       }
     } catch (err: any) {
-      console.error('[INSIGHT_DETAIL] Error fetching note:', err);
-      setError(err.response?.data?.message || 'Failed to load note');
+      setError(err.response?.data?.message || t('insightDetail.errors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -73,14 +73,13 @@ function InsightDetailScreen() {
     if (!insight) return;
 
     if (editedContent.trim().length === 0) {
-      alert.error('Error', 'Note content cannot be empty');
+      alert.error('Error', t('insightDetail.errors.emptyContent'));
       return;
     }
 
     setIsSaving(true);
 
     try {
-      console.log('[INSIGHT_DETAIL] Updating note:', id);
 
       // Prepare update data
       const updateData: { content: string; title?: string } = {
@@ -97,14 +96,12 @@ function InsightDetailScreen() {
       if (response.success && response.data) {
         setInsight(response.data);
         setIsEditing(false);
-        toast.success('Note updated successfully');
-        console.log('[INSIGHT_DETAIL] Note updated successfully');
+        toast.success(t('insightDetail.success.updated'));
       } else {
-        alert.error('Error', response.message || 'Failed to update note');
+        alert.error('Error', response.message || t('insightDetail.errors.updateFailed'));
       }
     } catch (err: any) {
-      console.error('[INSIGHT_DETAIL] Error updating note:', err);
-      alert.error('Error', err.response?.data?.message || 'Failed to update note');
+      alert.error('Error', err.response?.data?.message || t('insightDetail.errors.updateFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -112,8 +109,8 @@ function InsightDetailScreen() {
 
   const handleDelete = () => {
     alert.confirm(
-      'Delete Note',
-      'Are you sure you want to delete this note? This action cannot be undone.',
+      t('insightDetail.confirm.deleteTitle'),
+      t('insightDetail.confirm.deleteMessage'),
       confirmDelete
     );
   };
@@ -124,22 +121,19 @@ function InsightDetailScreen() {
     setIsDeleting(true);
 
     try {
-      console.log('[INSIGHT_DETAIL] Deleting note:', id);
       const response = await notesApi.deleteNote(id as string);
 
       if (response.success) {
-        console.log('[INSIGHT_DETAIL] Note deleted successfully');
-        toast.success('Note deleted successfully');
+        toast.success(t('insightDetail.success.deleted'));
         setTimeout(() => {
           router.back();
         }, 1000);
       } else {
-        alert.error('Error', response.message || 'Failed to delete note');
+        alert.error('Error', response.message || t('insightDetail.errors.deleteFailed'));
         setIsDeleting(false);
       }
     } catch (err: any) {
-      console.error('[INSIGHT_DETAIL] Error deleting note:', err);
-      alert.error('Error', err.response?.data?.message || 'Failed to delete note');
+      alert.error('Error', err.response?.data?.message || t('insightDetail.errors.deleteFailed'));
       setIsDeleting(false);
     }
   };
@@ -148,6 +142,16 @@ function InsightDetailScreen() {
     setEditedContent(insight?.content || '');
     setEditedTitle(insight?.title || '');
     setIsEditing(false);
+  };
+
+  // Check if there are any unsaved changes
+  const hasUnsavedChanges = () => {
+    if (!insight) return false;
+
+    const contentChanged = editedContent.trim() !== insight.content.trim();
+    const titleChanged = editedTitle.trim() !== (insight.title || '').trim();
+
+    return contentChanged || titleChanged;
   };
 
   const formatDate = (dateString: string) => {
@@ -162,11 +166,11 @@ function InsightDetailScreen() {
     const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
 
     if (diffInDays === 0) {
-      return 'Today';
+      return t('insightCard.dates.today');
     } else if (diffInDays === 1) {
-      return 'Yesterday';
+      return t('insightCard.dates.yesterday');
     } else if (diffInDays < 7) {
-      return `${diffInDays} days ago`;
+      return t('insightCard.dates.daysAgo', { days: diffInDays });
     } else {
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -190,14 +194,14 @@ function InsightDetailScreen() {
           >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Note Details</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('insightDetail.title')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading note...
+            {t('insightDetail.loading')}
           </Text>
         </View>
       </SafeAreaView>
@@ -218,21 +222,21 @@ function InsightDetailScreen() {
           >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Note Details</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('insightDetail.title')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
-          <Text style={[styles.errorTitle, { color: colors.text }]}>Unable to Load Note</Text>
+          <Text style={[styles.errorTitle, { color: colors.text }]}>{t('insightDetail.errors.unableToLoad')}</Text>
           <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
-            {error || 'Note not found'}
+            {error || t('insightDetail.errors.notFound')}
           </Text>
           <TouchableOpacity
             style={[styles.retryButton, { backgroundColor: colors.primary }]}
             onPress={fetchInsightDetail}
           >
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>{t('insightDetail.buttons.tryAgain')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -282,10 +286,21 @@ function InsightDetailScreen() {
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.headerButton}
-              onPress={handleCancel}
+              onPress={hasUnsavedChanges() ? handleSave : handleCancel}
+              disabled={isSaving || (hasUnsavedChanges() && editedContent.trim().length === 0)}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
+              {isSaving ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : hasUnsavedChanges() ? (
+                <Text style={[styles.saveText, { color: colors.primary }]}>
+                  {t('insightDetail.buttons.save')}
+                </Text>
+              ) : (
+                <Text style={[styles.cancelText, { color: colors.textSecondary }]}>
+                  {t('insightDetail.buttons.cancel')}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -308,13 +323,13 @@ function InsightDetailScreen() {
             </View>
             <View style={styles.articleInfo}>
               <Text style={[styles.articleLabel, { color: colors.textSecondary }]}>
-                From Article
+                {t('insightDetail.labels.fromArticle')}
               </Text>
               <Text
                 style={[styles.articleTitle, { color: colors.text }]}
                 numberOfLines={2}
               >
-                {insight.articleTitle || 'Untitled Article'}
+                {insight.articleTitle || t('insightDetail.labels.untitledArticle')}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -337,7 +352,7 @@ function InsightDetailScreen() {
               // Edit mode - always show title input for standalone notes
               <View style={styles.titleEditContainer}>
                 <Text style={[styles.editLabel, { color: colors.textSecondary }]}>
-                  Note Title (Optional)
+                  {t('insightDetail.labels.noteTitleOptional')}
                 </Text>
                 <TextInput
                   style={[
@@ -350,7 +365,7 @@ function InsightDetailScreen() {
                   ]}
                   value={editedTitle}
                   onChangeText={setEditedTitle}
-                  placeholder="Enter note title..."
+                  placeholder={t('insightDetail.labels.titlePlaceholder')}
                   placeholderTextColor={colors.textSecondary}
                   maxLength={255}
                 />
@@ -360,7 +375,7 @@ function InsightDetailScreen() {
         )}
 
         {/* Note Content */}
-        <View style={styles.contentCard}>
+        <View style={[styles.contentCard, Shadows.sm, { backgroundColor: colors.surface }]}>
           {!isEditing ? (
             <>
               <Text style={[styles.contentText, { color: colors.text }]}>
@@ -370,7 +385,7 @@ function InsightDetailScreen() {
           ) : (
             <View style={styles.editContainer}>
               <Text style={[styles.editLabel, { color: colors.textSecondary }]}>
-                Note Content
+                {t('insightDetail.labels.noteContent')}
               </Text>
               <TextInput
                 style={[
@@ -384,13 +399,13 @@ function InsightDetailScreen() {
                 value={editedContent}
                 onChangeText={setEditedContent}
                 multiline
-                placeholder="Write your note here..."
+                placeholder={t('insightDetail.labels.contentPlaceholder')}
                 placeholderTextColor={colors.textSecondary}
                 autoFocus={!!insight.articleSlug} // Only autofocus if article note
                 textAlignVertical="top"
               />
               <Text style={[styles.charCount, { color: colors.textSecondary }]}>
-                {editedContent.length} characters
+                {t('insightDetail.labels.charactersCount', { count: editedContent.length })}
               </Text>
             </View>
           )}
@@ -401,7 +416,7 @@ function InsightDetailScreen() {
           <View style={styles.metadataRow}>
             <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
             <Text style={[styles.metadataLabel, { color: colors.textSecondary }]}>
-              Created
+              {t('insightDetail.labels.created')}
             </Text>
             <Text style={[styles.metadataValue, { color: colors.text }]}>
               {formatDate(insight.createdAt)}
@@ -412,7 +427,7 @@ function InsightDetailScreen() {
             <View style={styles.metadataRow}>
               <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               <Text style={[styles.metadataLabel, { color: colors.textSecondary }]}>
-                Last edited
+                {t('insightDetail.labels.lastEdited')}
               </Text>
               <Text style={[styles.metadataValue, { color: colors.text }]}>
                 {formatDate(insight.updatedAt)}
@@ -423,38 +438,14 @@ function InsightDetailScreen() {
           <View style={styles.metadataRow}>
             <Ionicons name="pricetag-outline" size={16} color={colors.textSecondary} />
             <Text style={[styles.metadataLabel, { color: colors.textSecondary }]}>
-              Type
+              {t('insightDetail.labels.type')}
             </Text>
             <Text style={[styles.metadataValue, { color: colors.text }]}>
-              {insight.articleSlug ? 'Article Note' : 'Standalone Note'}
+              {insight.articleSlug ? t('insightDetail.labels.articleNote') : t('insightDetail.labels.standaloneNote')}
             </Text>
           </View>
         </View>
       </ScrollView>
-
-      {/* Save Button (when editing) */}
-      {isEditing && (
-        <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-          <TouchableOpacity
-            style={[
-              styles.saveButton,
-              { backgroundColor: colors.primary },
-              (isSaving || editedContent.trim().length === 0) && styles.saveButtonDisabled,
-            ]}
-            onPress={handleSave}
-            disabled={isSaving || editedContent.trim().length === 0}
-          >
-            {isSaving ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <>
-                <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                <Text style={styles.saveButtonText}>Save Changes</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Alert & Toast Components */}
       <alert.AlertComponent />
@@ -499,6 +490,10 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: Typography.fontSize.base,
     fontWeight: '500',
+  },
+  saveText: {
+    fontSize: Typography.fontSize.base,
+    fontWeight: '600',
   },
   scrollView: {
     flex: 1,
@@ -556,6 +551,8 @@ const styles = StyleSheet.create({
   },
   contentCard: {
     marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
   },
   contentText: {
     fontSize: Typography.fontSize.base,
@@ -595,26 +592,6 @@ const styles = StyleSheet.create({
   metadataValue: {
     fontSize: Typography.fontSize.sm,
     fontWeight: '500',
-  },
-  footer: {
-    padding: Spacing.lg,
-    borderTopWidth: 1,
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
-    gap: Spacing.sm,
-  },
-  saveButtonDisabled: {
-    opacity: 0.5,
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: Typography.fontSize.base,
-    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,

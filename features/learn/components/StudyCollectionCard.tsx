@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ProgressBar } from './ProgressBar';
+import { useTranslation } from 'react-i18next';
 
 interface StudyCollectionCardProps {
   title: string;
@@ -23,10 +24,12 @@ export const StudyCollectionCard: React.FC<StudyCollectionCardProps> = ({
   color,
   onPress,
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   // Calculate read articles count from progress percentage
   const readCount = Math.round((progress / 100) * articlesCount);
+  const isCompleted = progress >= 100;
 
   return (
     <TouchableOpacity
@@ -36,17 +39,32 @@ export const StudyCollectionCard: React.FC<StudyCollectionCardProps> = ({
     >
       <View style={[styles.collectionIconContainer, { backgroundColor: color + '20' }]}>
         <Ionicons name={icon} size={28} color={color} />
+        {isCompleted && (
+          <View style={[styles.completedBadge, { backgroundColor: colors.success }]}>
+            <Ionicons name="checkmark" size={12} color={colors.textwhite} />
+          </View>
+        )}
       </View>
 
       <View style={styles.collectionContent}>
-        <Text style={[styles.collectionCategory, { color: colors.textSecondary }]}>
-          {category}
-        </Text>
+        <View style={styles.categoryRow}>
+          <Text style={[styles.collectionCategory, { color: colors.textSecondary }]}>
+            {category}
+          </Text>
+          {isCompleted && (
+            <View style={[styles.completedLabel, { backgroundColor: colors.success + '20' }]}>
+              <Ionicons name="trophy" size={10} color={colors.success} />
+              <Text style={[styles.completedLabelText, { color: colors.success }]}>
+                {t('learn.components.studyCollectionCard.completed')}
+              </Text>
+            </View>
+          )}
+        </View>
         <Text style={[styles.collectionTitle, { color: colors.text }]} numberOfLines={2}>
           {title}
         </Text>
         <Text style={[styles.collectionArticles, { color: colors.textSecondary }]}>
-          {articlesCount} articles
+          {articlesCount} {t('learn.components.studyCollectionCard.articles')}
         </Text>
 
         {progress > 0 ? (
@@ -55,7 +73,7 @@ export const StudyCollectionCard: React.FC<StudyCollectionCardProps> = ({
           </View>
         ) : (
           <View style={[styles.startButton, { borderColor: color }]}>
-            <Text style={[styles.startButtonText, { color: color }]}>Start Learning</Text>
+            <Text style={[styles.startButtonText, { color: color }]}>{t('learn.components.studyCollectionCard.startLearning')}</Text>
           </View>
         )}
       </View>
@@ -76,15 +94,43 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  completedBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   collectionContent: {
     flex: 1,
   },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
   collectionCategory: {
     fontSize: Typography.fontSize.xs,
     fontWeight: '500',
-    marginBottom: 2,
     textTransform: 'uppercase',
+  },
+  completedLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+  },
+  completedLabelText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
   },
   collectionTitle: {
     fontSize: Typography.fontSize.base,

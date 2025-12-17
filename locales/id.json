@@ -73,16 +73,276 @@
     "title": "Beranda",
     "welcome": "Selamat Datang",
     "greeting": "Halo, {{name}}!",
+    "greetingSubtitle": "Apa yang ingin kamu pelajari hari ini?",
+    "heroBanner": {
+      "title": "Temukan Perjalanan\nRiset Berikutnya",
+      "subtitle": "Ubah jurnal kompleks menjadi pembelajaran yang menarik"
+    },
+    "categories": "Kategori",
+    "mostPopular": "Paling Populer",
+    "viewAll": "Lihat Semua",
+    "personalizationCard": {
+      "badge": "👉 Mulai Di Sini!",
+      "title": "Personalisasi Level Bacaanmu",
+      "subtitle": "Pilih cara kamu ingin membaca riset"
+    },
     "recentScores": "Skor Terbaru",
     "noScores": "Belum ada skor",
     "startScoring": "Mulai Skor"
   },
   "explore": {
     "title": "Jelajahi",
-    "searchPlaceholder": "Cari olahraga, acara...",
+    "subtitle": "Temukan riset & wawasan baru",
+    "searchPlaceholder": "Cari jurnal, topik, penulis...",
+    "trendingNow": "Sedang Trending",
+    "topRatedThisWeek": "Rating Tertinggi Minggu Ini",
+    "recentlyAdded": "Baru Ditambahkan",
+    "emptyState": {
+      "title": "Artikel Tidak Ditemukan",
+      "message": "Tidak ada artikel di kategori \"{{category}}\". Coba pilih kategori lain.",
+      "clearFilter": "Hapus Filter"
+    },
     "categories": "Kategori",
     "featured": "Unggulan",
-    "popular": "Populer"
+    "popular": "Populer",
+    "filteredContent": {
+      "noResultsTitle": "Hasil Tidak Ditemukan",
+      "noResultsMessages": {
+        "searchAndCategory": "Tidak ada artikel untuk \"{{query}}\" di {{category}}",
+        "searchOnly": "Tidak ada artikel untuk \"{{query}}\" di database kami atau sumber eksternal",
+        "categoryOnly": "Tidak ada artikel di {{category}}"
+      },
+      "clearFilters": "Hapus Filter",
+      "resultsCount": "{{count}} artikel ditemukan",
+      "resultsCount_plural": "{{count}} artikel ditemukan",
+      "clearAllFilters": "Hapus Semua Filter",
+      "externalSources": "Sumber Eksternal (OpenAlex & Google Scholar)",
+      "loadingMore": "Memuat lebih banyak hasil...",
+      "loadMore": "Muat lebih banyak hasil",
+      "allLoaded": "Semua hasil dimuat ({{count}} paper ditemukan)"
+    },
+    "personalizationPrompt": {
+      "badge": "👉 Mulai Di Sini!",
+      "title": "Personalisasi Feed Kamu",
+      "message": "Atur minatmu untuk mendapatkan rekomendasi artikel yang sesuai",
+      "getStarted": "Mulai"
+    }
+  },
+  "learn": {
+    "title": "Belajar",
+    "subtitle": "Perjalanan belajar yang dipersonalisasi untukmu",
+    "stats": {
+      "dayStreak": "Hari Beruntun",
+      "articlesRead": "Artikel Dibaca",
+      "minutes": "Menit"
+    },
+    "weeklyGoal": {
+      "title": "Target Bacaan Mingguan",
+      "unableToLoad": "Gagal Memuat Target"
+    },
+    "collections": {
+      "title": "Koleksi Belajar",
+      "unableToLoad": "Gagal Memuat Koleksi",
+      "emptyTitle": "Belum Ada Koleksi",
+      "emptyMessage": "Tandai artikel untuk otomatis membuat koleksi berdasarkan kategori"
+    },
+    "insights": {
+      "title": "Catatan & Insight Bacaan",
+      "unableToLoad": "Gagal Memuat Insight",
+      "label": "insight",
+      "emptyTitle": "Mulai Catat Insight",
+      "emptyMessage": "Buat catatan saat membaca untuk mengingat ide-ide penting"
+    },
+    "components": {
+      "addInsightButton": "Tambah Insight Baru",
+      "viewAllPrompt": "Lihat semua untuk melihat {{count}} {{label}} lagi",
+      "viewAllPrompt_plural": "Lihat semua untuk melihat {{count}} {{label}} lagi",
+      "sectionHeader": {
+        "viewAll": "Lihat Semua"
+      },
+      "weeklyGoalModal": {
+        "title": "Atur Target Mingguan",
+        "description": "Tantang dirimu untuk membaca lebih banyak artikel minggu ini. Tetapkan target yang memotivasimu!",
+        "quickSelect": "Pilih Cepat",
+        "articles": "artikel",
+        "customTarget": "Atau Masukkan Target Kustom",
+        "placeholder": "1 - 50",
+        "hint": "💡 Tetapkan target yang realistis agar tetap konsisten!",
+        "errors": {
+          "enterTarget": "Silakan masukkan angka target",
+          "invalidRange": "Target harus antara 1-50 artikel",
+          "failed": "Gagal menetapkan target. Silakan coba lagi."
+        },
+        "setGoal": "Tetapkan Target",
+        "updateGoal": "Perbarui Target",
+        "currentGoal": "Target saat ini: {{target}} artikel/minggu"
+      },
+      "collectionHeader": {
+        "article": "artikel",
+        "article_plural": "artikel",
+        "completed": "{{progress}}% selesai",
+        "readProgress": "{{read}} dari {{total}} dibaca"
+      },
+      "weeklyGoalCard": {
+        "setGoal": "Tetapkan Target",
+        "setNewGoal": "Tetapkan Target Baru",
+        "startReading": "Mulai Membaca",
+        "continueReading": "Lanjutkan Membaca",
+        "goalCompleted": "🎉 Target tercapai! {{completed}} artikel dibaca",
+        "progress": "{{completed}} dari {{target}} artikel selesai",
+        "noGoalTitle": "Tetapkan target bacaan mingguanmu",
+        "daysLeft": "{{days}} hari tersisa",
+        "motivations": {
+          "noGoal": "Tantang dirimu! Tetapkan target mingguan yang realistis",
+          "completed": "Selamat! Kamu telah mencapai target mingguan!",
+          "notStarted": "Mulai perjalanan membacamu minggu ini!"
+        }
+      },
+      "addNoteModal": {
+        "title": "Tambah Catatan Belajar",
+        "titleLabel": "Judul (Opsional)",
+        "titlePlaceholder": "contoh: Catatan Belajarku",
+        "contentLabel": "Catatanmu",
+        "contentPlaceholder": "Apa yang kamu pelajari hari ini? Tulis pikiranmu di sini...",
+        "cancel": "Batal",
+        "save": "Simpan",
+        "saving": "Menyimpan...",
+        "validation": {
+          "emptyContent": "Silakan masukkan isi catatan"
+        },
+        "success": "Catatan berhasil disimpan!",
+        "errors": {
+          "failed": "Gagal menyimpan catatan",
+          "timeout": "Waktu habis. Server terlalu lama merespons.",
+          "network": "Backend lambat atau tidak merespons. Silakan coba lagi.",
+          "notFound": "Endpoint tidak ditemukan. Backend mungkin tidak berjalan."
+        }
+      },
+      "studyCollectionCard": {
+        "completed": "Selesai",
+        "articles": "artikel",
+        "startLearning": "Mulai Belajar"
+      }
+    }
+  },
+  "collections": {
+    "title": "Semua Koleksi",
+    "collection": "koleksi",
+    "collection_plural": "koleksi",
+    "searchPlaceholder": "Cari koleksi...",
+    "errors": {
+      "unableToLoad": "Gagal Memuat Koleksi"
+    },
+    "emptyStates": {
+      "noResults": "Koleksi Tidak Ditemukan",
+      "noResultsMessage": "Tidak ada koleksi yang cocok dengan \"{{query}}\"",
+      "noCollections": "Belum Ada Koleksi",
+      "noCollectionsMessage": "Tandai artikel untuk otomatis membuat koleksi berdasarkan kategori"
+    }
+  },
+  "collectionDetail": {
+    "title": "Koleksi",
+    "loading": "Memuat koleksi...",
+    "errors": {
+      "unableToLoad": "Gagal Memuat Koleksi",
+      "notFound": "Koleksi Tidak Ditemukan",
+      "notFoundMessage": "Koleksi ini mungkin sudah dihapus"
+    },
+    "sections": {
+      "toRead": "Belum Dibaca ({{count}})",
+      "completed": "Selesai ({{count}})"
+    },
+    "emptyState": {
+      "title": "Belum Ada Artikel",
+      "message": "Tandai artikel untuk menambahkannya ke koleksi ini"
+    },
+    "articleCard": {
+      "read": "Dibaca",
+      "min": "mnt"
+    },
+    "confirm": {
+      "removeTitle": "Hapus Bookmark",
+      "removeMessage": "Hapus \"{{title}}\" dari koleksi ini?",
+      "cancel": "Batal",
+      "remove": "Hapus"
+    }
+  },
+  "insightCard": {
+    "personalNote": "Catatan Pribadi",
+    "seeDetail": "Lihat Detail",
+    "dates": {
+      "today": "Hari ini",
+      "yesterday": "Kemarin",
+      "daysAgo": "{{days}} hari lalu",
+      "weeksAgo": "{{weeks}} minggu lalu",
+      "monthsAgo": "{{months}} bulan lalu"
+    }
+  },
+  "insightDetail": {
+    "title": "Detail Catatan",
+    "loading": "Memuat catatan...",
+    "errors": {
+      "idRequired": "ID Catatan diperlukan",
+      "loadFailed": "Gagal memuat catatan",
+      "unableToLoad": "Gagal Memuat Catatan",
+      "notFound": "Catatan tidak ditemukan",
+      "emptyContent": "Isi catatan tidak boleh kosong",
+      "updateFailed": "Gagal memperbarui catatan",
+      "deleteFailed": "Gagal menghapus catatan"
+    },
+    "success": {
+      "updated": "Catatan berhasil diperbarui",
+      "deleted": "Catatan berhasil dihapus"
+    },
+    "confirm": {
+      "deleteTitle": "Hapus Catatan",
+      "deleteMessage": "Apakah kamu yakin ingin menghapus catatan ini? Tindakan ini tidak dapat dibatalkan."
+    },
+    "buttons": {
+      "cancel": "Batal",
+      "save": "Simpan",
+      "tryAgain": "Coba Lagi",
+      "saveChanges": "Simpan Perubahan"
+    },
+    "labels": {
+      "fromArticle": "Dari Artikel",
+      "untitledArticle": "Artikel Tanpa Judul",
+      "noteTitleOptional": "Judul Catatan (Opsional)",
+      "titlePlaceholder": "Masukkan judul catatan...",
+      "noteContent": "Isi Catatan",
+      "contentPlaceholder": "Tulis catatanmu di sini...",
+      "charactersCount": "{{count}} karakter",
+      "created": "Dibuat",
+      "lastEdited": "Terakhir diedit",
+      "type": "Tipe",
+      "articleNote": "Catatan Artikel",
+      "standaloneNote": "Catatan Mandiri"
+    }
+  },
+  "allInsights": {
+    "title": "Semua Catatan",
+    "note": "catatan",
+    "note_plural": "catatan",
+    "total": "{{count}} {{label}} total",
+    "filters": {
+      "all": "Semua",
+      "article": "Artikel",
+      "personal": "Pribadi"
+    },
+    "loading": "Memuat catatanmu...",
+    "errors": {
+      "unableToLoad": "Gagal Memuat Catatan",
+      "tryAgain": "Coba Lagi"
+    },
+    "emptyStates": {
+      "noArticleNotes": "Tidak Ada Catatan Artikel",
+      "noArticleNotesMessage": "Mulai buat catatan saat membaca artikel",
+      "noPersonalNotes": "Tidak Ada Catatan Pribadi",
+      "noPersonalNotesMessage": "Buat catatan pribadi untuk menangkap pikiranmu",
+      "noNotes": "Belum Ada Catatan",
+      "noNotesMessage": "Mulai catat insight dan ide-idemu",
+      "goBack": "Kembali"
+    }
   },
   "profile": {
     "title": "Profil",
@@ -216,91 +476,264 @@
     "header": {
       "questionLabel": "Pertanyaan {{current}} dari {{total}}",
       "back": "← Kembali",
-      "skip": "Nanti saja"
+      "skip": "Lewati dulu"
     },
     "questions": {
       "q1": {
-        "title": "Apa tujuanmu menggunakan Scory?",
-        "subtitle": "Bantu kami memahami kebutuhanmu",
+        "title": "Apa yang biasanya kamu cari saat membaca?",
+        "subtitle": "Pilih yang paling menggambarkan dirimu",
         "options": {
-          "simple": "Penasaran ingin belajar hal baru",
-          "student": "Saya mahasiswa yang sedang riset",
-          "academic": "Pengembangan profesional",
-          "expert": "Saya peneliti/akademisi"
+          "simple": "Cepat memahami inti pembahasan",
+          "student": "Penjelasan jelas dengan konteks yang membantu",
+          "academic": "Penjelasan terstruktur dengan konsep utama",
+          "expert": "Pembahasan lengkap hingga detail teknis"
         }
       },
       "q2": {
-        "title": "Bagaimana kamu suka belajar?",
-        "subtitle": "Pilih gaya yang kamu sukai",
+        "title": "Seberapa detail penjelasan yang kamu inginkan?",
+        "subtitle": "Tidak ada jawaban benar atau salah",
         "options": {
-          "simple": "Penjelasan sederhana & bahasa sehari-hari",
-          "student": "Penjelasan jelas dengan detail secukupnya",
-          "academic": "Istilah yang tepat & info terstruktur",
-          "expert": "Kedalaman teknis & presisi penuh"
+          "simple": "Langsung ke inti, tanpa detail berlebih",
+          "student": "Jelas, dengan contoh jika diperlukan",
+          "academic": "Terstruktur dan fokus pada konsep",
+          "expert": "Mendalam dan presisi, meskipun kompleks"
         }
       },
       "q3": {
-        "title": "Contoh singkat!",
-        "subtitle": "\"Bagaimana olahraga meningkatkan daya ingat\"",
+        "title": "Gaya penjelasan mana yang paling nyaman kamu baca?",
+        "subtitle": "Contoh: “Mengapa minum air itu penting”",
         "options": {
-          "simple": "Olahraga membantu otak bekerja lebih baik dan mengingat hal-hal",
-          "student": "Olahraga meningkatkan aliran darah dan pertumbuhan otak",
-          "academic": "Olahraga aerobik meningkatkan neuroplastisitas dan kognisi",
-          "expert": "Latihan kardiovaskular meningkatkan ekspresi BDNF"
+          "simple": "Minum air membantu tubuh tetap segar dan tidak mudah lelah.",
+          "student": "Air menjaga tubuh tetap terhidrasi dan membantu kamu tetap fokus.",
+          "academic": "Hidrasi yang cukup mendukung kinerja fisik dan proses kognitif.",
+          "expert": "Hidrasi berperan penting dalam menjaga fungsi sel dan keseimbangan fisiologis tubuh."
         }
       }
     },
     "results": {
-      "title": "Cocok Untukmu!",
-      "ctaButton": "Mulai Baca! 🚀",
-      "retakeButton": "Ulangi kuis",
-      "featuresTitle": "Yang akan kamu dapatkan:",
+      "title": "Gaya Membacamu",
+      "ctaButton": "Mulai Membaca! 🚀",
+      "retakeButton": "Ubah preferensi",
+      "featuresTitle": "Apa artinya untukmu",
       "simple": {
-        "title": "Sederhana & Jelas",
-        "description": "Sempurna untuk pembelajar yang ingin tahu! Penelitian dijelaskan dengan bahasa sehari-hari.",
+        "title": "Sederhana & Langsung",
+        "description": "Kamu menyukai ide yang disampaikan secara cepat dan jelas, tanpa kerumitan.",
         "features": [
-          "Penjelasan mudah dipahami",
-          "Contoh & analogi dari kehidupan nyata",
-          "Tanpa jargon atau istilah rumit"
+          "Bahasa sederhana dan mudah dipahami",
+          "Fokus pada inti pembahasan",
+          "Contoh dari kehidupan sehari-hari"
         ]
       },
       "student": {
-        "title": "Detail Seimbang",
-        "description": "Bagus untuk mahasiswa! Penjelasan jelas dengan konsep kunci yang disorot.",
+        "title": "Jelas dengan Konteks",
+        "description": "Kamu menyukai penjelasan yang seimbang antara kejelasan dan detail.",
         "features": [
-          "Bahasa akademik yang disederhanakan",
-          "Istilah penting dijelaskan",
-          "Fokus pada temuan utama"
+          "Konsep utama dijelaskan dengan sederhana",
+          "Contoh dan konteks yang membantu",
+          "Fokus pada pemahaman, bukan istilah rumit"
         ]
       },
       "academic": {
-        "title": "Gaya Akademis",
-        "description": "Ideal untuk profesional! Terminologi yang tepat dengan informasi terstruktur.",
+        "title": "Terstruktur & Konseptual",
+        "description": "Kamu lebih nyaman dengan penjelasan yang rapi dan menggunakan istilah yang tepat.",
         "features": [
-          "Terminologi akademis lengkap",
-          "Metodologi & konteks disertakan",
-          "Penjelasan mendetail"
+          "Struktur dan alur yang jelas",
+          "Konsep inti ditonjolkan",
+          "Istilah akademik yang relevan"
         ]
       },
       "expert": {
-        "title": "Level Ahli",
-        "description": "Untuk peneliti! Kedalaman teknis dan kekakuan akademis yang lengkap.",
+        "title": "Teknis & Mendalam",
+        "description": "Kamu nyaman dengan pembahasan teknis yang lengkap dan presisi.",
         "features": [
-          "Bahasa penelitian asli",
-          "Semua detail teknis dipertahankan",
-          "Analisis statistik disertakan"
+          "Penjelasan teknis secara menyeluruh",
+          "Terminologi riset dan profesional",
+          "Metode dan mekanisme dijelaskan"
         ]
       },
       "infoCards": {
-        "adaptive": "Semua artikel disesuaikan dengan levelmu",
-        "flexible": "Ubah kapan saja di pengaturan"
+        "adaptive": "Artikel akan menyesuaikan dengan gaya bacamu",
+        "flexible": "Kamu bisa mengubahnya kapan saja di pengaturan"
       }
     },
     "topics": {
-      "stepLabel": "Langkah Terakhir",
-      "title": "Topik apa yang kamu minati?",
-      "subtitle": "Pilih minimal {{min}} topik untuk personalisasi feed",
+      "stepLabel": "Langkah terakhir",
+      "title": "Topik apa yang ingin kamu jelajahi?",
+      "subtitle": "Pilih minimal {{min}} topik untuk mempersonalisasi feed-mu",
       "continue": "Lanjutkan"
+    }
+  },
+  "popularArticles": {
+    "title": "Paling Populer",
+    "searchPlaceholder": "Cari artikel...",
+    "emptyState": {
+      "title": "Artikel tidak ditemukan",
+      "subtitle": "Coba cari dengan kata kunci yang berbeda"
+    }
+  },
+  "helpSupport": {
+    "title": "Bantuan & Dukungan",
+    "header": {
+      "title": "Bagaimana kami bisa membantu Anda?",
+      "subtitle": "Temukan jawaban atau hubungi tim dukungan kami"
+    },
+    "contactUs": "Hubungi Kami",
+    "faq": {
+      "title": "Pertanyaan yang Sering Diajukan",
+      "items": {
+        "q1": {
+          "question": "Bagaimana cara mempersonalisasi pengalaman membaca saya?",
+          "answer": "Buka Profil > Personalisasi untuk mengatur level bacaan dan minat topik Anda."
+        },
+        "q2": {
+          "question": "Bagaimana cara kerja reading streak?",
+          "answer": "Baca setidaknya satu artikel per hari untuk mempertahankan streak Anda."
+        },
+        "q3": {
+          "question": "Bagaimana cara menyederhanakan artikel?",
+          "answer": "Ketuk tombol \"Sederhanakan\" pada artikel apa pun untuk mendapatkan versi yang disederhanakan oleh AI."
+        },
+        "q4": {
+          "question": "Apa itu insights?",
+          "answer": "Insights adalah ringkasan yang dihasilkan AI dan poin-poin penting dari artikel."
+        },
+        "q5": {
+          "question": "Bagaimana cara mengubah bahasa aplikasi?",
+          "answer": "Buka Profil > Bahasa dan pilih bahasa yang Anda inginkan."
+        }
+      }
+    },
+    "contact": {
+      "email": {
+        "title": "Email",
+        "description": "scoryjournal@gmail.com"
+      },
+      "whatsapp": {
+        "title": "WhatsApp",
+        "description": "+62 812-3587-3675"
+      },
+      "instagram": {
+        "title": "Instagram",
+        "description": "@scory_journal"
+      }
+    }
+  },
+  "privacyPolicy": {
+    "title": "Kebijakan Privasi",
+    "header": {
+      "title": "Privasi Anda Penting",
+      "subtitle": "Kami berkomitmen untuk melindungi informasi pribadi Anda",
+      "lastUpdated": "Terakhir diperbarui: Desember 2024"
+    },
+    "sections": {
+      "informationCollect": {
+        "title": "Informasi yang Kami Kumpulkan",
+        "content": "Kami mengumpulkan informasi yang Anda berikan saat membuat akun (nama, email), preferensi bacaan Anda, interaksi artikel, dan data penggunaan aplikasi untuk mempersonalisasi pengalaman Anda."
+      },
+      "dataUsage": {
+        "title": "Cara Kami Menggunakan Data Anda",
+        "content": "Data Anda membantu kami merekomendasikan artikel yang relevan, melacak kemajuan bacaan Anda, dan meningkatkan fitur aplikasi. Kami menggunakan AI untuk menyederhanakan artikel berdasarkan level bacaan Anda."
+      },
+      "dataSecurity": {
+        "title": "Keamanan Data",
+        "content": "Kami melindungi informasi Anda menggunakan enkripsi standar industri dan server yang aman. Kata sandi Anda dienkripsi dan tidak pernah disimpan dalam teks biasa."
+      },
+      "dataSharing": {
+        "title": "Berbagi Data",
+        "content": "Kami tidak menjual informasi pribadi Anda. Data dapat dibagikan dengan penyedia layanan (hosting, analitik) yang membantu kami mengoperasikan aplikasi."
+      },
+      "yourRights": {
+        "title": "Hak Anda",
+        "content": "Anda dapat mengakses, memperbarui, atau menghapus data Anda kapan saja melalui pengaturan aplikasi. Anda juga dapat meminta salinan data Anda dengan menghubungi kami."
+      },
+      "dataRetention": {
+        "title": "Penyimpanan Data",
+        "content": "Kami menyimpan data Anda selama akun Anda aktif. Ketika Anda menghapus akun Anda, data pribadi Anda akan dihapus secara permanen dari server kami."
+      }
+    },
+    "contactSection": {
+      "title": "Pertanyaan tentang privasi?",
+      "text": "Hubungi kami di scoryjournal@gmail.com"
+    }
+  },
+  "about": {
+    "title": "Tentang Scory",
+    "tagline": "Teman Membaca Pribadi Anda",
+    "whatIsScory": {
+      "title": "Apa itu Scory?",
+      "paragraph1": "Scory adalah platform membaca cerdas yang dirancang untuk membuat pembelajaran dapat diakses oleh semua orang. Kami menggunakan teknologi AI untuk menyederhanakan artikel kompleks, menghasilkan insights, dan mempersonalisasi pengalaman membaca Anda berdasarkan preferensi dan level kemampuan Anda.",
+      "paragraph2": "Baik Anda seorang pelajar, profesional, atau pembelajar seumur hidup, Scory membantu Anda memahami dan menyimpan informasi dengan lebih efektif."
+    },
+    "keyFeatures": "Fitur Utama",
+    "features": {
+      "aiSimplification": {
+        "title": "Penyederhanaan Bertenaga AI",
+        "description": "Ubah artikel kompleks menjadi konten yang mudah dipahami yang disesuaikan dengan level bacaan Anda."
+      },
+      "smartInsights": {
+        "title": "Insights Cerdas",
+        "description": "Dapatkan ringkasan yang dihasilkan AI dan poin-poin penting untuk memahami konsep penting dengan cepat."
+      },
+      "personalized": {
+        "title": "Pengalaman yang Dipersonalisasi",
+        "description": "Sesuaikan preferensi bacaan Anda dan dapatkan rekomendasi artikel yang sesuai dengan minat Anda."
+      },
+      "trackProgress": {
+        "title": "Lacak Kemajuan Anda",
+        "description": "Bangun reading streak, tetapkan target mingguan, dan pantau perjalanan belajar Anda."
+      }
+    },
+    "mission": {
+      "title": "Misi Kami",
+      "text": "Mendemokratisasi pengetahuan dengan membuat informasi kompleks dapat diakses dan dipahami oleh pembelajar dari semua level, memberdayakan semua orang untuk tumbuh dan belajar dengan kecepatan mereka sendiri."
+    },
+    "version": "Versi 1.0.0",
+    "copyright": "© 2024 Scory. Hak cipta dilindungi undang-undang."
+  },
+  "termsService": {
+    "title": "Syarat Layanan",
+    "header": {
+      "title": "Syarat Layanan",
+      "subtitle": "Harap baca syarat ini dengan seksama sebelum menggunakan Scory",
+      "lastUpdated": "Terakhir diperbarui: Desember 2024"
+    },
+    "sections": {
+      "acceptance": {
+        "title": "Penerimaan Syarat",
+        "content": "Dengan menggunakan Scory, Anda menyetujui syarat-syarat ini. Jika Anda tidak setuju, harap jangan gunakan aplikasi kami."
+      },
+      "accountRegistration": {
+        "title": "Pendaftaran Akun",
+        "content": "Anda harus memberikan informasi yang akurat saat membuat akun. Jaga keamanan kata sandi Anda dan beri tahu kami segera jika ada akses yang tidak sah."
+      },
+      "contentUsage": {
+        "title": "Penggunaan Konten",
+        "content": "Artikel dan konten hanya untuk penggunaan pribadi dan non-komersial. Anda tidak boleh menyalin, mendistribusikan, atau memodifikasi konten kami tanpa izin."
+      },
+      "aiFeatures": {
+        "title": "Fitur AI",
+        "content": "Penyederhanaan AI dan insights kami disediakan apa adanya. Meskipun kami berusaha untuk akurasi, konten yang dihasilkan AI mungkin mengandung kesalahan."
+      },
+      "userConduct": {
+        "title": "Perilaku Pengguna",
+        "content": "Jangan menyalahgunakan layanan kami. Ini termasuk mencoba meretas, spam, atau menyalahgunakan sistem kami atau pengguna lain."
+      },
+      "intellectualProperty": {
+        "title": "Kekayaan Intelektual",
+        "content": "Semua konten, fitur, dan fungsi dimiliki oleh Scory dan dilindungi oleh hukum hak cipta dan merek dagang."
+      },
+      "termination": {
+        "title": "Penghentian",
+        "content": "Kami dapat menangguhkan atau menghentikan akun Anda jika Anda melanggar syarat-syarat ini. Anda juga dapat menghapus akun Anda kapan saja dari pengaturan."
+      },
+      "changes": {
+        "title": "Perubahan Syarat",
+        "content": "Kami dapat memperbarui syarat-syarat ini sesekali. Penggunaan aplikasi yang berkelanjutan berarti Anda menerima perubahan apa pun."
+      }
+    },
+    "contactSection": {
+      "title": "Pertanyaan tentang syarat ini?",
+      "text": "Hubungi kami di scoryjournal@gmail.com"
     }
   }
 }

@@ -1,0 +1,237 @@
+{
+  "info": {
+    "name": "Scory - Article Feedback API",
+    "description": "API collection for testing Article Feedback endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Submit Feedback - Quiz Completion (Full)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "description": "JWT access token"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"articleId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"rating\": 5,\n  \"quizRelevant\": true,\n  \"improvementText\": \"The article was very clear and the quiz questions were spot on!\",\n  \"trigger\": \"quiz_completion\",\n  \"quizScore\": 5,\n  \"readingTime\": 180\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/feedback/article",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "feedback", "article"]
+        },
+        "description": "Submit feedback after completing quiz with all optional fields filled"
+      },
+      "response": []
+    },
+    {
+      "name": "Submit Feedback - Exit Intent (Quick)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"articleId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"rating\": 4,\n  \"trigger\": \"exit_intent\",\n  \"readingTime\": 120\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/feedback/article",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "feedback", "article"]
+        },
+        "description": "Quick rating when user exits article (minimal fields)"
+      },
+      "response": []
+    },
+    {
+      "name": "Submit Feedback - Manual (From Card)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"articleId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"rating\": 3,\n  \"improvementText\": \"Would be better with more examples\",\n  \"trigger\": \"manual\",\n  \"readingTime\": 95\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/feedback/article",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "feedback", "article"]
+        },
+        "description": "User manually clicks feedback card to submit"
+      },
+      "response": []
+    },
+    {
+      "name": "Submit Feedback - Minimal Required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"articleId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"rating\": 5,\n  \"trigger\": \"manual\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/feedback/article",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "feedback", "article"]
+        },
+        "description": "Only required fields (articleId, rating, trigger)"
+      },
+      "response": []
+    },
+    {
+      "name": "Submit Feedback - Invalid Rating (Test Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"articleId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"rating\": 10,\n  \"trigger\": \"manual\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/feedback/article",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "feedback", "article"]
+        },
+        "description": "Should return 400 - Rating out of range (1-5)"
+      },
+      "response": []
+    },
+    {
+      "name": "Submit Feedback - Duplicate (Test Conflict)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"articleId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"rating\": 4,\n  \"trigger\": \"manual\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/feedback/article",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "feedback", "article"]
+        },
+        "description": "Submit twice for same article - should return 409 Conflict on second request"
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Feedback History (Optional)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/feedback/my-feedback?page=1&limit=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "feedback", "my-feedback"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Get all feedback submitted by current user (optional endpoint for future)"
+      },
+      "response": []
+    },
+    {
+      "name": "Check Feedback Status for Article (Optional)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/feedback/article/{{article_id}}/status",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "feedback", "article", "{{article_id}}", "status"]
+        },
+        "description": "Check if user has already given feedback for specific article (optional endpoint)"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "your-jwt-token-here",
+      "type": "string"
+    },
+    {
+      "key": "article_id",
+      "value": "123e4567-e89b-12d3-a456-426614174000",
+      "type": "string"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { Colors, Spacing, Radius } from "@/constants/theme";
@@ -25,19 +26,19 @@ export function GreetingsCard({
           </View>
           <TouchableOpacity onPress={onPress} style={styles.notificationButton}>
             <View>
-              <Image
+              {/* <Image
                 source={require('@/assets/images/icon-tab/notif.png')}
                 style={{ width: 50, height: 50 }}
                 contentFit="contain"
-              />
+              /> */}
               {/* Badge indicator for unread notifications */}
-              {unreadCount > 0 && (
+              {/* {unreadCount > 0 && (
                 <View style={[styles.badge, { backgroundColor: Colors.light.error }]}>
                   <Text style={styles.badgeText}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </Text>
                 </View>
-              )}
+              )} */}
             </View>
           </TouchableOpacity>
         </View>

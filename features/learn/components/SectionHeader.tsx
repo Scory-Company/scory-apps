@@ -2,6 +2,7 @@ import { Colors, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface SectionHeaderProps {
   title: string;
@@ -22,6 +23,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   onAddPress,
   showAddButton = false,
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   return (
@@ -42,7 +44,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
         )}
         {showViewAll && (
           <TouchableOpacity onPress={onViewAllPress}>
-            <Text style={[styles.viewAllText, { color: colors.textMuted }]}>View All</Text>
+            <Text style={[styles.viewAllText, { color: colors.textMuted }]}>{t('learn.components.sectionHeader.viewAll')}</Text>
           </TouchableOpacity>
         )}
       </View>

@@ -16,6 +16,7 @@ import { View, Text, StyleSheet, ScrollView, StatusBar, RefreshControl } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   weeklyGoal as weeklyGoalMock,
   learningStats as learningStatsMock,
 } from '@/data/mock';
@@ -23,8 +24,10 @@ import { useUserInsights } from '@/hooks/useUserInsights';
 import { useStudyCollections } from '@/hooks/useStudyCollections';
 import { useGamificationStats } from '@/hooks/useGamificationStats';
 import { useWeeklyGoal } from '@/hooks/useWeeklyGoal';
+import { useTranslation } from 'react-i18next';
 
 export default function LearnScreen() {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const router = useRouter();
 
@@ -52,8 +55,10 @@ export default function LearnScreen() {
   // Fetch gamification stats from API
   const {
     stats: gamificationStats,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isLoading: isLoadingStats,
     isRefreshing: isRefreshingStats,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     error: statsError,
     fetchStats,
     refreshStats,
@@ -69,6 +74,7 @@ export default function LearnScreen() {
     fetchGoal,
     refreshGoal,
     updateGoal,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     invalidateCache: invalidateGoalCache,
   } = useWeeklyGoal();
 
@@ -77,13 +83,15 @@ export default function LearnScreen() {
   const [showGoalModal, setShowGoalModal] = useState(false);
 
   // Refresh data when screen comes into focus (uses cache if still valid)
+  // Note: All fetch functions have built-in caching, so they won't refetch unnecessarily
   useFocusEffect(
     React.useCallback(() => {
       fetchInsights(); // Uses cache if age < 30s
-      refetchCollections();
+      refetchCollections(); // Uses cache if still valid
       fetchStats(); // Uses cache if age < 30s
       fetchGoal(); // Uses cache if age < 60s
-    }, [fetchInsights, refetchCollections, fetchStats, fetchGoal])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []) // Empty deps - only run on focus, rely on built-in caching
   );
 
   const learningStats = React.useMemo(() => {
@@ -93,19 +101,19 @@ export default function LearnScreen() {
             id: '1',
             icon: 'flame' as const,
             value: gamificationStats.streak.current,
-            label: 'Day Streak',
+            label: t('learn.stats.dayStreak'),
           },
           {
             id: '2',
             icon: 'book' as const,
             value: gamificationStats.articlesRead.thisWeek,
-            label: 'Articles Read',
+            label: t('learn.stats.articlesRead'),
           },
           {
             id: '3',
             icon: 'time' as const,
             value: gamificationStats.readingTime.thisWeek,
-            label: 'Minutes',
+            label: t('learn.stats.minutes'),
           },
         ]
       : learningStatsMock;
@@ -139,15 +147,48 @@ export default function LearnScreen() {
   const showInsightsLoading = isLoadingInsights && allInsights.length === 0;
   const showCollectionsLoading = isLoadingCollections && studyCollections.length === 0;
 
+  // Smart sorting for study collections:
+  // Priority: In-Progress (1-99%) > Not Started (0%) > Completed (100%)
+  const sortedCollections = React.useMemo(() => {
+    return [...studyCollections].sort((a, b) => {
+      const aCompleted = a.progress >= 100;
+      const bCompleted = b.progress >= 100;
+      const aInProgress = a.progress > 0 && a.progress < 100;
+      const bInProgress = b.progress > 0 && b.progress < 100;
+      const aNotStarted = a.progress === 0;
+      const bNotStarted = b.progress === 0;
+
+      // Priority 1: In-Progress collections first
+      if (aInProgress && !bInProgress) return -1;
+      if (!aInProgress && bInProgress) return 1;
+
+      // Priority 2: Not Started over Completed
+      if (aNotStarted && bCompleted) return -1;
+      if (aCompleted && bNotStarted) return 1;
+
+      // Priority 3: Completed goes to bottom
+      if (aCompleted && !bCompleted) return 1;
+      if (!aCompleted && bCompleted) return -1;
+
+      // Within same category: sort by progress (higher progress first for in-progress)
+      if (aInProgress && bInProgress) {
+        return b.progress - a.progress; // Higher progress first
+      }
+
+      // Keep original order for same priority
+      return 0;
+    });
+  }, [studyCollections]);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       {/* Header */}
       <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Learn</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('learn.title')}</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            Your personalized learning journey
+            {t('learn.subtitle')}
           </Text>
         </View>
 
@@ -187,7 +228,7 @@ export default function LearnScreen() {
         {/* Weekly Reading Goal */}
         <View style={styles.section}>
           <SectionHeader
-            title="Weekly Reading Goal"
+            title={t('learn.weeklyGoal.title')}
             icon="flag"
             iconColor={colors.info}
             showViewAll={false}
@@ -200,7 +241,7 @@ export default function LearnScreen() {
           ) : goalError && !weeklyGoal ? (
             <EmptyState
               icon="alert-circle-outline"
-              title="Unable to Load Goal"
+              title={t('learn.weeklyGoal.unableToLoad')}
               message={goalError}
             />
           ) : weeklyGoal ? (
@@ -232,7 +273,7 @@ export default function LearnScreen() {
         {/* Study Collections */}
         <View style={styles.section}>
           <SectionHeader
-            title="Study Collections"
+            title={t('learn.collections.title')}
             icon="folder-open"
             iconColor={colors.warning}
             onViewAllPress={() => router.push('/collections' as any)}
@@ -242,15 +283,15 @@ export default function LearnScreen() {
             <View style={styles.collectionsContainer}>
               <SkeletonCollectionCard count={2} />
             </View>
-          ) : collectionsError && studyCollections.length === 0 ? (
+          ) : collectionsError && sortedCollections.length === 0 ? (
             <EmptyState
               icon="alert-circle-outline"
-              title="Unable to Load Collections"
+              title={t('learn.collections.unableToLoad')}
               message={collectionsError}
             />
-          ) : studyCollections.length > 0 ? (
+          ) : sortedCollections.length > 0 ? (
             <View style={styles.collectionsContainer}>
-              {studyCollections.slice(0, 3).map((collection) => (
+              {sortedCollections.slice(0, 3).map((collection) => (
                 <StudyCollectionCard
                   key={collection.id}
                   title={collection.title}
@@ -266,8 +307,8 @@ export default function LearnScreen() {
           ) : (
             <EmptyState
               icon="folder-open-outline"
-              title="No Collections Yet"
-              message="Bookmark articles to automatically create collections by category"
+              title={t('learn.collections.emptyTitle')}
+              message={t('learn.collections.emptyMessage')}
             />
           )}
         </View>
@@ -275,7 +316,7 @@ export default function LearnScreen() {
         {/* Reading Notes & Insights */}
         <View style={styles.section}>
           <SectionHeader
-            title="Reading Notes & Insights"
+            title={t('learn.insights.title')}
             icon="bulb"
             iconColor={colors.warning}
             showViewAll={false}
@@ -291,7 +332,7 @@ export default function LearnScreen() {
             <>
               <EmptyState
                 icon="alert-circle-outline"
-                title="Unable to Load Insights"
+                title={t('learn.insights.unableToLoad')}
                 message={insightsError}
               />
               <AddInsightButton onPress={() => setShowAddNoteModal(true)} />
@@ -312,7 +353,7 @@ export default function LearnScreen() {
               {remainingInsightsCount > 0 && (
                 <ViewAllPrompt
                   count={remainingInsightsCount}
-                  label="insight"
+                  label={t('learn.insights.label')}
                   onPress={() => router.push('/insights' as any)}
                 />
               )}
@@ -326,8 +367,8 @@ export default function LearnScreen() {
             <>
               <EmptyState
                 icon="bulb-outline"
-                title="Start Capturing Insights"
-                message="Take notes while reading to remember key ideas"
+                title={t('learn.insights.emptyTitle')}
+                message={t('learn.insights.emptyMessage')}
               />
               <AddInsightButton onPress={() => setShowAddNoteModal(true)} />
             </>

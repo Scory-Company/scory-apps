@@ -73,16 +73,276 @@
     "title": "Home",
     "welcome": "Welcome",
     "greeting": "Hello, {{name}}!",
+    "greetingSubtitle": "What do you want to learn today?",
+    "heroBanner": {
+      "title": "Discover Your Next\nResearch Journey",
+      "subtitle": "Transform complex journals into engaging learning"
+    },
+    "categories": "Categories",
+    "mostPopular": "Most Popular",
+    "viewAll": "View All",
+    "personalizationCard": {
+      "badge": "👉 Start Here!",
+      "title": "Personalize Your Reading Level",
+      "subtitle": "Choose how you want to read research"
+    },
     "recentScores": "Recent Scores",
     "noScores": "No scores yet",
     "startScoring": "Start Scoring"
   },
   "explore": {
     "title": "Explore",
-    "searchPlaceholder": "Search sports, events...",
+    "subtitle": "Discover new research & insights",
+    "searchPlaceholder": "Search journals, topics, authors...",
+    "trendingNow": "Trending Now",
+    "topRatedThisWeek": "Top Rated This Week",
+    "recentlyAdded": "Recently Added",
+    "emptyState": {
+      "title": "No Articles Found",
+      "message": "No articles found in \"{{category}}\" category. Try selecting a different category.",
+      "clearFilter": "Clear Filter"
+    },
     "categories": "Categories",
     "featured": "Featured",
-    "popular": "Popular"
+    "popular": "Popular",
+    "filteredContent": {
+      "noResultsTitle": "No Results Found",
+      "noResultsMessages": {
+        "searchAndCategory": "No articles found for \"{{query}}\" in {{category}}",
+        "searchOnly": "No articles found for \"{{query}}\" in our database or external sources",
+        "categoryOnly": "No articles found in {{category}}"
+      },
+      "clearFilters": "Clear Filters",
+      "resultsCount": "{{count}} article found",
+      "resultsCount_plural": "{{count}} articles found",
+      "clearAllFilters": "Clear All Filters",
+      "externalSources": "External Sources (OpenAlex & Google Scholar)",
+      "loadingMore": "Loading more results...",
+      "loadMore": "Load more results",
+      "allLoaded": "All results loaded ({{count}} papers found)"
+    },
+    "personalizationPrompt": {
+      "badge": "👉 Start Here!",
+      "title": "Personalize Your Feed",
+      "message": "Set your interests to get article recommendations tailored for you",
+      "getStarted": "Get Started"
+    }
+  },
+  "learn": {
+    "title": "Learn",
+    "subtitle": "Your personalized learning journey",
+    "stats": {
+      "dayStreak": "Day Streak",
+      "articlesRead": "Articles Read",
+      "minutes": "Minutes"
+    },
+    "weeklyGoal": {
+      "title": "Weekly Reading Goal",
+      "unableToLoad": "Unable to Load Goal"
+    },
+    "collections": {
+      "title": "Study Collections",
+      "unableToLoad": "Unable to Load Collections",
+      "emptyTitle": "No Collections Yet",
+      "emptyMessage": "Bookmark articles to automatically create collections by category"
+    },
+    "insights": {
+      "title": "Reading Notes & Insights",
+      "unableToLoad": "Unable to Load Insights",
+      "label": "insight",
+      "emptyTitle": "Start Capturing Insights",
+      "emptyMessage": "Take notes while reading to remember key ideas"
+    },
+    "components": {
+      "addInsightButton": "Add New Insight",
+      "viewAllPrompt": "View all to see {{count}} more {{label}}",
+      "viewAllPrompt_plural": "View all to see {{count}} more {{label}}s",
+      "sectionHeader": {
+        "viewAll": "View All"
+      },
+      "weeklyGoalModal": {
+        "title": "Set Weekly Goal",
+        "description": "Challenge yourself to read more articles this week. Set a goal that motivates you!",
+        "quickSelect": "Quick Select",
+        "articles": "articles",
+        "customTarget": "Or Enter Custom Target",
+        "placeholder": "1 - 50",
+        "hint": "💡 Set a realistic goal to keep your streak going!",
+        "errors": {
+          "enterTarget": "Please enter a target number",
+          "invalidRange": "Target must be between 1-50 articles",
+          "failed": "Failed to set goal. Please try again."
+        },
+        "setGoal": "Set Goal",
+        "updateGoal": "Update Goal",
+        "currentGoal": "Current goal: {{target}} articles/week"
+      },
+      "collectionHeader": {
+        "article": "article",
+        "article_plural": "articles",
+        "completed": "{{progress}}% completed",
+        "readProgress": "{{read}} of {{total}} read"
+      },
+      "weeklyGoalCard": {
+        "setGoal": "Set Goal",
+        "setNewGoal": "Set New Goal",
+        "startReading": "Start Reading",
+        "continueReading": "Continue Reading",
+        "goalCompleted": "🎉 Goal completed! {{completed}} articles read",
+        "progress": "{{completed}} of {{target}} articles completed",
+        "noGoalTitle": "Set your weekly reading goal",
+        "daysLeft": "{{days}} days left",
+        "motivations": {
+          "noGoal": "Challenge yourself! Set a realistic weekly target",
+          "completed": "Congratulations! You've reached your weekly goal!",
+          "notStarted": "Start your reading journey this week!"
+        }
+      },
+      "addNoteModal": {
+        "title": "Add Learning Note",
+        "titleLabel": "Title (Optional)",
+        "titlePlaceholder": "e.g., My Learning Note",
+        "contentLabel": "Your Note",
+        "contentPlaceholder": "What did you learn today? Write your thoughts here...",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving...",
+        "validation": {
+          "emptyContent": "Please enter your note content"
+        },
+        "success": "Note saved successfully!",
+        "errors": {
+          "failed": "Failed to save note",
+          "timeout": "Request timeout. Server is taking too long to respond.",
+          "network": "Backend is slow or not responding. Please try again.",
+          "notFound": "Endpoint not found. Backend may not be running."
+        }
+      },
+      "studyCollectionCard": {
+        "completed": "Completed",
+        "articles": "articles",
+        "startLearning": "Start Learning"
+      }
+    }
+  },
+  "collections": {
+    "title": "All Collections",
+    "collection": "collection",
+    "collection_plural": "collections",
+    "searchPlaceholder": "Search collections...",
+    "errors": {
+      "unableToLoad": "Unable to Load Collections"
+    },
+    "emptyStates": {
+      "noResults": "No Collections Found",
+      "noResultsMessage": "No collections match \"{{query}}\"",
+      "noCollections": "No Collections Yet",
+      "noCollectionsMessage": "Bookmark articles to automatically create collections by category"
+    }
+  },
+  "collectionDetail": {
+    "title": "Collection",
+    "loading": "Loading collection...",
+    "errors": {
+      "unableToLoad": "Unable to Load Collection",
+      "notFound": "Collection Not Found",
+      "notFoundMessage": "This collection may have been deleted"
+    },
+    "sections": {
+      "toRead": "To Read ({{count}})",
+      "completed": "Completed ({{count}})"
+    },
+    "emptyState": {
+      "title": "No Articles Yet",
+      "message": "Bookmark articles to add them to this collection"
+    },
+    "articleCard": {
+      "read": "Read",
+      "min": "min"
+    },
+    "confirm": {
+      "removeTitle": "Remove Bookmark",
+      "removeMessage": "Remove \"{{title}}\" from this collection?",
+      "cancel": "Cancel",
+      "remove": "Remove"
+    }
+  },
+  "insightCard": {
+    "personalNote": "Personal Note",
+    "seeDetail": "See Detail",
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{days}} days ago",
+      "weeksAgo": "{{weeks}} weeks ago",
+      "monthsAgo": "months}} months ago"
+    }
+  },
+  "insightDetail": {
+    "title": "Note Details",
+    "loading": "Loading note...",
+    "errors": {
+      "idRequired": "Note ID is required",
+      "loadFailed": "Failed to load note",
+      "unableToLoad": "Unable to Load Note",
+      "notFound": "Note not found",
+      "emptyContent": "Note content cannot be empty",
+      "updateFailed": "Failed to update note",
+      "deleteFailed": "Failed to delete note"
+    },
+    "success": {
+      "updated": "Note updated successfully",
+      "deleted": "Note deleted successfully"
+    },
+    "confirm": {
+      "deleteTitle": "Delete Note",
+      "deleteMessage": "Are you sure you want to delete this note? This action cannot be undone."
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "tryAgain": "Try Again",
+      "saveChanges": "Save Changes"
+    },
+    "labels": {
+      "fromArticle": "From Article",
+      "untitledArticle": "Untitled Article",
+      "noteTitleOptional": "Note Title (Optional)",
+      "titlePlaceholder": "Enter note title...",
+      "noteContent": "Note Content",
+      "contentPlaceholder": "Write your note here...",
+      "charactersCount": "{{count}} characters",
+      "created": "Created",
+      "lastEdited": "Last edited",
+      "type": "Type",
+      "articleNote": "Article Note",
+      "standaloneNote": "Standalone Note"
+    }
+  },
+  "allInsights": {
+    "title": "All Notes",
+    "note": "note",
+    "note_plural": "notes",
+    "total": "{{count}} {{label}} total",
+    "filters": {
+      "all": "All",
+      "article": "Article",
+      "personal": "Personal"
+    },
+    "loading": "Loading your notes...",
+    "errors": {
+      "unableToLoad": "Unable to Load Notes",
+      "tryAgain": "Try Again"
+    },
+    "emptyStates": {
+      "noArticleNotes": "No Article Notes",
+      "noArticleNotesMessage": "Start taking notes while reading articles",
+      "noPersonalNotes": "No Personal Notes",
+      "noPersonalNotesMessage": "Create personal notes to capture your thoughts",
+      "noNotes": "No Notes Yet",
+      "noNotesMessage": "Start capturing your insights and ideas",
+      "goBack": "Go Back"
+    }
   },
   "profile": {
     "title": "Profile",
@@ -220,87 +480,260 @@
     },
     "questions": {
       "q1": {
-        "title": "What brings you to Scory?",
-        "subtitle": "Help us understand your goal",
+        "title": "What do you usually look for when reading?",
+        "subtitle": "Choose what feels closest to you",
         "options": {
-          "simple": "Just curious to learn new things",
-          "student": "I'm a student doing research",
-          "academic": "Professional development",
-          "expert": "I'm a researcher/academic"
+          "simple": "A quick understanding of the main idea",
+          "student": "Clear explanations with helpful context",
+          "academic": "Structured explanations with key concepts",
+          "expert": "Complete detail, including technical depth"
         }
       },
       "q2": {
-        "title": "How do you like to learn?",
-        "subtitle": "Pick your preferred style",
+        "title": "How detailed should explanations be?",
+        "subtitle": "There’s no right or wrong answer",
         "options": {
-          "simple": "Simple explanations & everyday words",
-          "student": "Clear explanations with some detail",
-          "academic": "Proper terms & structured info",
-          "expert": "Full technical depth & precision"
+          "simple": "Straight to the point, minimal detail",
+          "student": "Clear, with examples when needed",
+          "academic": "Well-structured and concept-focused",
+          "expert": "In-depth and precise, even if complex"
         }
       },
       "q3": {
-        "title": "Quick example!",
-        "subtitle": "\"How exercise improves memory\"",
+        "title": "Which explanation feels most comfortable to read?",
+        "subtitle": "Example: “Why drinking water matters”",
         "options": {
-          "simple": "Exercise helps your brain work better and remember things",
-          "student": "Exercise increases blood flow and helps brain growth",
-          "academic": "Aerobic exercise enhances neuroplasticity and cognition",
-          "expert": "Cardiovascular training upregulates BDNF expression"
+          "simple": "Drinking water helps your body stay fresh and not feel tired.",
+          "student": "Water keeps your body hydrated and helps you stay focused.",
+          "academic": "Adequate hydration supports physical performance and cognitive processes.",
+          "expert": "Hydration is essential for maintaining cellular function and physiological balance."
         }
       }
     },
     "results": {
-      "title": "Your Perfect Match!",
+      "title": "Your Reading Style",
       "ctaButton": "Start Reading! 🚀",
-      "retakeButton": "Retake quiz",
-      "featuresTitle": "What you'll get:",
+      "retakeButton": "Change preferences",
+      "featuresTitle": "What this means for you",
       "simple": {
-        "title": "Simple & Clear",
-        "description": "Perfect for curious learners! Research explained in everyday language.",
+        "title": "Simple & Direct",
+        "description": "You prefer clear ideas delivered quickly, without unnecessary complexity.",
         "features": [
-          "Easy-to-understand explanations",
-          "Real-world examples & analogies",
-          "No jargon or complex terms"
+          "Plain language explanations",
+          "Focus on core ideas",
+          "Examples from everyday contexts"
         ]
       },
       "student": {
-        "title": "Balanced Detail",
-        "description": "Great for students! Clear explanations with key concepts highlighted.",
+        "title": "Clear with Context",
+        "description": "You like explanations that balance clarity with just enough detail.",
         "features": [
-          "Simplified academic language",
-          "Important terms explained",
-          "Focus on main findings"
+          "Key concepts explained simply",
+          "Helpful examples and context",
+          "Focus on understanding, not jargon"
         ]
       },
       "academic": {
-        "title": "Academic Style",
-        "description": "Ideal for professionals! Proper terminology with structured information.",
+        "title": "Structured & Conceptual",
+        "description": "You prefer well-organized explanations using proper terminology.",
         "features": [
-          "Full academic terminology",
-          "Methodology & context included",
-          "Detailed explanations"
+          "Clear structure and flow",
+          "Core concepts highlighted",
+          "Relevant academic terms included"
         ]
       },
       "expert": {
-        "title": "Expert Level",
-        "description": "For researchers! Complete technical depth and academic rigor.",
+        "title": "Technical & In-Depth",
+        "description": "You’re comfortable with full technical detail and precise language.",
         "features": [
-          "Original research language",
-          "All technical details preserved",
-          "Statistical analysis included"
+          "Complete technical explanations",
+          "Original research terminology",
+          "Methods and mechanisms included"
         ]
       },
       "infoCards": {
-        "adaptive": "All articles adapted to your level",
-        "flexible": "Change anytime in settings"
+        "adaptive": "Articles adapt to your reading style",
+        "flexible": "You can change this anytime in settings"
       }
     },
     "topics": {
-      "stepLabel": "Final Step",
-      "title": "What topics interest you?",
+      "stepLabel": "Final step",
+      "title": "What topics do you want to explore?",
       "subtitle": "Pick at least {{min}} topics to personalize your feed",
       "continue": "Continue"
+    }
+  },
+  "popularArticles": {
+    "title": "Most Popular",
+    "searchPlaceholder": "Search articles...",
+    "emptyState": {
+      "title": "No articles found",
+      "subtitle": "Try searching with different keywords"
+    }
+  },
+  "helpSupport": {
+    "title": "Help & Support",
+    "header": {
+      "title": "How can we help you?",
+      "subtitle": "Find answers or contact our support team"
+    },
+    "contactUs": "Contact Us",
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": {
+        "q1": {
+          "question": "How do I personalize my reading experience?",
+          "answer": "Go to Profile > Personalization to set your reading level and topic interests."
+        },
+        "q2": {
+          "question": "How does the reading streak work?",
+          "answer": "Read at least one article per day to maintain your streak."
+        },
+        "q3": {
+          "question": "How do I simplify an article?",
+          "answer": "Tap the \"Simplify\" button on any article to get an AI-generated simplified version."
+        },
+        "q4": {
+          "question": "What are insights?",
+          "answer": "Insights are AI-generated summaries and key takeaways from articles."
+        },
+        "q5": {
+          "question": "How do I change the app language?",
+          "answer": "Go to Profile > Language and select your preferred language."
+        }
+      }
+    },
+    "contact": {
+      "email": {
+        "title": "Email",
+        "description": "scoryjournal@gmail.com"
+      },
+      "whatsapp": {
+        "title": "WhatsApp",
+        "description": "+62 812-3587-3675"
+      },
+      "instagram": {
+        "title": "Instagram",
+        "description": "@scory_journal"
+      }
+    }
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+    "header": {
+      "title": "Your Privacy Matters",
+      "subtitle": "We're committed to protecting your personal information",
+      "lastUpdated": "Last updated: December 2024"
+    },
+    "sections": {
+      "informationCollect": {
+        "title": "Information We Collect",
+        "content": "We collect information you provide when creating an account (name, email), your reading preferences, article interactions, and app usage data to personalize your experience."
+      },
+      "dataUsage": {
+        "title": "How We Use Your Data",
+        "content": "Your data helps us recommend relevant articles, track your reading progress, and improve app features. We use AI to simplify articles based on your reading level."
+      },
+      "dataSecurity": {
+        "title": "Data Security",
+        "content": "We protect your information using industry-standard encryption and secure servers. Your password is encrypted and never stored in plain text."
+      },
+      "dataSharing": {
+        "title": "Data Sharing",
+        "content": "We do not sell your personal information. Data may be shared with service providers (hosting, analytics) who help us operate the app."
+      },
+      "yourRights": {
+        "title": "Your Rights",
+        "content": "You can access, update, or delete your data anytime through the app settings. You can also request a copy of your data by contacting us."
+      },
+      "dataRetention": {
+        "title": "Data Retention",
+        "content": "We keep your data as long as your account is active. When you delete your account, your personal data is permanently removed from our servers."
+      }
+    },
+    "contactSection": {
+      "title": "Questions about privacy?",
+      "text": "Contact us at scoryjournal@gmail.com"
+    }
+  },
+  "about": {
+    "title": "About Scory",
+    "tagline": "Your Personal Reading Companion",
+    "whatIsScory": {
+      "title": "What is Scory?",
+      "paragraph1": "Scory is an intelligent reading platform designed to make learning accessible for everyone. We use AI technology to simplify complex articles, generate insights, and personalize your reading experience based on your preferences and skill level.",
+      "paragraph2": "Whether you're a student, professional, or lifelong learner, Scory helps you understand and retain information more effectively."
+    },
+    "keyFeatures": "Key Features",
+    "features": {
+      "aiSimplification": {
+        "title": "AI-Powered Simplification",
+        "description": "Transform complex articles into easy-to-understand content tailored to your reading level."
+      },
+      "smartInsights": {
+        "title": "Smart Insights",
+        "description": "Get AI-generated summaries and key takeaways to grasp important concepts quickly."
+      },
+      "personalized": {
+        "title": "Personalized Experience",
+        "description": "Customize your reading preferences and get article recommendations that match your interests."
+      },
+      "trackProgress": {
+        "title": "Track Your Progress",
+        "description": "Build reading streaks, set weekly goals, and monitor your learning journey."
+      }
+    },
+    "mission": {
+      "title": "Our Mission",
+      "text": "To democratize knowledge by making complex information accessible and understandable for learners of all levels, empowering everyone to grow and learn at their own pace."
+    },
+    "version": "Version 1.0.0",
+    "copyright": "© 2024 Scory. All rights reserved."
+  },
+  "termsService": {
+    "title": "Terms of Service",
+    "header": {
+      "title": "Terms of Service",
+      "subtitle": "Please read these terms carefully before using Scory",
+      "lastUpdated": "Last updated: December 2024"
+    },
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "content": "By using Scory, you agree to these terms. If you don't agree, please don't use our app."
+      },
+      "accountRegistration": {
+        "title": "Account Registration",
+        "content": "You must provide accurate information when creating an account. Keep your password secure and notify us immediately of any unauthorized access."
+      },
+      "contentUsage": {
+        "title": "Content Usage",
+        "content": "Articles and content are for personal, non-commercial use only. You may not copy, distribute, or modify our content without permission."
+      },
+      "aiFeatures": {
+        "title": "AI Features",
+        "content": "Our AI simplification and insights are provided as-is. While we strive for accuracy, AI-generated content may contain errors."
+      },
+      "userConduct": {
+        "title": "User Conduct",
+        "content": "Don't misuse our services. This includes attempting to hack, spam, or abuse our systems or other users."
+      },
+      "intellectualProperty": {
+        "title": "Intellectual Property",
+        "content": "All content, features, and functionality are owned by Scory and protected by copyright and trademark laws."
+      },
+      "termination": {
+        "title": "Termination",
+        "content": "We may suspend or terminate your account if you violate these terms. You can also delete your account anytime from settings."
+      },
+      "changes": {
+        "title": "Changes to Terms",
+        "content": "We may update these terms occasionally. Continued use of the app means you accept any changes."
+      }
+    },
+    "contactSection": {
+      "title": "Questions about these terms?",
+      "text": "Contact us at scoryjournal@gmail.com"
     }
   }
 }

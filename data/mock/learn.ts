@@ -36,24 +36,26 @@ export const weeklyGoal = {
   daysLeft: 4,
 };
 
+// Note: Labels are now handled by i18n in the component
+// These mock values are fallbacks and will be translated when used
 export const learningStats = [
   {
     id: 1,
     icon: 'flame' as const,
     value: 0,
-    label: 'Day Streak',
+    label: 'Day Streak', // Will be translated via t('learn.stats.dayStreak')
   },
   {
     id: 2,
     icon: 'book' as const,
     value: 0,
-    label: 'Articles Read',
+    label: 'Articles Read', // Will be translated via t('learn.stats.articlesRead')
   },
   {
     id: 3,
     icon: 'time' as const,
     value: 0,
-    label: 'Minutes',
+    label: 'Minutes', // Will be translated via t('learn.stats.minutes')
   },
 ];
 

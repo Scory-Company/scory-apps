@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { configureGoogleSignIn } from '@/services/googleAuth';
 import { LanguageProvider } from '@/features/settings/context/LanguageContext';
+import { ToastProvider } from '@/features/shared/context/ToastContext';
 import { personalizationApi } from '@/services';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@/utils/i18n';
@@ -38,16 +39,18 @@ export default function RootLayout() {
 
   return (
     <LanguageProvider>
-      <ThemeProvider value={DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(onboarding)" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal', headerShown: true }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <ToastProvider>
+        <ThemeProvider value={DefaultTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(onboarding)" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal', headerShown: true }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </ToastProvider>
     </LanguageProvider>
   );
 }

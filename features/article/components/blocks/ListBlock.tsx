@@ -7,6 +7,29 @@ interface ListBlockProps {
   items: string[];
 }
 
+const parseTextWithBold = (text: string, colors: typeof Colors.light) => {
+  // Split by bold markers (**text**)
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+
+  return (
+    <Text style={[styles.listText, { color: colors.textSecondary }]}>
+      {parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          // Render bold content
+          const content = part.slice(2, -2);
+          return (
+            <Text key={index} style={[styles.boldText, { color: colors.text }]}>
+              {content}
+            </Text>
+          );
+        }
+        // Render normal content
+        return <Text key={index}>{part}</Text>;
+      })}
+    </Text>
+  );
+};
+
 export const ListBlock: React.FC<ListBlockProps> = ({ style, items }) => {
   const colors = Colors.light;
 
@@ -21,9 +44,9 @@ export const ListBlock: React.FC<ListBlockProps> = ({ style, items }) => {
               {index + 1}.
             </Text>
           )}
-          <Text style={[styles.listText, { color: colors.textSecondary }]}>
-            {item}
-          </Text>
+          <View style={styles.textWrapper}>
+            {parseTextWithBold(item, colors)}
+          </View>
         </View>
       ))}
     </View>
@@ -39,6 +62,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     paddingRight: Spacing.md,
   },
+  textWrapper: {
+    flex: 1,
+  },
   bullet: {
     width: 8,
     height: 8,
@@ -53,8 +79,10 @@ const styles = StyleSheet.create({
     minWidth: 24,
   },
   listText: {
-    flex: 1,
     fontSize: Typography.fontSize.base,
     lineHeight: Typography.fontSize.base * 1.6,
+  },
+  boldText: {
+    fontWeight: '700',
   },
 });

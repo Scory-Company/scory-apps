@@ -25,6 +25,8 @@ import {
   topRatedArticles as mockTopRated,
   categoryList as mockCategoryList
 } from '@/data/mock';
+import { useBackgroundSimplify } from '@/features/simplify/hooks/useBackgroundSimplify';
+import { useTranslation } from 'react-i18next';
 
 // Display article type
 interface DisplayArticle {
@@ -37,12 +39,14 @@ interface DisplayArticle {
   rating: number;
   reads?: string;
   date?: string;
-  badge?: string;
+  badge?: 'new' | 'updated' | null;
 }
 
 export default function ExploreScreen() {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const navigation = useNavigation();
+  const { startSimplification } = useBackgroundSimplify();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [topRatedArticles, setTopRatedArticles] = useState<DisplayArticle[]>(mockTopRated);
@@ -99,6 +103,9 @@ export default function ExploreScreen() {
   useFocusEffect(
     useCallback(() => {
       checkPersonalizationStatus();
+      // Auto-refresh data sections when screen is focused
+      fetchRecentlyAdded();
+      fetchTopRated();
     }, [checkPersonalizationStatus])
   );
 
@@ -175,16 +182,26 @@ export default function ExploreScreen() {
       const response = await articlesApi.getRecent({ page: 1, limit: 5 });
       const apiData = response.data?.data;
       if (apiData?.articles?.length > 0) {
-        const transformed = apiData.articles.map((article: any) => ({
-          id: article.id,
-          slug: article.slug,
-          image: { uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' },
-          title: article.title,
-          author: article.authorName,
-          category: article.category?.name || 'General',
-          rating: article.rating,
-          date: new Date(article.publishedAt).toLocaleDateString(),
-        }));
+        const transformed = apiData.articles.map((article: any) => {
+          const publishedDate = new Date(article.publishedAt);
+          const now = new Date();
+          const hoursDiff = (now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60);
+          
+          // Show NEW badge if article is less than 24 hours old
+          const badge: 'new' | 'updated' | null = hoursDiff < 24 ? 'new' : null;
+          
+          return {
+            id: article.id,
+            slug: article.slug,
+            image: { uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' },
+            title: article.title,
+            author: article.authorName,
+            category: article.category?.name || 'General',
+            rating: article.rating,
+            date: new Date(article.publishedAt).toLocaleDateString(),
+            badge: badge,
+          };
+        });
         setRecentlyAddedArticles(transformed);
       }
     } catch {
@@ -354,6 +371,33 @@ export default function ExploreScreen() {
     setExternalResults([]); // Clear external results
   };
 
+  // Handle background simplification for external papers
+  const handleSimplifyExternalPaper = useCallback(async (paper: SearchResult) => {
+    // Map reading level from user preference
+    const readingLevelMap: Record<ReadingLevel, 'SIMPLE' | 'STUDENT' | 'ACADEMIC' | 'EXPERT'> = {
+      simple: 'SIMPLE',
+      student: 'STUDENT',
+      academic: 'ACADEMIC',
+      expert: 'EXPERT',
+    };
+
+    await startSimplification({
+      externalId: paper.id, // SearchResult uses 'id' field
+      source: paper.source as 'openalex' | 'scholar', // Ensure source is correct
+      title: paper.title,
+      authors: paper.authors || [], // Required field
+      year: paper.year || new Date().getFullYear(), // Required field, fallback to current year
+      abstract: paper.excerpt || undefined, // Use excerpt as abstract
+      pdfUrl: paper.pdfUrl || undefined,
+      landingPageUrl: paper.link || undefined,
+      doi: paper.doi || undefined,
+      readingLevel: readingLevelMap[userReadingLevel],
+      citationCount: paper.citations || 0,
+      rating: paper.rating || 0,
+      categoryName: undefined, // Can be added later if needed
+    });
+  }, [startSimplification, userReadingLevel]);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
@@ -365,9 +409,9 @@ export default function ExploreScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Explore</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('explore.title')}</Text>
         <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-          Discover new research & insights
+          {t('explore.subtitle')}
         </Text>
       </View>
 
@@ -378,7 +422,7 @@ export default function ExploreScreen() {
           onChangeText={setSearchQuery}
           onSearch={handleSearch}
           onClear={handleClearSearch}
-          placeholder="Search journals, topics, authors..."
+          placeholder={t('explore.searchPlaceholder')}
           isSearchingScholar={isSearchingExternal}
         />
       </View>
@@ -412,15 +456,16 @@ export default function ExploreScreen() {
             hasMore={hasMore}
             onLoadMore={handleLoadMore}
             isLoadingMore={isLoadingMore}
+            onSimplifyExternal={handleSimplifyExternalPaper}
           />
         ) : (selectedCategory !== 'All' && !isLoadingFiltered && externalResults.length === 0) ? (
           // ========== EMPTY STATE (Category selected but no results) ==========
           <View style={{ paddingVertical: Spacing['4xl'] }}>
             <EmptyState
               icon="search-outline"
-              title="No Articles Found"
-              message={`No articles found in "${selectedCategory}" category. Try selecting a different category.`}
-              actionLabel="Clear Filter"
+              title={t('explore.emptyState.title')}
+              message={t('explore.emptyState.message', { category: selectedCategory })}
+              actionLabel={t('explore.emptyState.clearFilter')}
               actionIcon="close-circle"
               onActionPress={handleClearCategory}
             />
@@ -431,7 +476,7 @@ export default function ExploreScreen() {
             {/* Trending Topics */}
             <View style={styles.section}>
           <SectionHeader
-            title="Trending Now"
+            title={t('explore.trendingNow')}
             icon="flame"
             iconColor={colors.error}
             offViewAll={true}
@@ -472,7 +517,7 @@ export default function ExploreScreen() {
         {/* Top Rated This Week */}
         <View style={styles.section}>
           <SectionHeader
-            title="Top Rated This Week"
+            title={t('explore.topRatedThisWeek')}
             icon="trophy"
             iconColor={colors.warning}
           />
@@ -495,7 +540,7 @@ export default function ExploreScreen() {
         {/* Recently Added */}
         <View style={styles.section}>
           <SectionHeader
-            title="Recently Added"
+            title={t('explore.recentlyAdded')}
             icon="time"
             iconColor={colors.info}
           />
@@ -510,6 +555,7 @@ export default function ExploreScreen() {
                 category={item.category}
                 rating={item.rating}
                 date={item.date || ''}
+                badge={item.badge}
                 onPress={() => router.push(`/article/${item.slug || item.id}` as any)}
               />
             ))}
@@ -528,6 +574,7 @@ export default function ExploreScreen() {
         )}
       </ScrollView>
       </KeyboardAvoidingView>
+
     </SafeAreaView>
   );
 }

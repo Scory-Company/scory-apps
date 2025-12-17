@@ -130,7 +130,7 @@ export const useForYouArticles = (options: UseForYouArticlesOptions = {}) => {
         setIsRefreshing(false);
       }
     },
-    [filters, limit, isCacheValid]
+    [filters, limit, readingLevel, isCacheValid] // Added readingLevel to dependencies
   );
 
   /**

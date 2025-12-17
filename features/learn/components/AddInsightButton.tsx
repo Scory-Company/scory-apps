@@ -2,12 +2,14 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface AddInsightButtonProps {
   onPress?: () => void;
 }
 
 export const AddInsightButton: React.FC<AddInsightButtonProps> = ({ onPress }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   return (
@@ -17,7 +19,7 @@ export const AddInsightButton: React.FC<AddInsightButtonProps> = ({ onPress }) =
       onPress={onPress}
     >
       <Ionicons name="add-circle-outline" size={24} color={colors.third} />
-      <Text style={[styles.addInsightText, { color: colors.third }]}>Add New Insight</Text>
+      <Text style={[styles.addInsightText, { color: colors.third }]}>{t('learn.components.addInsightButton')}</Text>
     </TouchableOpacity>
   );
 };

@@ -158,6 +158,7 @@ export const InsightNoteFAB: React.FC<InsightNoteFABProps> = ({
 
       {/* Toast Notification */}
       <Toast
+        id={`insight-toast-${Date.now()}`}
         visible={toastVisible}
         type={toastType}
         message={toastMessage}

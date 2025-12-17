@@ -6,3 +6,6 @@ export { ReadingProgressBar } from './ReadingProgressBar';
 export { InsightNoteFAB } from './InsightNoteFAB';
 export { ComprehensionSection } from './ComprehensionSection';
 export { SourceLinks } from './SourceLinks';
+export { ArticleFeedbackModal } from './ArticleFeedbackModal';
+export { ArticleQuickFeedback } from './ArticleQuickFeedback';
+export { FeedbackPromptCard } from './FeedbackPromptCard';

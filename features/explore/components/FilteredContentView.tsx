@@ -1,5 +1,5 @@
 import { Colors, Spacing, Typography } from '@/constants/theme';
-import { EmptyState, SkeletonSearchResult, SimplifyLoadingModal } from '@/features/shared/components';
+import { EmptyState, SkeletonSearchResult } from '@/features/shared/components';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { FilterChip } from './FilterChip';
@@ -9,7 +9,7 @@ import { router } from 'expo-router';
 import { SearchResult } from '@/services';
 import { useSimplifyAndNavigate } from '@/hooks/useSimplifyPaper';
 import { Ionicons } from '@expo/vector-icons';
-import { useToast } from '@/features/shared/hooks/useToast';
+import { useTranslation } from 'react-i18next';
 
 interface FilteredContentViewProps {
   results: Article[];
@@ -23,6 +23,7 @@ interface FilteredContentViewProps {
   hasMore?: boolean;
   onLoadMore?: () => void;
   isLoadingMore?: boolean;
+  onSimplifyExternal?: (paper: SearchResult) => void | Promise<void>;
 }
 
 export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
@@ -37,12 +38,12 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
   hasMore = false,
   onLoadMore,
   isLoadingMore = false,
+  onSimplifyExternal,
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
-  const toast = useToast();
-  const { simplifyAndNavigate, isSimplifying, progress } = useSimplifyAndNavigate({
-    onError: (_title, message) => toast.error(message),
-  });
+  // Keep old simplifyAndNavigate as fallback for backward compatibility
+  const { simplifyAndNavigate } = useSimplifyAndNavigate();
 
   const hasExternalResults = externalResults.length > 0;
   const hasLocalResults = results.length > 0;
@@ -58,19 +59,19 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
 
   // No results in local database
   if (!hasLocalResults && !hasExternalResults) {
+    const message = searchQuery && selectedCategory !== 'All'
+      ? t('explore.filteredContent.noResultsMessages.searchAndCategory', { query: searchQuery, category: selectedCategory })
+      : searchQuery
+      ? t('explore.filteredContent.noResultsMessages.searchOnly', { query: searchQuery })
+      : t('explore.filteredContent.noResultsMessages.categoryOnly', { category: selectedCategory });
+
     return (
       <View style={styles.container}>
         <EmptyState
           icon="search-outline"
-          title="No Results Found"
-          message={
-            searchQuery && selectedCategory !== 'All'
-              ? `No articles found for "${searchQuery}" in ${selectedCategory}`
-              : searchQuery
-              ? `No articles found for "${searchQuery}" in our database or external sources`
-              : `No articles found in ${selectedCategory}`
-          }
-          actionLabel="Clear Filters"
+          title={t('explore.filteredContent.noResultsTitle')}
+          message={message}
+          actionLabel={t('explore.filteredContent.clearFilters')}
           actionIcon="refresh"
           onActionPress={onClearFilters}
         />
@@ -83,13 +84,10 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Toast Component */}
-      <toast.ToastComponent />
-
       {/* Results Header */}
       <View style={styles.resultsHeader}>
         <Text style={[styles.resultCount, { color: colors.text }]}>
-          {totalResults} article{totalResults > 1 ? 's' : ''} found
+          {t('explore.filteredContent.resultsCount', { count: totalResults })}
         </Text>
 
         {/* Active Filters */}
@@ -114,7 +112,7 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
         {(searchQuery || selectedCategory !== 'All') && (
           <TouchableOpacity onPress={onClearFilters} style={styles.clearButton}>
             <Text style={[styles.clearButtonText, { color: colors.error }]}>
-              Clear All Filters
+              {t('explore.filteredContent.clearAllFilters')}
             </Text>
           </TouchableOpacity>
         )}
@@ -161,7 +159,7 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
               <View style={styles.scholarSeparator}>
                 <View style={[styles.separatorLine, { backgroundColor: colors.border }]} />
                 <Text style={[styles.separatorText, { color: colors.textSecondary }]}>
-                  External Sources (OpenAlex & Google Scholar)
+                  {t('explore.filteredContent.externalSources')}
                 </Text>
                 <View style={[styles.separatorLine, { backgroundColor: colors.border }]} />
               </View>
@@ -187,20 +185,25 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
                   result={unifiedResult}
                   highlightText={searchQuery}
                   onSimplify={() => {
-                    // Simplify workflow with backend integration
-                    // Pass citations and rating to be saved in internal database
-                    simplifyAndNavigate({
-                      externalId: article.id,
-                      source: article.source === 'openalex' ? 'openalex' : 'scholar',
-                      title: article.title,
-                      authors: article.authors,
-                      year: article.year || 2024,
-                      abstract: article.excerpt,
-                      pdfUrl: article.pdfUrl || undefined,
-                      doi: article.doi || undefined,
-                      citations: article.citations || undefined,
-                      rating: (article as any).rating || undefined,
-                    });
+                    // Use background simplification if handler provided, otherwise use old method
+                    if (onSimplifyExternal) {
+                      // NEW: Background simplification (non-blocking)
+                      onSimplifyExternal(article);
+                    } else {
+                      // OLD: Blocking simplification (fallback)
+                      simplifyAndNavigate({
+                        externalId: article.id,
+                        source: article.source === 'openalex' ? 'openalex' : 'scholar',
+                        title: article.title,
+                        authors: article.authors,
+                        year: article.year || 2024,
+                        abstract: article.excerpt,
+                        pdfUrl: article.pdfUrl || undefined,
+                        doi: article.doi || undefined,
+                        citations: article.citations || undefined,
+                        rating: (article as any).rating || undefined,
+                      });
+                    }
                   }}
                   onReadSimplified={(articleId) => {
                     // Navigate to already simplified article
@@ -215,7 +218,7 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
               <View style={styles.loadingMore}>
                 <ActivityIndicator size="small" color={colors.primary} />
                 <Text style={[styles.loadingMoreText, { color: colors.textSecondary }]}>
-                  Loading more results...
+                  {t('explore.filteredContent.loadingMore')}
                 </Text>
               </View>
             )}
@@ -228,7 +231,7 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
               >
                 <Ionicons name="arrow-down-circle-outline" size={20} color={colors.textMuted} />
                 <Text style={[styles.loadMoreText, { color: colors.textSecondary }]}>
-                  Load more results
+                  {t('explore.filteredContent.loadMore')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -237,21 +240,13 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
               <View style={styles.endMessage}>
                 <Ionicons name="checkmark-circle" size={20} color={colors.success} />
                 <Text style={[styles.endMessageText, { color: colors.textSecondary }]}>
-                  All results loaded ({externalResults.length} papers found)
+                  {t('explore.filteredContent.allLoaded', { count: externalResults.length })}
                 </Text>
               </View>
             )}
           </>
         )}
       </View>
-
-      {/* Simplify Loading Modal */}
-      <SimplifyLoadingModal
-        visible={isSimplifying}
-        step={progress.step}
-        message={progress.message}
-        progressValue={progress.value}
-      />
     </View>
   );
 };

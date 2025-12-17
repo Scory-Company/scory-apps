@@ -18,8 +18,10 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 export default function CollectionDetailScreen() {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -38,15 +40,15 @@ export default function CollectionDetailScreen() {
   // Handle unbookmark with confirmation
   const handleUnbookmark = (articleId: string, articleTitle: string) => {
     Alert.alert(
-      'Remove Bookmark',
-      `Remove "${articleTitle}" from this collection?`,
+      t('collectionDetail.confirm.removeTitle'),
+      t('collectionDetail.confirm.removeMessage', { title: articleTitle }),
       [
         {
-          text: 'Cancel',
+          text: t('collectionDetail.confirm.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Remove',
+          text: t('collectionDetail.confirm.remove'),
           style: 'destructive',
           onPress: async () => {
             await unbookmarkArticle(articleId);
@@ -80,7 +82,7 @@ export default function CollectionDetailScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading collection...
+            {t('collectionDetail.loading')}
           </Text>
         </View>
       </SafeAreaView>
@@ -98,13 +100,13 @@ export default function CollectionDetailScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Collection</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('collectionDetail.title')}</Text>
         </View>
 
         <View style={styles.errorContainer}>
           <EmptyState
             icon="alert-circle-outline"
-            title="Unable to Load Collection"
+            title={t('collectionDetail.errors.unableToLoad')}
             message={error}
           />
         </View>
@@ -122,14 +124,14 @@ export default function CollectionDetailScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Collection</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('collectionDetail.title')}</Text>
         </View>
 
         <View style={styles.errorContainer}>
           <EmptyState
             icon="folder-open-outline"
-            title="Collection Not Found"
-            message="This collection may have been deleted"
+            title={t('collectionDetail.errors.notFound')}
+            message={t('collectionDetail.errors.notFoundMessage')}
           />
         </View>
       </SafeAreaView>
@@ -149,7 +151,7 @@ export default function CollectionDetailScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Collection</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('collectionDetail.title')}</Text>
       </View>
 
       <ScrollView
@@ -184,7 +186,7 @@ export default function CollectionDetailScreen() {
             {unreadArticles.length > 0 && (
               <View style={styles.section}>
                 <SectionHeader
-                  title={`To Read (${unreadArticles.length})`}
+                  title={t('collectionDetail.sections.toRead', { count: unreadArticles.length })}
                   icon="book-outline"
                   iconColor={colors.primary}
                   showViewAll={false}
@@ -207,7 +209,7 @@ export default function CollectionDetailScreen() {
             {readArticles.length > 0 && (
               <View style={styles.section}>
                 <SectionHeader
-                  title={`Completed (${readArticles.length})`}
+                  title={t('collectionDetail.sections.completed', { count: readArticles.length })}
                   icon="checkmark-circle-outline"
                   iconColor={colors.success}
                   showViewAll={false}
@@ -231,8 +233,8 @@ export default function CollectionDetailScreen() {
           <View style={styles.section}>
             <EmptyState
               icon="folder-open-outline"
-              title="No Articles Yet"
-              message="Bookmark articles to add them to this collection"
+              title={t('collectionDetail.emptyState.title')}
+              message={t('collectionDetail.emptyState.message')}
             />
           </View>
         )}
@@ -253,6 +255,7 @@ interface ArticleCardProps {
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ article, isRead = false, onPress, onUnbookmark }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   return (
@@ -274,7 +277,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isRead = false, onPr
           {isRead && (
             <View style={[styles.readBadge, { backgroundColor: colors.success + '20' }]}>
               <Ionicons name="checkmark-circle" size={12} color={colors.success} />
-              <Text style={[styles.readBadgeText, { color: colors.success }]}>Read</Text>
+              <Text style={[styles.readBadgeText, { color: colors.success }]}>{t('collectionDetail.articleCard.read')}</Text>
             </View>
           )}
 
@@ -308,7 +311,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isRead = false, onPr
             <View style={styles.statItem}>
               <Ionicons name="time-outline" size={12} color={colors.textMuted} />
               <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                {article.readTimeMinutes} min
+                {article.readTimeMinutes} {t('collectionDetail.articleCard.min')}
               </Text>
             </View>
           </View>

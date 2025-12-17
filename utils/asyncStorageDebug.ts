@@ -9,7 +9,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const clearReadingLevel = async () => {
   try {
     await AsyncStorage.removeItem('preferredReadingLevel');
-    console.log('✅ [Debug] Reading level preference cleared');
   } catch (error) {
     console.error('❌ [Debug] Failed to clear reading level:', error);
   }

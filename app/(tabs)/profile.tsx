@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Colors, Spacing, Typography } from '@/constants/theme';
 import {
   ProfileHeader,
@@ -14,6 +16,7 @@ import { quickStats as quickStatsMock, settingsMenu as settingsMenuData } from '
 import React, { useEffect, useState } from 'react';
 import { useGamificationStats } from '@/hooks/useGamificationStats';
 import { useWeeklyGoal } from '@/hooks/useWeeklyGoal';
+ 
 import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -110,19 +113,15 @@ export default function ProfileScreen() {
       'This will delete all your personalization data (reading level & topic interests). You will need to complete the onboarding quiz again. Continue?',
       async () => {
         try {
-          console.log('[Debug] Resetting personalization...');
 
           // 1. Call backend API to delete personalization
           await personalizationApi.resetPersonalization();
-          console.log('[Debug] ✅ Backend personalization deleted');
 
           // 2. Clear local AsyncStorage (tutorial flag + reading level preference)
           await AsyncStorage.multiRemove(['hasSeenPersonalizationTutorial', 'preferredReadingLevel']);
-          console.log('[Debug] ✅ Local tutorial flag & reading level cleared');
 
           toast.success('Personalization reset! Navigate to Home to see PersonalizationCard.');
         } catch (error: any) {
-          console.error('[Debug] ❌ Error resetting personalization:', error);
           alert.error('Error', `Failed to reset: ${error?.message || 'Unknown error'}`);
         }
       }
@@ -132,15 +131,11 @@ export default function ProfileScreen() {
   // Debug: Show onboarding again (keeps backend data)
   const handleShowOnboarding = async () => {
     try {
-      console.log('[Debug] Triggering onboarding display...');
 
       // Clear only local flag (backend data stays intact)
       await AsyncStorage.removeItem('hasSeenPersonalizationTutorial');
-      console.log('[Debug] ✅ Tutorial flag cleared');
-
       toast.success('Onboarding triggered! Navigate to Home to see PersonalizationCard.');
     } catch (error: any) {
-      console.error('[Debug] ❌ Error triggering onboarding:', error);
       alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
     }
   };
@@ -148,17 +143,13 @@ export default function ProfileScreen() {
   // Debug: Clear reading level preference only
   const handleClearReadingLevel = async () => {
     try {
-      console.log('[Debug] Clearing reading level preference...');
 
       const currentLevel = await AsyncStorage.getItem('preferredReadingLevel');
-      console.log('[Debug] Current reading level:', currentLevel);
 
       await AsyncStorage.removeItem('preferredReadingLevel');
-      console.log('[Debug] ✅ Reading level preference cleared');
 
       toast.success('Reading level cleared! Will use default (SIMPLE) or API sync.');
     } catch (error: any) {
-      console.error('[Debug] ❌ Error clearing reading level:', error);
       alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
     }
   };
@@ -170,22 +161,17 @@ export default function ProfileScreen() {
       'This will reset the welcome onboarding screen and logout. You will see the 3-slide carousel when you restart the app. Continue?',
       async () => {
         try {
-          console.log('[Debug] Resetting welcome screen...');
 
           // 1. Clear welcome onboarding flag
           await AsyncStorage.removeItem('onboarding_completed');
-          console.log('[Debug] ✅ Welcome onboarding flag cleared');
-
           // 2. Logout user
           await logout();
-          console.log('[Debug] ✅ User logged out');
 
           // 3. Navigate to login (Welcome will show on next app start)
           router.replace('/(auth)/login');
 
           toast.success('Welcome screen reset! Restart app to see welcome onboarding.');
         } catch (error: any) {
-          console.error('[Debug] ❌ Error resetting welcome screen:', error);
           alert.error('Error', `Failed: ${error?.message || 'Unknown error'}`);
         }
       }
@@ -198,35 +184,36 @@ export default function ProfileScreen() {
       case 'EDIT_PROFILE':
         setShowEditModal(true);
         break;
-      case 'CHANGE_PASSWORD':
-        console.log('Change Password');
-        break;
-      case 'EMAIL_PREFERENCES':
-        console.log('Email Preferences');
-        break;
+      // TODO: Uncomment for future development
+      // case 'CHANGE_PASSWORD':
+      //   console.log('Change Password');
+      //   break;
+      // case 'EMAIL_PREFERENCES':
+      //   console.log('Email Preferences');
+      //   break;
       case 'READING_GOALS':
         setShowGoalModal(true);
         break;
       case 'PERSONALIZATION':
         router.push('/personalization');
         break;
-      case 'NOTIFICATIONS':
-        console.log('Notifications');
-        break;
+      // case 'NOTIFICATIONS':
+      //   console.log('Notifications');
+      //   break;
       case 'LANGUAGE':
         setShowLanguageModal(true);
         break;
       case 'HELP_SUPPORT':
-        console.log('Help & Support');
+        router.push('/help-support');
         break;
       case 'PRIVACY_POLICY':
-        console.log('Privacy Policy');
+        router.push('/privacy-policy');
         break;
       case 'TERMS_SERVICE':
-        console.log('Terms of Service');
+        router.push('/terms-service');
         break;
       case 'ABOUT_SCORY':
-        console.log('About Scory');
+        router.push('/about');
         break;
       default:
         console.log('Unknown action:', action);

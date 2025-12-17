@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { InsightNote } from '@/services';
+import { useTranslation } from 'react-i18next';
 
 interface InsightCardProps {
   insight: InsightNote;
@@ -12,7 +13,7 @@ interface InsightCardProps {
 /**
  * Format date as relative time (Today, Yesterday, X days ago)
  */
-const formatRelativeDate = (dateString: string): string => {
+const formatRelativeDate = (dateString: string, t: any): string => {
   const date = new Date(dateString);
   const now = new Date();
 
@@ -23,22 +24,23 @@ const formatRelativeDate = (dateString: string): string => {
   const diffMs = nowOnly.getTime() - dateOnly.getTime();
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return `${Math.floor(diffDays / 30)} months ago`;
+  if (diffDays === 0) return t('insightCard.dates.today');
+  if (diffDays === 1) return t('insightCard.dates.yesterday');
+  if (diffDays < 7) return t('insightCard.dates.daysAgo', { days: diffDays });
+  if (diffDays < 30) return t('insightCard.dates.weeksAgo', { weeks: Math.floor(diffDays / 7) });
+  return t('insightCard.dates.monthsAgo', { months: Math.floor(diffDays / 30) });
 };
 
 export const InsightCard: React.FC<InsightCardProps> = ({ insight, onPress }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
 
   // Format date
-  const date = formatRelativeDate(insight.createdAt);
+  const date = formatRelativeDate(insight.createdAt, t);
 
   // Determine title and type
   const isStandalone = !insight.articleId;
-  const displayTitle = insight.articleTitle || insight.title || 'Personal Note';
+  const displayTitle = insight.articleTitle || insight.title || t('insightCard.personalNote');
 
   return (
     <TouchableOpacity
@@ -47,11 +49,11 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight, onPress }) =>
       onPress={onPress}
     >
       <View style={styles.insightHeader}>
-        <View style={styles.titleContainer}>
+        <View style={[styles.titleContainer, { borderLeftColor: colors.third }]}>
           {isStandalone && (
             <Ionicons name="document-text-outline" size={16} color={colors.textMuted} style={styles.titleIcon} />
           )}
-          <Text style={[styles.insightArticleTitle, { color: colors.text }]} numberOfLines={1}>
+          <Text style={[styles.insightArticleTitle, { color: colors.text }]}>
             {displayTitle}
           </Text>
         </View>
@@ -65,7 +67,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight, onPress }) =>
       </Text>
 
       <View style={styles.seeDetailContainer}>
-        <Text style={[styles.seeDetailText, { color: colors.third }]}>See Detail</Text>
+        <Text style={[styles.seeDetailText, { color: colors.third }]}>{t('insightCard.seeDetail')}</Text>
         <Ionicons name="chevron-forward" size={16} color={colors.third} />
       </View>
     </TouchableOpacity>
@@ -89,6 +91,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
+    paddingLeft: Spacing.sm,
+    borderLeftWidth: 3,
   },
   titleIcon: {
     marginTop: 2,

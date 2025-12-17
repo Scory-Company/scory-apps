@@ -199,13 +199,21 @@ export const ComprehensionSection: React.FC<ComprehensionSectionProps> = ({
 
     // Handle gamification result if present
     if (gamificationResult) {
+      // ✅ IMPORTANT: Always call the callback with gamification result
+      // This triggers the feedback modal after quiz completion
       onGamificationResult?.(gamificationResult);
     } else {
+      // ✅ FALLBACK: Even if no gamification result, still trigger callback
+      // This ensures feedback modal appears after quiz completion
+      onGamificationResult?.({
+        completionType: 'basic',
+        streakUpdated: false,
+      });
+
       if (!readingStartTime) {
         // Don't show toast again if already shown above
         return;
       }
-      toast.warning('Gamification data not available');
     }
   };
 

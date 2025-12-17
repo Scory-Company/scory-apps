@@ -67,6 +67,9 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
   onReadSimplified,
 }) => {
   const colors = Colors.light;
+  
+  // Create styles with theme colors
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
 
   // Determine source type and simplification status
   const isExternalSource = result.source === 'openalex' || result.source === 'scholar';
@@ -83,12 +86,12 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
   // Highlight matching text in title
   const renderHighlightedTitle = () => {
     if (!highlightText || highlightText.trim() === '') {
-      return <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>{result.title}</Text>;
+      return <Text style={[styles.title, { color: colors.text }]}>{result.title}</Text>;
     }
 
     const parts = result.title.split(new RegExp(`(${highlightText})`, 'gi'));
     return (
-      <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
+      <Text style={[styles.title, { color: colors.text }]}>
         {parts.map((part, i) =>
           part.toLowerCase() === highlightText.toLowerCase() ? (
             <Text key={i} style={[styles.highlight, { backgroundColor: colors.warning + '30' }]}>
@@ -144,7 +147,7 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
           {/* Source Badge */}
           {isExternalSource && (
             <View style={styles.sourceBadge}>
-              <Ionicons name="globe-outline" size={10} color="#6366F1" />
+              <Ionicons name="globe-outline" size={10} color={colors.info} />
               <Text style={styles.sourceBadgeText}>
                 {result.source === 'scholar' ? 'Google Scholar' : 'OpenAlex'}
               </Text>
@@ -154,7 +157,7 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
           {/* Already Simplified Badge */}
           {isSimplified && (
             <View style={styles.simplifiedBadge}>
-              <Ionicons name="checkmark-circle" size={10} color="#10B981" />
+              <Ionicons name="checkmark-circle" size={10} color={colors.success} />
               <Text style={styles.simplifiedBadgeText}>✓ Already Simplified</Text>
             </View>
           )}
@@ -227,7 +230,7 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
               onPress={() => handleOpenUrl(result.pdfUrl)}
               activeOpacity={0.7}
             >
-              <Ionicons name="document-outline" size={16} color="#6366F1" />
+              <Ionicons name="document-outline" size={16} color={colors.info} />
               <Text style={styles.actionText}>PDF</Text>
             </TouchableOpacity>
           )}
@@ -239,7 +242,7 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
               onPress={handleOpenDoi}
               activeOpacity={0.7}
             >
-              <Ionicons name="link-outline" size={16} color="#6366F1" />
+              <Ionicons name="link-outline" size={16} color={colors.info} />
               <Text style={styles.actionText}>DOI</Text>
             </TouchableOpacity>
           )}
@@ -251,7 +254,7 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
               onPress={handleMainAction}
               activeOpacity={0.7}
             >
-              <Ionicons name="book-outline" size={16} color="#FFFFFF" />
+              <Ionicons name="book-outline" size={16} color={colors.textwhite} />
               <Text style={[styles.actionText, styles.primaryActionText]}>Read</Text>
             </TouchableOpacity>
           ) : (
@@ -260,7 +263,7 @@ export const UnifiedSearchResultCard: React.FC<UnifiedSearchResultCardProps> = (
               onPress={handleMainAction}
               activeOpacity={0.7}
             >
-              <Ionicons name="sparkles-outline" size={16} color="#FFFFFF" />
+              <Ionicons name="sparkles-outline" size={16} color={colors.textwhite} />
               <Text style={[styles.actionText, styles.primaryActionText]}>
                 {isExternalSource ? 'Simplify' : 'Read'}
               </Text>
@@ -286,7 +289,8 @@ function citationsToRating(citations: number): number {
   return 0.5;
 }
 
-const styles = StyleSheet.create({
+// Dynamic styles function to support theme colors
+const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
   card: {
     borderRadius: Radius.md,
     overflow: 'hidden',
@@ -294,7 +298,7 @@ const styles = StyleSheet.create({
   },
   externalCard: {
     borderWidth: 1,
-    borderColor: '#E0E7FF',
+    borderColor: colors.border,
   },
   content: {
     padding: Spacing.md,
@@ -309,7 +313,7 @@ const styles = StyleSheet.create({
   sourceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF2FF',
+    backgroundColor: colors.info + '15',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -318,12 +322,12 @@ const styles = StyleSheet.create({
   sourceBadgeText: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#6366F1',
+    color: colors.info,
   },
   simplifiedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.success + '15',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -332,7 +336,7 @@ const styles = StyleSheet.create({
   simplifiedBadgeText: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#10B981',
+    color: colors.success,
   },
   title: {
     fontSize: Typography.fontSize.base,
@@ -412,21 +416,21 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF2FF',
+    backgroundColor: colors.info + '15',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     gap: 4,
   },
   primaryActionButton: {
-    backgroundColor: '#6366F1',
+    backgroundColor: colors.info,
   },
   actionText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#6366F1',
+    color: colors.info,
   },
   primaryActionText: {
-    color: '#FFFFFF',
+    color: colors.textwhite,
   },
 });

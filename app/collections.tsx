@@ -16,8 +16,10 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 export default function AllCollectionsScreen() {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -65,9 +67,9 @@ export default function AllCollectionsScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>All Collections</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('collections.title')}</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {collections.length} {collections.length === 1 ? 'collection' : 'collections'}
+            {collections.length} {collections.length === 1 ? t('collections.collection') : t('collections.collection_plural')}
           </Text>
         </View>
       </View>
@@ -78,7 +80,7 @@ export default function AllCollectionsScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           onSearch={() => {}} // No-op, filtering happens on text change
-          placeholder="Search collections..."
+          placeholder={t('collections.searchPlaceholder')}
         />
       </View>
 
@@ -106,7 +108,7 @@ export default function AllCollectionsScreen() {
           <View style={styles.emptyContainer}>
             <EmptyState
               icon="alert-circle-outline"
-              title="Unable to Load Collections"
+              title={t('collections.errors.unableToLoad')}
               message={error}
             />
           </View>
@@ -131,8 +133,8 @@ export default function AllCollectionsScreen() {
           <View style={styles.emptyContainer}>
             <EmptyState
               icon="search-outline"
-              title="No Collections Found"
-              message={`No collections match "${searchQuery}"`}
+              title={t('collections.emptyStates.noResults')}
+              message={t('collections.emptyStates.noResultsMessage', { query: searchQuery })}
             />
           </View>
         ) : (
@@ -140,8 +142,8 @@ export default function AllCollectionsScreen() {
           <View style={styles.emptyContainer}>
             <EmptyState
               icon="folder-open-outline"
-              title="No Collections Yet"
-              message="Bookmark articles to automatically create collections by category"
+              title={t('collections.emptyStates.noCollections')}
+              message={t('collections.emptyStates.noCollectionsMessage')}
             />
           </View>
         )}

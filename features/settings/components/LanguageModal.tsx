@@ -11,7 +11,13 @@ interface LanguageModalProps {
 
 export function LanguageModal({ visible, onClose }: LanguageModalProps) {
   return (
-    <BottomSheetModal visible={visible} onClose={onClose} height="auto">
+    <BottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      height="75%"
+      showHandle={true}
+      enableSwipeToDismiss={true}
+    >
       <View style={styles.container}>
         <LanguageSelector />
       </View>
@@ -22,6 +28,7 @@ export function LanguageModal({ visible, onClose }: LanguageModalProps) {
 const styles = StyleSheet.create({
   container: {
     padding: Spacing.lg,
-    paddingBottom: Spacing.xl,
+    paddingBottom: Spacing['3xl'],
+    minHeight: '70%',
   },
 });

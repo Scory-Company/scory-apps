@@ -16,8 +16,10 @@ import { Colors, Spacing, Typography } from '@/constants/theme';
 import { InsightCard } from '@/features/learn/components';
 import { EmptyState } from '@/features/shared/components';
 import { useUserInsights } from '@/hooks/useUserInsights';
+import { useTranslation } from 'react-i18next';
 
 export default function AllInsightsScreen() {
+  const { t } = useTranslation();
   const colors = Colors.light;
   const router = useRouter();
 
@@ -67,9 +69,12 @@ export default function AllInsightsScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>All Notes</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('allInsights.title')}</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {allInsights.length} {allInsights.length === 1 ? 'note' : 'notes'} total
+            {t('allInsights.total', {
+              count: allInsights.length,
+              label: allInsights.length === 1 ? t('allInsights.note') : t('allInsights.note_plural')
+            })}
           </Text>
         </View>
         <View style={{ width: 24 }} />
@@ -91,7 +96,7 @@ export default function AllInsightsScreen() {
               { color: filterType === 'all' ? '#FFFFFF' : colors.textSecondary },
             ]}
           >
-            All ({allInsights.length})
+            {t('allInsights.filters.all')} ({allInsights.length})
           </Text>
         </TouchableOpacity>
 
@@ -109,7 +114,7 @@ export default function AllInsightsScreen() {
               { color: filterType === 'article' ? '#FFFFFF' : colors.textSecondary },
             ]}
           >
-            Article ({articleNotesCount})
+            {t('allInsights.filters.article')} ({articleNotesCount})
           </Text>
         </TouchableOpacity>
 
@@ -127,7 +132,7 @@ export default function AllInsightsScreen() {
               { color: filterType === 'standalone' ? '#FFFFFF' : colors.textSecondary },
             ]}
           >
-            Personal ({standaloneNotesCount})
+            {t('allInsights.filters.personal')} ({standaloneNotesCount})
           </Text>
         </TouchableOpacity>
       </View>
@@ -150,15 +155,15 @@ export default function AllInsightsScreen() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-              Loading your notes...
+              {t('allInsights.loading')}
             </Text>
           </View>
         ) : insightsError ? (
           <EmptyState
             icon="alert-circle-outline"
-            title="Unable to Load Notes"
+            title={t('allInsights.errors.unableToLoad')}
             message={insightsError}
-            actionLabel="Try Again"
+            actionLabel={t('allInsights.errors.tryAgain')}
             onActionPress={refreshInsights}
           />
         ) : filteredInsights.length > 0 ? (
@@ -176,19 +181,19 @@ export default function AllInsightsScreen() {
             icon="document-text-outline"
             title={
               filterType === 'article'
-                ? 'No Article Notes'
+                ? t('allInsights.emptyStates.noArticleNotes')
                 : filterType === 'standalone'
-                ? 'No Personal Notes'
-                : 'No Notes Yet'
+                ? t('allInsights.emptyStates.noPersonalNotes')
+                : t('allInsights.emptyStates.noNotes')
             }
             message={
               filterType === 'article'
-                ? 'Start taking notes while reading articles'
+                ? t('allInsights.emptyStates.noArticleNotesMessage')
                 : filterType === 'standalone'
-                ? 'Create personal notes to capture your thoughts'
-                : 'Start capturing your insights and ideas'
+                ? t('allInsights.emptyStates.noPersonalNotesMessage')
+                : t('allInsights.emptyStates.noNotesMessage')
             }
-            actionLabel="Go Back"
+            actionLabel={t('allInsights.emptyStates.goBack')}
             onActionPress={() => router.back()}
           />
         )}
