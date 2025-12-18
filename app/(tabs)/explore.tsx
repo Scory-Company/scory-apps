@@ -75,6 +75,8 @@ export default function ExploreScreen() {
   // Fetch ALL articles from API for filtering (instant category filter)
   const [allFetchedArticles, setAllFetchedArticles] = useState<DisplayArticle[]>([]);
   const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
+  const [isLoadingCategory, setIsLoadingCategory] = useState(false);
+  const [hasFetchedArticles, setHasFetchedArticles] = useState(false); // Track if articles have been fetched
 
   // External search results (OpenAlex + Scholar) state
   const [externalResults, setExternalResults] = useState<SearchResult[]>([]);
@@ -126,36 +128,53 @@ export default function ExploreScreen() {
 
   // Auto-fetch internal articles when category changes (for instant filtering)
   useEffect(() => {
-    if (selectedCategory !== 'All' && allFetchedArticles.length === 0) {
-      // Fetch articles in background for instant category filtering
-      const fetchForCategory = async () => {
-        try {
-          const params: any = { page: 1, limit: 50 };
-          const response = await articlesApi.getArticles(params);
-          const apiData = response.data?.data;
+    if (selectedCategory !== 'All') {
+      // Only fetch if not already fetched (caching)
+      if (!hasFetchedArticles) {
+        // Fetch articles in background for instant category filtering
+        const fetchForCategory = async () => {
+          setIsLoadingCategory(true);
+          try {
+            const params: any = { page: 1, limit: 50 };
+            const response = await articlesApi.getArticles(params);
+            const apiData = response.data?.data;
 
-          if (apiData?.articles && apiData.articles.length > 0) {
-            const transformed = apiData.articles.map((article: any) => ({
-              id: article.id,
-              slug: article.slug,
-              image: { uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' },
-              title: article.title,
-              author: article.authorName,
-              category: article.category?.name || 'General',
-              rating: article.rating,
-              reads: article.viewCount >= 1000
-                ? `${(article.viewCount / 1000).toFixed(1)}k reads`
-                : `${article.viewCount || 0} reads`,
-            }));
-            setAllFetchedArticles(transformed);
+            if (apiData?.articles && apiData.articles.length > 0) {
+              const transformed = apiData.articles.map((article: any) => ({
+                id: article.id,
+                slug: article.slug,
+                image: { uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' },
+                title: article.title,
+                author: article.authorName,
+                category: article.category?.name || 'General',
+                rating: article.rating,
+                reads: article.viewCount >= 1000
+                  ? `${(article.viewCount / 1000).toFixed(1)}k reads`
+                  : `${article.viewCount || 0} reads`,
+              }));
+              setAllFetchedArticles(transformed);
+              setHasFetchedArticles(true); // Mark as fetched
+            } else {
+              setAllFetchedArticles([]);
+              setHasFetchedArticles(true);
+            }
+          } catch {
+            setAllFetchedArticles([]);
+            setHasFetchedArticles(true);
+          } finally {
+            setIsLoadingCategory(false);
           }
-        } catch {
-          // Silent error
-        }
-      };
-      fetchForCategory();
+        };
+        fetchForCategory();
+      } else {
+        // Already have data, no need to show loading
+        setIsLoadingCategory(false);
+      }
+    } else {
+      // Reset when "All" is selected
+      setIsLoadingCategory(false);
     }
-  }, [selectedCategory, allFetchedArticles.length]);
+  }, [selectedCategory, hasFetchedArticles]);
 
   const fetchCategories = async () => {
     setIsLoadingTrending(true);
@@ -337,6 +356,11 @@ export default function ExploreScreen() {
   
   // Apply client-side filtering to fetched articles
   const filteredResults = useMemo(() => {
+    // If loading, return empty array (will show skeleton)
+    if (isLoadingCategory) {
+      return [];
+    }
+
     // If no search triggered but category selected, show instant filtered results
     if (!hasSearched && selectedCategory !== 'All') {
       return filterContent({
@@ -356,7 +380,7 @@ export default function ExploreScreen() {
     }
 
     return [];
-  }, [hasSearched, hasActiveFilters, allFetchedArticles, searchQuery, selectedCategory]);
+  }, [hasSearched, hasActiveFilters, allFetchedArticles, searchQuery, selectedCategory, isLoadingCategory]);
 
   // Note: External search is now fetched together with internal search in fetchAllArticles()
   // No need for separate auto-fallback logic
@@ -484,34 +508,53 @@ export default function ExploreScreen() {
 
         {/* CONDITIONAL RENDERING: Filtered View vs Empty State vs Default View */}
         {/* Show filtered view if: category selected OR search triggered */}
-        {(selectedCategory !== 'All' || hasSearched) && (filteredResults.length > 0 || externalResults.length > 0 || isLoadingFiltered) ? (
-          // ========== FILTERED VIEW (Has Results) ==========
-          <FilteredContentView
-            results={filteredResults}
-            searchQuery={searchQuery}
-            selectedCategory={selectedCategory}
-            onClearFilters={handleClearFilters}
-            onClearSearch={handleClearSearch}
-            onClearCategory={handleClearCategory}
-            isLoading={isLoadingFiltered || isSearchingExternal}
-            externalResults={externalResults}
-            hasMore={hasMore}
-            onLoadMore={handleLoadMore}
-            isLoadingMore={isLoadingMore}
-            onSimplifyExternal={handleSimplifyExternalPaper}
-          />
-        ) : (selectedCategory !== 'All' && !isLoadingFiltered && externalResults.length === 0) ? (
-          // ========== EMPTY STATE (Category selected but no results) ==========
-          <View style={{ paddingVertical: Spacing['4xl'] }}>
-            <EmptyState
-              icon="search-outline"
-              title={t('explore.emptyState.title')}
-              message={t('explore.emptyState.message', { category: selectedCategory })}
-              actionLabel={t('explore.emptyState.clearFilter')}
-              actionIcon="close-circle"
-              onActionPress={handleClearCategory}
+        {selectedCategory !== 'All' || hasSearched ? (
+          // Category is selected or search is triggered
+          isLoadingCategory || isLoadingFiltered ? (
+            // ========== LOADING STATE (Show Skeleton) ==========
+            <FilteredContentView
+              results={[]}
+              searchQuery={searchQuery}
+              selectedCategory={selectedCategory}
+              onClearFilters={handleClearFilters}
+              onClearSearch={handleClearSearch}
+              onClearCategory={handleClearCategory}
+              isLoading={true}
+              externalResults={[]}
+              hasMore={false}
+              onLoadMore={handleLoadMore}
+              isLoadingMore={false}
+              onSimplifyExternal={handleSimplifyExternalPaper}
             />
-          </View>
+          ) : filteredResults.length > 0 || externalResults.length > 0 ? (
+            // ========== FILTERED VIEW (Has Results) ==========
+            <FilteredContentView
+              results={filteredResults}
+              searchQuery={searchQuery}
+              selectedCategory={selectedCategory}
+              onClearFilters={handleClearFilters}
+              onClearSearch={handleClearSearch}
+              onClearCategory={handleClearCategory}
+              isLoading={false}
+              externalResults={externalResults}
+              hasMore={hasMore}
+              onLoadMore={handleLoadMore}
+              isLoadingMore={isLoadingMore}
+              onSimplifyExternal={handleSimplifyExternalPaper}
+            />
+          ) : (
+            // ========== EMPTY STATE (No results after loading) ==========
+            <View style={{ paddingVertical: Spacing['4xl'] }}>
+              <EmptyState
+                icon="search-outline"
+                title={t('explore.emptyState.title')}
+                message={t('explore.emptyState.message', { category: selectedCategory })}
+                actionLabel={t('explore.emptyState.clearFilter')}
+                actionIcon="close-circle"
+                onActionPress={handleClearCategory}
+              />
+            </View>
+          )
         ) : (
           // ========== DEFAULT VIEW ==========
           <>
@@ -547,6 +590,7 @@ export default function ExploreScreen() {
                       onPress={() => {
                         setSelectedCategory(topic.keyword);
                         setSearchQuery(''); // Clear search query when selecting category
+                        setHasSearched(false); // Reset search state
                       }}
                     />
                   ))

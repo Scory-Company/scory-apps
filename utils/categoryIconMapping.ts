@@ -95,22 +95,30 @@ export const getCategoryBackgroundImage = (categoryName: string) => {
   const name = categoryName.toLowerCase();
 
   // Match exact API categories
-  if (name.includes('science'))
-    return require('@/assets/images/trending-card-bg/science.jpg');
-  if (name.includes('health'))
-    return require('@/assets/images/trending-card-bg/health.jpg');
-  if (name.includes('tech'))
-    return require('@/assets/images/trending-card-bg/technology.jpg');
-  if (name.includes('business'))
-    return require('@/assets/images/trending-card-bg/science.jpg');
-  if (name.includes('finance'))
-    return require('@/assets/images/trending-card-bg/science.jpg');
-  if (name.includes('education'))
-    return require('@/assets/images/trending-card-bg/education.jpg');
-  if (name.includes('environment'))
-    return require('@/assets/images/trending-card-bg/science.jpg');
-  if (name.includes('social'))
-    return require('@/assets/images/trending-card-bg/social.jpg');
+  // Note: Return null for now if images don't exist - will fallback to solid color
+  // To use images, add them to assets/images/trending-card-bg/ folder
+
+  try {
+    if (name.includes('science'))
+      return require('@/assets/images/trending-card-bg/science.jpg');
+    if (name.includes('health'))
+      return require('@/assets/images/trending-card-bg/health.jpg');
+    if (name.includes('tech'))
+      return require('@/assets/images/trending-card-bg/technology.jpg');
+    if (name.includes('business'))
+      return require('@/assets/images/trending-card-bg/business.jpg');
+    if (name.includes('finance'))
+      return require('@/assets/images/trending-card-bg/finance.jpg');
+    if (name.includes('education'))
+      return require('@/assets/images/trending-card-bg/education.jpg');
+    if (name.includes('environment'))
+      return require('@/assets/images/trending-card-bg/environment.jpg');
+    if (name.includes('social'))
+      return require('@/assets/images/trending-card-bg/social.jpg');
+  } catch {
+    // Image file not found, will use solid color fallback
+    return null;
+  }
 
   // Return null if no image available - will fallback to solid color
   return null;
