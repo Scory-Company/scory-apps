@@ -1,8 +1,8 @@
 import { Colors, Spacing, Typography, Radius, Shadows } from '@/constants/theme';
 import { SearchBar } from '@/features/explore/components/SearchBar';
 import { CategoryFilterChips } from '@/features/explore/components/CategoryFilterChips';
-import React, { useState, useMemo, useEffect } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { ScrollView, StatusBar, StyleSheet, Text, View, TouchableOpacity, Image, ActivityIndicator, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { popularArticles, categoryList } from '@/data/mock';
 import { router } from 'expo-router';
@@ -29,8 +29,15 @@ export default function PopularArticlesScreen() {
   const colors = Colors.light;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [articles, setArticles] = useState<DisplayArticle[]>(popularArticles);
+  const [articles, setArticles] = useState<DisplayArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreArticles, setHasMoreArticles] = useState(true);
+  const [isUsingApi, setIsUsingApi] = useState(false);
+
+  const INITIAL_LOAD = 10;
+  const LOAD_MORE_COUNT = 10;
 
   // Fetch articles from API
   useEffect(() => {
@@ -40,7 +47,7 @@ export default function PopularArticlesScreen() {
   const fetchArticles = async () => {
     setIsLoading(true);
     try {
-      const response = await articlesApi.getPopular({ page: 1, limit: 50, timeframe: 'all' });
+      const response = await articlesApi.getPopular({ page: 1, limit: INITIAL_LOAD, timeframe: 'all' });
       const apiData = response.data?.data;
       if (apiData?.articles?.length > 0) {
         const transformed = apiData.articles.map((article: any) => ({
@@ -56,12 +63,76 @@ export default function PopularArticlesScreen() {
             : `${article.viewCount || 0} reads`,
         }));
         setArticles(transformed);
+        setIsUsingApi(true);
+        setHasMoreArticles(apiData.pagination.page < apiData.pagination.totalPages);
       }
     } catch {
       // API unavailable, using mock data
-      setArticles(popularArticles);
+      const initialMockData = popularArticles.slice(0, INITIAL_LOAD);
+      setArticles(initialMockData);
+      setHasMoreArticles(popularArticles.length > INITIAL_LOAD);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Load more articles (API or mock)
+  const loadMoreArticles = useCallback(async () => {
+    if (isLoadingMore || !hasMoreArticles) return;
+
+    setIsLoadingMore(true);
+
+    if (isUsingApi) {
+      // Load from API
+      try {
+        const nextPage = currentPage + 1;
+        const response = await articlesApi.getPopular({ page: nextPage, limit: LOAD_MORE_COUNT, timeframe: 'all' });
+        const apiData = response.data?.data;
+        if (apiData?.articles?.length > 0) {
+          const transformed = apiData.articles.map((article: any) => ({
+            id: article.id,
+            slug: article.slug,
+            image: { uri: article.imageUrl || 'https://images.unsplash.com/photo-1477332552946-cfb384aeaf1c?w=600' },
+            title: article.title,
+            author: article.authorName,
+            category: article.category?.name || 'General',
+            rating: article.rating,
+            reads: article.viewCount >= 1000
+              ? `${(article.viewCount / 1000).toFixed(1)}k reads`
+              : `${article.viewCount || 0} reads`,
+          }));
+          setArticles(prev => [...prev, ...transformed]);
+          setCurrentPage(nextPage);
+          setHasMoreArticles(nextPage < apiData.pagination.totalPages);
+        }
+      } catch {
+        setHasMoreArticles(false);
+      }
+    } else {
+      // Load from mock data
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const currentLength = articles.length;
+      const nextBatch = popularArticles.slice(currentLength, currentLength + LOAD_MORE_COUNT);
+
+      if (nextBatch.length > 0) {
+        setArticles(prev => [...prev, ...nextBatch]);
+        setHasMoreArticles(currentLength + nextBatch.length < popularArticles.length);
+      } else {
+        setHasMoreArticles(false);
+      }
+    }
+
+    setIsLoadingMore(false);
+  }, [isLoadingMore, hasMoreArticles, isUsingApi, currentPage, articles.length, LOAD_MORE_COUNT]);
+
+  // Detect when user scrolls near the end
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const paddingToEnd = 200; // Trigger before reaching the end
+
+    // Check if scrolled near the end
+    if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToEnd) {
+      loadMoreArticles();
     }
   };
 
@@ -102,6 +173,8 @@ export default function PopularArticlesScreen() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {/* Category Filter */}
         <View style={styles.categoryFilterWrapper}>
@@ -144,6 +217,25 @@ export default function PopularArticlesScreen() {
                 </View>
               </TouchableOpacity>
             ))}
+
+            {/* Loading indicator when loading more */}
+            {isLoadingMore && (
+              <View style={styles.loadingMore}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                  Loading more articles...
+                </Text>
+              </View>
+            )}
+
+            {/* End of list indicator */}
+            {!hasMoreArticles && filteredArticles.length > INITIAL_LOAD && (
+              <View style={styles.endOfList}>
+                <Text style={[styles.endOfListText, { color: colors.textMuted }]}>
+                  You&apos;ve reached the end
+                </Text>
+              </View>
+            )}
           </View>
         ) : (
           <View style={styles.emptyState}>
@@ -273,5 +365,25 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     fontSize: Typography.fontSize.sm,
+  },
+  // Loading More Styles
+  loadingMore: {
+    paddingVertical: Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  loadingText: {
+    fontSize: Typography.fontSize.sm,
+  },
+  // End of List Styles
+  endOfList: {
+    paddingVertical: Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  endOfListText: {
+    fontSize: Typography.fontSize.sm,
+    fontStyle: 'italic',
   },
 });

@@ -52,7 +52,9 @@ export const FilteredContentView: React.FC<FilteredContentViewProps> = ({
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <SkeletonSearchResult count={5} />
+        <View style={styles.resultsList}>
+          <SkeletonSearchResult count={5} />
+        </View>
       </View>
     );
   }

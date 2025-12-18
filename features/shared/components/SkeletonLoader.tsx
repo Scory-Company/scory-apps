@@ -204,9 +204,9 @@ interface SkeletonSearchResultProps {
 }
 
 /**
- * Skeleton for search result cards (horizontal layout with image on left)
+ * Skeleton for UnifiedSearchResultCard (vertical layout without image)
  * Used in FilteredContentView for search/filter results
- * Matches SearchResultCard component layout
+ * Matches UnifiedSearchResultCard component layout with badges and action buttons
  */
 export const SkeletonSearchResult: React.FC<SkeletonSearchResultProps> = ({
   count = 3,
@@ -218,42 +218,62 @@ export const SkeletonSearchResult: React.FC<SkeletonSearchResultProps> = ({
       {Array.from({ length: count }).map((_, index) => (
         <View
           key={index}
-          style={[styles.searchResultCard, { backgroundColor: colors.surface }]}
+          style={[styles.unifiedSearchCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
-          {/* Image skeleton - left side (100px width, full height) */}
+          {/* Badges Row */}
+          <View style={styles.badgesRow}>
+            <SkeletonLoader width={80} height={16} borderRadius={4} />
+            <SkeletonLoader width={110} height={16} borderRadius={4} />
+          </View>
+
+          {/* Title (2 lines) */}
           <SkeletonLoader
-            width={100}
-            height={120}
-            borderRadius={0}
+            width="100%"
+            height={18}
+            style={{ marginBottom: 4 }}
+          />
+          <SkeletonLoader
+            width="75%"
+            height={18}
+            style={{ marginBottom: Spacing.xs }}
           />
 
-          {/* Content - right side */}
-          <View style={styles.searchResultContent}>
-            {/* Title (2 lines) */}
-            <SkeletonLoader
-              width="100%"
-              height={16}
-              style={{ marginBottom: 4 }}
-            />
-            <SkeletonLoader
-              width="85%"
-              height={16}
-              style={{ marginBottom: Spacing.xs }}
-            />
+          {/* Author */}
+          <SkeletonLoader
+            width={140}
+            height={14}
+            style={{ marginBottom: Spacing.xs }}
+          />
 
-            {/* Author */}
-            <SkeletonLoader
-              width={120}
-              height={14}
-              style={{ marginBottom: Spacing.xs }}
-            />
+          {/* Meta Row (category badge + year) */}
+          <View style={styles.metaRow}>
+            <SkeletonLoader width={80} height={20} borderRadius={Radius.sm} />
+            <SkeletonLoader width={40} height={14} />
+          </View>
 
-            {/* Meta row (category, rating, reads in horizontal) */}
-            <View style={styles.searchResultMeta}>
-              <SkeletonLoader width={60} height={18} />
-              <SkeletonLoader width={40} height={14} />
-              <SkeletonLoader width={50} height={14} />
-            </View>
+          {/* Excerpt (2 lines) */}
+          <SkeletonLoader
+            width="100%"
+            height={14}
+            style={{ marginBottom: 3, marginTop: Spacing.xs }}
+          />
+          <SkeletonLoader
+            width="90%"
+            height={14}
+            style={{ marginBottom: Spacing.xs }}
+          />
+
+          {/* Footer (rating + citations) */}
+          <View style={styles.footerRow}>
+            <SkeletonLoader width={45} height={14} />
+            <SkeletonLoader width={85} height={14} />
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionsRow}>
+            <SkeletonLoader width={55} height={28} borderRadius={8} />
+            <SkeletonLoader width={50} height={28} borderRadius={8} />
+            <SkeletonLoader width={75} height={28} borderRadius={8} />
           </View>
         </View>
       ))}
@@ -577,24 +597,37 @@ const styles = StyleSheet.create({
   comprehensionSection: {
     marginTop: Spacing['2xl'],
   },
-  // Search Result Skeleton (matches SearchResultCard layout)
+  // Search Result Skeleton (matches UnifiedSearchResultCard layout)
   searchResultContainer: {
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
-  searchResultCard: {
-    flexDirection: 'row',
+  unifiedSearchCard: {
     borderRadius: Radius.md,
-    overflow: 'hidden',
+    borderWidth: 1,
+    padding: Spacing.md,
+    gap: Spacing.xs,
   },
-  searchResultContent: {
-    flex: 1,
-    padding: Spacing.sm,
-    justifyContent: 'space-between',
+  badgesRow: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginBottom: Spacing.xs,
   },
-  searchResultMeta: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.xs,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginTop: Spacing.xs,
   },
   // Collection Card Skeleton
   collectionCardContainer: {

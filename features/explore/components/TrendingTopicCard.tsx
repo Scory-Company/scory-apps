@@ -1,15 +1,15 @@
 import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface TrendingTopicCardProps {
   keyword: string;
   count: string;
   onPress: () => void;
   icon?: keyof typeof Ionicons.glyphMap;
-  gradientColors?: [string, string, ...string[]];
+  backgroundColor?: string;
+  backgroundImage?: any; // Image source from require()
 }
 
 export const TrendingTopicCard: React.FC<TrendingTopicCardProps> = ({
@@ -17,87 +17,107 @@ export const TrendingTopicCard: React.FC<TrendingTopicCardProps> = ({
   count,
   onPress,
   icon = 'flash',
-  gradientColors = ['#667eea', '#764ba2'],
+  backgroundColor = '#6366F1',
+  backgroundImage,
 }) => {
+  const cardContent = (
+    <View style={styles.cardContent}>
+      {/* Icon at top */}
+      <View style={styles.iconContainer}>
+        <Ionicons name={icon} size={28} color="#FFFFFF" />
+      </View>
+
+      {/* Title text */}
+      <Text style={styles.trendingKeyword} numberOfLines={2}>
+        {keyword}
+      </Text>
+
+      {/* Bottom: Count */}
+      <View style={styles.bottomRow}>
+        <Text style={styles.trendingCount}>{count}</Text>
+      </View>
+    </View>
+  );
+
   return (
     <TouchableOpacity
-      style={[styles.trendingCard, Shadows.md]}
+      style={styles.trendingCard}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
     >
-      <LinearGradient
-        colors={gradientColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradientBackground}
-      >
-        <View style={styles.overlay} />
-
-        <View style={styles.iconContainer}>
-          <Ionicons name={icon} size={32} color="rgba(255, 255, 255, 0.9)" />
+      {backgroundImage ? (
+        <ImageBackground
+          source={backgroundImage}
+          style={[styles.imageBackground, { backgroundColor }]}
+          imageStyle={styles.imageStyle}
+          resizeMode="cover"
+        >
+          {cardContent}
+        </ImageBackground>
+      ) : (
+        <View style={[styles.solidBackground, { backgroundColor }]}>
+          {cardContent}
         </View>
-
-        <Text style={styles.trendingKeyword}>{keyword}</Text>
-
-        <View style={styles.bottomRow}>
-          <Text style={styles.trendingCount}>{count}</Text>
-          <View style={styles.iconCircle}>
-            <Ionicons name="chevron-forward" size={16} color="rgba(255, 255, 255, 0.9)" />
-          </View>
-        </View>
-      </LinearGradient>
+      )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   trendingCard: {
-    borderRadius: Radius.lg,
+    borderRadius: 16,
     marginBottom: Spacing.sm,
-    minHeight: 150,
+    minHeight: 145,
     width: '48%',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
   },
-  gradientBackground: {
+  imageBackground: {
     flex: 1,
-    padding: Spacing.md,
-    justifyContent: 'space-between',
-    minHeight: 150,
+    minHeight: 145,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  imageStyle: {
+    borderRadius: 16,
+  },
+  solidBackground: {
+    flex: 1,
+    minHeight: 145,
+    borderRadius: 16,
+  },
+  cardContent: {
+    flex: 1,
+    padding: Spacing.lg,
+    justifyContent: 'space-between',
+    minHeight: 145,
   },
   iconContainer: {
-    marginBottom: Spacing.xs,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
   },
   trendingKeyword: {
-    fontSize: Typography.fontSize.base,
+    fontSize: Typography.fontSize['2xl'],
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: Spacing.xs,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    letterSpacing: -0.3,
+    lineHeight: 32,
   },
   trendingCount: {
-    fontSize: Typography.fontSize.xs,
-    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: Typography.fontSize.sm,
+    color: 'rgba(255, 255, 255, 0.95)',
     fontWeight: '500',
-    flex: 1,
   },
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: Spacing.sm,
-  },
-  iconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
 });

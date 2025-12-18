@@ -9,6 +9,7 @@ export const Colors = {
     primary: '#26EE5A',
     primaryLight: '#74E99D',
     primaryDark: '#000000',
+    bgGray: '#D8D8D8',
     secondary: '#282828',
     third: '#19A03DFF',
     success: '#22C55E',

@@ -50,9 +50,6 @@ export default function HomeScreen() {
   // Categories state
   const [categoryCards, setCategoryCards] = useState(mockCategoryCards);
 
-  // First-time user indicator state
-  const [showPersonalizationIndicator, setShowPersonalizationIndicator] = useState(false);
-
   // Personalization state - dynamically fetched from API
   const [hasCompletedPersonalization, setHasCompletedPersonalization] = useState(false);
   const [userReadingLevel, setUserReadingLevel] = useState<ReadingLevel>('student');
@@ -115,7 +112,6 @@ export default function HomeScreen() {
   // Load user and popular articles on initial mount
   useEffect(() => {
     loadUser();
-    checkFirstTimeUser();
     checkPersonalizationStatus();
     fetchCategories();
     fetchPopularArticles();
@@ -146,18 +142,6 @@ export default function HomeScreen() {
       }
     } catch {
       setHasMoreArticles(popularArticles.length > INITIAL_LOAD);
-    }
-  };
-
-  // Check if this is first-time user
-  const checkFirstTimeUser = async () => {
-    try {
-      const hasSeenTutorial = await AsyncStorage.getItem('hasSeenPersonalizationTutorial');
-      if (!hasSeenTutorial) {
-        setShowPersonalizationIndicator(true);
-      }
-    } catch {
-      // Silent error
     }
   };
 
@@ -268,7 +252,7 @@ export default function HomeScreen() {
 
       <View style={styles.header}>
         <GreetingsCard
-          title={`Hello, ${displayName}🖐️`}
+          title={`Hello, ${displayName} 👋🏻`}
           subtitle={t('home.greetingSubtitle')}
           onPress={() => setShowNotificationModal(true)}
           unreadCount={unreadCount}
@@ -305,7 +289,7 @@ export default function HomeScreen() {
           />
         ) : (
           <PersonalizationCard
-            showIndicator={showPersonalizationIndicator}
+            showIndicator={true}
             onPress={() => router.push('/personalization')}
             style={styles.personalizationSection}
           />

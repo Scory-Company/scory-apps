@@ -396,7 +396,21 @@
     "theme": "Theme",
     "darkMode": "Dark Mode",
     "account": "Account",
-    "preferences": "Preferences"
+    "preferences": "Preferences",
+    "personalization": {
+      "title": "Personalization",
+      "readingLevel": "Reading Level",
+      "topics": "Topics",
+      "topicsSelected": "topics selected",
+      "edit": "Edit Personalization",
+      "reset": "Reset Personalization",
+      "setup": "Setup Personalization",
+      "notSetup": "Not Set Up Yet",
+      "setupMessage": "Personalize your reading experience by choosing your preferred reading level and topics.",
+      "resetConfirm": "Are you sure you want to reset your personalization? This will clear your reading level and topic preferences.",
+      "resetSuccess": "Personalization has been reset successfully",
+      "resetError": "Failed to reset personalization"
+    }
   },
   "score": {
     "title": "Score",

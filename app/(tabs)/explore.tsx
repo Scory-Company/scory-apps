@@ -6,6 +6,7 @@ import {
   SectionHeader,
   TopRatedCard,
   TrendingTopicCard,
+  TrendingTopicSkeleton,
   PersonalizationPrompt,
   FilteredContentView
 } from '@/features/explore/components';
@@ -20,13 +21,13 @@ import { articlesApi, categoriesApi, personalizationApi, searchApi, SearchResult
 import { ReadingLevel } from '@/constants/readingLevels';
 import { filterContent } from '@/utils/filterContent';
 import {
-  trendingTopics,
   recentlyAddedArticles as mockRecentlyAdded,
   topRatedArticles as mockTopRated,
   categoryList as mockCategoryList
 } from '@/data/mock';
 import { useBackgroundSimplify } from '@/features/simplify/hooks/useBackgroundSimplify';
 import { useTranslation } from 'react-i18next';
+import { getCategoryIcon, getCategorySolidColor, getCategoryBackgroundImage } from '@/utils/categoryIconMapping';
 
 // Display article type
 interface DisplayArticle {
@@ -42,6 +43,16 @@ interface DisplayArticle {
   badge?: 'new' | 'updated' | null;
 }
 
+// Trending topic type (from categories)
+interface TrendingTopic {
+  id: string;
+  keyword: string;
+  count: string;
+  icon: any;
+  backgroundColor: string;
+  backgroundImage?: any;
+}
+
 export default function ExploreScreen() {
   const { t } = useTranslation();
   const colors = Colors.light;
@@ -52,6 +63,10 @@ export default function ExploreScreen() {
   const [topRatedArticles, setTopRatedArticles] = useState<DisplayArticle[]>(mockTopRated);
   const [recentlyAddedArticles, setRecentlyAddedArticles] = useState<DisplayArticle[]>(mockRecentlyAdded);
   const [categoryList, setCategoryList] = useState<string[]>(mockCategoryList);
+
+  // Trending topics state (dynamic from API)
+  const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
+  const [isLoadingTrending, setIsLoadingTrending] = useState(true);
 
   // Dynamic personalization state - fetched from API
   const [hasPersonalizationData, setHasPersonalizationData] = useState(false);
@@ -85,7 +100,7 @@ export default function ExploreScreen() {
       } else {
         setHasPersonalizationData(false);
       }
-    } catch (error) {
+    } catch {
       setHasPersonalizationData(false);
     }
   }, []);
@@ -134,7 +149,7 @@ export default function ExploreScreen() {
             }));
             setAllFetchedArticles(transformed);
           }
-        } catch (error) {
+        } catch {
           // Silent error
         }
       };
@@ -143,6 +158,7 @@ export default function ExploreScreen() {
   }, [selectedCategory, allFetchedArticles.length]);
 
   const fetchCategories = async () => {
+    setIsLoadingTrending(true);
     try {
       const response = await categoriesApi.getAll();
       const categoriesData = response.data?.data || response.data;
@@ -150,9 +166,35 @@ export default function ExploreScreen() {
       if (categoriesData && Array.isArray(categoriesData)) {
         const categoryNames = ['All', ...categoriesData.map((cat: any) => cat.name)];
         setCategoryList(categoryNames);
+
+        // Transform categories to trending topics (top 4 by articleCount)
+        // Note: API returns _count.articles, not articleCount
+        const sortedCategories = [...categoriesData]
+          .map((cat: any) => ({
+            ...cat,
+            articleCount: cat._count?.articles || cat.articleCount || 0
+          }))
+          .filter((cat: any) => cat.articleCount > 0) // Only categories with articles
+          .sort((a: any, b: any) => b.articleCount - a.articleCount)
+          .slice(0, 4); // Get top 4
+
+        const trending: TrendingTopic[] = sortedCategories.map((cat: any) => ({
+          id: cat.id,
+          keyword: cat.name,
+          count: cat.articleCount === 1
+            ? '1 article'
+            : `${cat.articleCount} articles`,
+          icon: getCategoryIcon(cat.name),
+          backgroundColor: getCategorySolidColor(cat.name),
+          backgroundImage: getCategoryBackgroundImage(cat.name),
+        }));
+
+        setTrendingTopics(trending);
       }
     } catch {
-      // Use mock data
+      // Use mock data - keep empty array, will use fallback in render
+    } finally {
+      setIsLoadingTrending(false);
     }
   };
 
@@ -270,7 +312,7 @@ export default function ExploreScreen() {
         setHasMore(true);
       }
 
-    } catch (error) {
+    } catch {
       setAllFetchedArticles(allArticlesData);
       setExternalResults([]);
     } finally {
@@ -339,7 +381,7 @@ export default function ExploreScreen() {
       setExternalResults(prev => [...prev, ...external]);
       setHasMore(response.data.meta.hasMore);
       setCurrentPage(nextPage);
-    } catch (error) {
+    } catch {
       setHasMore(false);
     } finally {
       setIsLoadingMore(false);
@@ -475,27 +517,42 @@ export default function ExploreScreen() {
           <>
             {/* Trending Topics */}
             <View style={styles.section}>
-          <SectionHeader
-            title={t('explore.trendingNow')}
-            icon="flame"
-            iconColor={colors.error}
-            offViewAll={true}
-            onViewAllPress={() => {}}
-          />
-
-          <View style={styles.trendingGrid}>
-            {trendingTopics.slice(0, 4).map((topic) => (
-              <TrendingTopicCard
-                key={topic.id}
-                keyword={topic.keyword}
-                count={topic.count}
-                icon={topic.icon}
-                gradientColors={topic.gradientColors}
-                onPress={() => setSearchQuery(topic.keyword)}
+              <SectionHeader
+                title={t('explore.trendingNow')}
+                icon="flame"
+                iconColor={colors.error}
+                offViewAll={true}
+                onViewAllPress={() => {}}
               />
-            ))}
-          </View>
-        </View>
+
+              <View style={styles.trendingGrid}>
+                {isLoadingTrending ? (
+                  // Show skeleton while loading
+                  <>
+                    <TrendingTopicSkeleton />
+                    <TrendingTopicSkeleton />
+                    <TrendingTopicSkeleton />
+                    <TrendingTopicSkeleton />
+                  </>
+                ) : trendingTopics.length > 0 ? (
+                  // Show actual trending topics
+                  trendingTopics.slice(0, 4).map((topic) => (
+                    <TrendingTopicCard
+                      key={topic.id}
+                      keyword={topic.keyword}
+                      count={topic.count}
+                      icon={topic.icon}
+                      backgroundColor={topic.backgroundColor}
+                      backgroundImage={topic.backgroundImage}
+                      onPress={() => {
+                        setSelectedCategory(topic.keyword);
+                        setSearchQuery(''); // Clear search query when selecting category
+                      }}
+                    />
+                  ))
+                ) : null}
+              </View>
+            </View>
 
         {/* For You Section - Conditional based on personalization */}
         {hasPersonalizationData ? (

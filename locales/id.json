@@ -396,7 +396,21 @@
     "theme": "Tema",
     "darkMode": "Mode Gelap",
     "account": "Akun",
-    "preferences": "Preferensi"
+    "preferences": "Preferensi",
+    "personalization": {
+      "title": "Personalisasi",
+      "readingLevel": "Tingkat Membaca",
+      "topics": "Topik",
+      "topicsSelected": "topik dipilih",
+      "edit": "Edit Personalisasi",
+      "reset": "Setel Ulang Personalisasi",
+      "setup": "Atur Personalisasi",
+      "notSetup": "Belum Diatur",
+      "setupMessage": "Personalisasikan pengalaman membaca Anda dengan memilih tingkat membaca dan topik yang Anda sukai.",
+      "resetConfirm": "Apakah Anda yakin ingin mengatur ulang personalisasi? Ini akan menghapus tingkat membaca dan preferensi topik Anda.",
+      "resetSuccess": "Personalisasi berhasil diatur ulang",
+      "resetError": "Gagal mengatur ulang personalisasi"
+    }
   },
   "score": {
     "title": "Skor",

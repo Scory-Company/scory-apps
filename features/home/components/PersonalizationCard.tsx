@@ -84,6 +84,8 @@ export const PersonalizationCard = forwardRef<View, PersonalizationCardProps>(
   }
 );
 
+PersonalizationCard.displayName = 'PersonalizationCard';
+
 const styles = StyleSheet.create({
   container: {
     paddingVertical: Spacing.md,

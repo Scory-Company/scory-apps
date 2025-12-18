@@ -10,6 +10,7 @@ import {
 } from '@/features/profile/components';
 import { SetWeeklyGoalModal } from '@/features/learn/components';
 import { getProfile, updateProfile, logout, User } from '@/services/auth';
+import { personalizationApi } from '@/services/personalization';
 import { quickStats as quickStatsMock, settingsMenu as settingsMenuData } from '@/data/mock';
 import React, { useEffect, useState } from 'react';
 import { useGamificationStats } from '@/hooks/useGamificationStats';
@@ -20,7 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAlert } from '@/features/shared/hooks/useAlert';
 import { useToast } from '@/features/shared/hooks/useToast';
-import { LanguageModal } from '@/features/settings/components/LanguageModal';
+import { LanguageModal, PersonalizationModal } from '@/features/settings/components';
 import { useTranslation } from 'react-i18next';
 
 export default function ProfileScreen() {
@@ -31,6 +32,7 @@ export default function ProfileScreen() {
   const toast = useToast();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showPersonalizationModal, setShowPersonalizationModal] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,6 +105,27 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleEditPersonalization = () => {
+    setShowPersonalizationModal(false);
+    router.push('/personalization');
+  };
+
+  const handleResetPersonalization = () => {
+    alert.confirm(
+      t('settings.personalization.reset'),
+      t('settings.personalization.resetConfirm'),
+      async () => {
+        try {
+          await personalizationApi.resetPersonalization();
+          toast.success(t('settings.personalization.resetSuccess'));
+          setShowPersonalizationModal(false);
+        } catch (error) {
+          alert.error(t('common.error'), t('settings.personalization.resetError'));
+        }
+      }
+    );
+  };
+
   // Handle menu item actions
   const handleMenuAction = (action: string) => {
     switch (action) {
@@ -113,7 +136,7 @@ export default function ProfileScreen() {
         setShowGoalModal(true);
         break;
       case 'PERSONALIZATION':
-        router.push('/personalization');
+        setShowPersonalizationModal(true);
         break;
       case 'LANGUAGE':
         setShowLanguageModal(true);
@@ -131,7 +154,6 @@ export default function ProfileScreen() {
         router.push('/about');
         break;
       default:
-        // Unknown action
         break;
     }
   };
@@ -263,6 +285,14 @@ export default function ProfileScreen() {
       <LanguageModal
         visible={showLanguageModal}
         onClose={() => setShowLanguageModal(false)}
+      />
+
+      {/* Personalization Modal */}
+      <PersonalizationModal
+        visible={showPersonalizationModal}
+        onClose={() => setShowPersonalizationModal(false)}
+        onEdit={handleEditPersonalization}
+        onReset={handleResetPersonalization}
       />
 
       {/* Set Weekly Goal Modal */}
