@@ -8,6 +8,7 @@ import {
   View,
   TextInput,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { BottomSheetModal } from '@/features/shared/components';
 import { standaloneNotesApi } from '@/services';
@@ -103,7 +104,13 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
         showHandle={true}
         enableSwipeToDismiss={true}
       >
-        <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+        <ScrollView
+          style={styles.modalContent}
+          contentContainerStyle={styles.modalScrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Header */}
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>{t('learn.components.addNoteModal.title')}</Text>
@@ -184,7 +191,7 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </BottomSheetModal>
 
       {/* Toast Notifications */}
@@ -195,9 +202,11 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
 
 const styles = StyleSheet.create({
   modalContent: {
-    padding: Spacing.lg,
+    maxHeight: '100%',
+  },
+  modalScrollContent: {
+    paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing['3xl'],
-    minHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',

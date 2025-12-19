@@ -18,10 +18,11 @@ interface RelatedArticlesProps {
   category: string;
 }
 
-export const RelatedArticles: React.FC<RelatedArticlesProps> = ({ articles, category }) => {
+const RelatedArticlesComponent: React.FC<RelatedArticlesProps> = ({ articles, category }) => {
   const colors = Colors.light;
 
-  if (articles.length === 0) {
+  // Early return if no articles
+  if (!articles || articles.length === 0) {
     return null;
   }
 
@@ -32,41 +33,56 @@ export const RelatedArticles: React.FC<RelatedArticlesProps> = ({ articles, cate
         <Text style={[styles.relatedTitle, { color: colors.text }]}>
           Related Articles in {category}
         </Text>
-        {articles.map((article) => (
-          <TouchableOpacity
-            key={article.id}
-            style={[styles.relatedCard, { backgroundColor: colors.surface }, Shadows.sm]}
-            onPress={() => router.push(`/article/${article.id}` as any)}
-          >
-            <Image source={article.image} style={styles.relatedImage} />
-            <View style={styles.relatedContent}>
-              <Text style={[styles.relatedCardTitle, { color: colors.text }]} numberOfLines={2}>
-                {article.title}
-              </Text>
-              <Text style={[styles.relatedAuthor, { color: colors.textMuted }]}>
-                {article.author}
-              </Text>
-              <View style={styles.relatedStats}>
-                <View style={styles.statItem}>
-                  <Ionicons name="star" size={12} color={colors.warning} />
-                  <Text style={[styles.relatedStatText, { color: colors.textSecondary }]}>
-                    {article.rating}
-                  </Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Ionicons name="eye-outline" size={12} color={colors.textMuted} />
-                  <Text style={[styles.relatedStatText, { color: colors.textSecondary }]}>
-                    {'reads' in article ? article.reads : '10k'}
-                  </Text>
+        {articles.map((article) => {
+          // Safety check for each article
+          if (!article || !article.id) {
+            return null;
+          }
+
+          return (
+            <TouchableOpacity
+              key={`related-${article.id}`}
+              style={[styles.relatedCard, { backgroundColor: colors.surface }, Shadows.sm]}
+              onPress={() => router.push(`/article/${article.id}` as any)}
+            >
+              <Image
+                source={article.image}
+                style={styles.relatedImage}
+                resizeMode="cover"
+              />
+              <View style={styles.relatedContent}>
+                <Text style={[styles.relatedCardTitle, { color: colors.text }]} numberOfLines={2}>
+                  {article.title || 'Untitled Article'}
+                </Text>
+                <Text style={[styles.relatedAuthor, { color: colors.textMuted }]}>
+                  {article.author || 'Unknown Author'}
+                </Text>
+                <View style={styles.relatedStats}>
+                  <View style={styles.statItem}>
+                    <Ionicons name="star" size={12} color={colors.warning} />
+                    <Text style={[styles.relatedStatText, { color: colors.textSecondary }]}>
+                      {article.rating || 0}
+                    </Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Ionicons name="eye-outline" size={12} color={colors.textMuted} />
+                    <Text style={[styles.relatedStatText, { color: colors.textSecondary }]}>
+                      {article.reads || '0'}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </>
   );
 };
+
+RelatedArticlesComponent.displayName = 'RelatedArticles';
+
+export const RelatedArticles = React.memo(RelatedArticlesComponent);
 
 const styles = StyleSheet.create({
   divider: {

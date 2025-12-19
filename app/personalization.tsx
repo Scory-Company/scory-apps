@@ -3,6 +3,7 @@ import { ReadingLevel } from '@/constants/readingLevels';
 import { PERSONALIZATION_QUIZ, LEVEL_EMOJIS, QuizOption } from '@/data/mock/personalization';
 import { categoryCards as mockCategoryCards } from '@/data/mock/categories';
 import { categoriesApi, personalizationApi } from '@/services';
+import { GamificationLoader } from '@/features/shared/components';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -15,6 +16,7 @@ import {
   Pressable,
   useColorScheme,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -45,6 +47,7 @@ export default function PersonalizationScreen() {
   const [showTopicSelection, setShowTopicSelection] = useState(false);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]); // Changed to string[] for UUIDs
   const [showResult, setShowResult] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Categories state - fetch from API
   const [topicOptions, setTopicOptions] = useState<any[]>(mockCategoryCards);
@@ -210,6 +213,8 @@ export default function PersonalizationScreen() {
     // Convert to uppercase for backend (backend expects UPPERCASE)
     const readingLevelUppercase = recommendedLevel.toUpperCase();
 
+    setIsLoading(true);
+
     try {
       // Save reading level to backend (must be UPPERCASE)
       await personalizationApi.saveSettings(readingLevelUppercase);
@@ -223,9 +228,13 @@ export default function PersonalizationScreen() {
       // Mark tutorial as seen locally
       await AsyncStorage.setItem('hasSeenPersonalizationTutorial', 'true');
 
+      // Small delay to show the loading animation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       router.back();
     } catch (error: any) {
       // TODO: Show error toast to user
+      setIsLoading(false);
     }
   };
 
@@ -245,6 +254,23 @@ export default function PersonalizationScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: quizColors.bg }]} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={quizColors.bg} />
+
+      {/* Loading Modal */}
+      <Modal
+        visible={isLoading}
+        transparent={true}
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <View style={styles.loadingOverlay}>
+          <View style={[styles.loadingContainer, { backgroundColor: quizColors.bg }]}>
+            <GamificationLoader
+              emoji="🚀"
+              message={t('personalization.loading.message') || 'Setting up your reading experience...'}
+            />
+          </View>
+        </View>
+      </Modal>
 
       {showTopicSelection ? (
         // TOPIC SELECTION MODE
@@ -790,5 +816,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '700',
+  },
+
+  // Loading Modal
+  loadingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingContainer: {
+    borderRadius: Radius.xl,
+    padding: Spacing.xl,
+    ...Shadows.lg,
+    minWidth: 280,
+    alignItems: 'center',
   },
 });

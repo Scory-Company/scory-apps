@@ -575,6 +575,9 @@
       "title": "Topik apa yang ingin kamu jelajahi?",
       "subtitle": "Pilih minimal {{min}} topik untuk mempersonalisasi feed-mu",
       "continue": "Lanjutkan"
+    },
+    "loading": {
+      "message": "Menyiapkan pengalaman membaca Anda..."
     }
   },
   "popularArticles": {

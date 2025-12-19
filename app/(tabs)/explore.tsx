@@ -437,6 +437,17 @@ export default function ExploreScreen() {
     setExternalResults([]); // Clear external results
   };
 
+  // Handler for category selection with loading state
+  const handleCategorySelect = (category: string) => {
+    // If not already fetched and selecting a specific category, show loading immediately
+    if (category !== 'All' && !hasFetchedArticles) {
+      setIsLoadingCategory(true);
+    }
+    setSelectedCategory(category);
+    setSearchQuery(''); // Clear search query when selecting category
+    setHasSearched(false); // Reset search state
+  };
+
   // Handle background simplification for external papers
   const handleSimplifyExternalPaper = useCallback(async (paper: SearchResult) => {
     // Map reading level from user preference
@@ -502,7 +513,7 @@ export default function ExploreScreen() {
         <CategoryFilterChips
           categories={categoryList}
           selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
+          onSelectCategory={handleCategorySelect}
         />
 
 
@@ -587,11 +598,7 @@ export default function ExploreScreen() {
                       icon={topic.icon}
                       backgroundColor={topic.backgroundColor}
                       backgroundImage={topic.backgroundImage}
-                      onPress={() => {
-                        setSelectedCategory(topic.keyword);
-                        setSearchQuery(''); // Clear search query when selecting category
-                        setHasSearched(false); // Reset search state
-                      }}
+                      onPress={() => handleCategorySelect(topic.keyword)}
                     />
                   ))
                 ) : null}

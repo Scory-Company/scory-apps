@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ScrollView,
 } from 'react-native';
 import { useInsights } from '@/hooks/useInsights';
 import { BottomSheetModal, Toast } from '@/features/shared/components';
@@ -80,7 +81,13 @@ export const InsightNoteFAB: React.FC<InsightNoteFABProps> = ({
         showHandle={true}
         enableSwipeToDismiss={true}
       >
-        <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+        <ScrollView
+          style={styles.modalContent}
+          contentContainerStyle={styles.modalScrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Header */}
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Add Insight Note</Text>
@@ -153,7 +160,7 @@ export const InsightNoteFAB: React.FC<InsightNoteFABProps> = ({
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </BottomSheetModal>
 
       {/* Toast Notification */}
@@ -187,9 +194,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   modalContent: {
-    padding: Spacing.lg,
+    maxHeight: '100%',
+  },
+  modalScrollContent: {
+    paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing['3xl'],
-    minHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',

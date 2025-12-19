@@ -2,7 +2,7 @@ import { Colors, Spacing, Typography, Radius, Shadows } from '@/constants/theme'
 import { SearchBar } from '@/features/explore/components/SearchBar';
 import { CategoryFilterChips } from '@/features/explore/components/CategoryFilterChips';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, View, TouchableOpacity, Image, ActivityIndicator, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { FlatList, StatusBar, StyleSheet, Text, View, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { popularArticles, categoryList } from '@/data/mock';
 import { router } from 'expo-router';
@@ -21,8 +21,38 @@ interface DisplayArticle {
   author: string;
   category: string;
   rating: number;
-  reads: string;
+  reads?: string;
 }
+
+// Memoized article card component for better performance
+const ArticleCard = React.memo<{ article: DisplayArticle; colors: any }>(({ article, colors }) => (
+  <TouchableOpacity
+    style={[styles.largeCard, { backgroundColor: colors.surface }, Shadows.sm]}
+    onPress={() => router.push(`/article/${article.slug || article.id}` as any)}
+  >
+    <Image source={article.image} style={styles.largeImage} />
+    <View style={styles.largeContent}>
+      <View style={[styles.largeCategoryBadge, { backgroundColor: colors.surfaceSecondary }]}>
+        <Text style={[styles.largeCategoryText, { color: colors.textSecondary }]}>
+          {article.category}
+        </Text>
+      </View>
+      <Text style={[styles.largeTitle, { color: colors.text }]} numberOfLines={2}>
+        {article.title}
+      </Text>
+      <Text style={[styles.largeAuthor, { color: colors.textMuted }]}>{article.author}</Text>
+      <View style={styles.largeFooter}>
+        <View style={styles.largeRating}>
+          <Ionicons name="star" size={14} color={colors.warning} />
+          <Text style={[styles.largeRatingText, { color: colors.text }]}>{article.rating}</Text>
+        </View>
+        <Text style={[styles.largeReads, { color: colors.textMuted }]}>{article.reads || '0 reads'}</Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+));
+
+ArticleCard.displayName = 'ArticleCard';
 
 export default function PopularArticlesScreen() {
   const { t } = useTranslation();
@@ -76,6 +106,15 @@ export default function PopularArticlesScreen() {
     }
   };
 
+  // Filtered articles using reusable utility
+  const filteredArticles = useMemo(() => {
+    return filterContent({
+      searchQuery,
+      selectedCategory,
+      allData: articles,
+    });
+  }, [searchQuery, selectedCategory, articles]);
+
   // Load more articles (API or mock)
   const loadMoreArticles = useCallback(async () => {
     if (isLoadingMore || !hasMoreArticles) return;
@@ -125,25 +164,72 @@ export default function PopularArticlesScreen() {
     setIsLoadingMore(false);
   }, [isLoadingMore, hasMoreArticles, isUsingApi, currentPage, articles.length, LOAD_MORE_COUNT]);
 
-  // Detect when user scrolls near the end
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const paddingToEnd = 200; // Trigger before reaching the end
-
-    // Check if scrolled near the end
-    if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToEnd) {
+  // Handle end reached for FlatList
+  const handleEndReached = () => {
+    if (!isLoadingMore && hasMoreArticles) {
       loadMoreArticles();
     }
   };
 
-  // Filtered articles using reusable utility
-  const filteredArticles = useMemo(() => {
-    return filterContent({
-      searchQuery,
-      selectedCategory,
-      allData: articles,
-    });
-  }, [searchQuery, selectedCategory, articles]);
+  // Render each article item with memoized component
+  const renderArticleItem = useCallback(({ item }: { item: DisplayArticle }) => (
+    <ArticleCard article={item} colors={colors} />
+  ), [colors]);
+
+  // Key extractor for FlatList
+  const keyExtractor = useCallback((item: DisplayArticle, index: number) =>
+    `popular-${item.id}-${index}`, []
+  );
+
+  // List header component
+  const ListHeaderComponent = useCallback(() => (
+    <View style={styles.categoryFilterWrapper}>
+      <CategoryFilterChips
+        categories={categoryList}
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+      />
+    </View>
+  ), [selectedCategory]);
+
+  // List footer component
+  const ListFooterComponent = useCallback(() => {
+    if (isLoadingMore) {
+      return (
+        <View style={styles.loadingMore}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Loading more articles...
+          </Text>
+        </View>
+      );
+    }
+
+    if (!hasMoreArticles && filteredArticles.length > INITIAL_LOAD) {
+      return (
+        <View style={styles.endOfList}>
+          <Text style={[styles.endOfListText, { color: colors.textMuted }]}>
+            You&apos;ve reached the end
+          </Text>
+        </View>
+      );
+    }
+
+    return <View style={{ height: 40 }} />;
+  }, [isLoadingMore, hasMoreArticles, filteredArticles.length, INITIAL_LOAD, colors]);
+
+  // Empty list component
+  const ListEmptyComponent = useCallback(() => (
+    <View style={styles.emptyState}>
+      <Text style={[styles.emptyIcon, { color: colors.textMuted }]}>🔍</Text>
+      <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+        {t('popularArticles.emptyState.title')}
+      </Text>
+      <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
+        {t('popularArticles.emptyState.subtitle')}
+      </Text>
+    </View>
+  ), [colors, t]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -169,98 +255,45 @@ export default function PopularArticlesScreen() {
       </View>
 
       {/* Articles List */}
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-      >
-        {/* Category Filter */}
-        <View style={styles.categoryFilterWrapper}>
-          <CategoryFilterChips
-            categories={categoryList}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
-        </View>
-
-        {/* Loading State */}
-        {isLoading ? (
+      {isLoading ? (
+        <View style={styles.scrollContent}>
+          <View style={styles.categoryFilterWrapper}>
+            <CategoryFilterChips
+              categories={categoryList}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+            />
+          </View>
           <SkeletonListArticle count={5} />
-        ) : filteredArticles.length > 0 ? (
-          <View style={styles.listContainer}>
-            {filteredArticles.map((article) => (
-              <TouchableOpacity
-                key={article.id}
-                style={[styles.largeCard, { backgroundColor: colors.surface }, Shadows.sm]}
-                onPress={() => router.push(`/article/${article.slug || article.id}` as any)}
-              >
-                <Image source={article.image} style={styles.largeImage} />
-                <View style={styles.largeContent}>
-                  <View style={[styles.largeCategoryBadge, { backgroundColor: colors.surfaceSecondary }]}>
-                    <Text style={[styles.largeCategoryText, { color: colors.textSecondary }]}>
-                      {article.category}
-                    </Text>
-                  </View>
-                  <Text style={[styles.largeTitle, { color: colors.text }]} numberOfLines={2}>
-                    {article.title}
-                  </Text>
-                  <Text style={[styles.largeAuthor, { color: colors.textMuted }]}>{article.author}</Text>
-                  <View style={styles.largeFooter}>
-                    <View style={styles.largeRating}>
-                      <Ionicons name="star" size={14} color={colors.warning} />
-                      <Text style={[styles.largeRatingText, { color: colors.text }]}>{article.rating}</Text>
-                    </View>
-                    <Text style={[styles.largeReads, { color: colors.textMuted }]}>{article.reads}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-
-            {/* Loading indicator when loading more */}
-            {isLoadingMore && (
-              <View style={styles.loadingMore}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                  Loading more articles...
-                </Text>
-              </View>
-            )}
-
-            {/* End of list indicator */}
-            {!hasMoreArticles && filteredArticles.length > INITIAL_LOAD && (
-              <View style={styles.endOfList}>
-                <Text style={[styles.endOfListText, { color: colors.textMuted }]}>
-                  You&apos;ve reached the end
-                </Text>
-              </View>
-            )}
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Text style={[styles.emptyIcon, { color: colors.textMuted }]}>🔍</Text>
-            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-              {t('popularArticles.emptyState.title')}
-            </Text>
-            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-              {t('popularArticles.emptyState.subtitle')}
-            </Text>
-          </View>
-        )}
-
-        {/* Bottom Padding */}
-        <View style={{ height: 40 }} />
-      </ScrollView>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredArticles}
+          renderItem={renderArticleItem}
+          keyExtractor={keyExtractor}
+          ListHeaderComponent={ListHeaderComponent}
+          ListFooterComponent={ListFooterComponent}
+          ListEmptyComponent={ListEmptyComponent}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          // Performance optimizations
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={10}
+          windowSize={10}
+          // Styling
+          ItemSeparatorComponent={() => <View style={{ height: Spacing.lg }} />}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  scrollView: {
     flex: 1,
   },
   scrollContent: {

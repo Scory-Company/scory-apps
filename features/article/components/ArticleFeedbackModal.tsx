@@ -3,7 +3,9 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -75,7 +77,10 @@ export const ArticleFeedbackModal: React.FC<ArticleFeedbackModalProps> = ({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.overlay}
+      >
         <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Header */}
@@ -249,7 +254,7 @@ export const ArticleFeedbackModal: React.FC<ArticleFeedbackModalProps> = ({
             </View>
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

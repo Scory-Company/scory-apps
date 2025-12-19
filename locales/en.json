@@ -575,6 +575,9 @@
       "title": "What topics do you want to explore?",
       "subtitle": "Pick at least {{min}} topics to personalize your feed",
       "continue": "Continue"
+    },
+    "loading": {
+      "message": "Setting up your reading experience..."
     }
   },
   "popularArticles": {

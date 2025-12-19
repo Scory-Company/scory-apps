@@ -17,10 +17,11 @@ interface BottomSheetModalProps {
   visible: boolean;
   onClose: () => void;
   children: ReactNode;
-  height?: string | number; 
+  height?: string | number;
   showHandle?: boolean; // Default: true
   enableSwipeToDismiss?: boolean; // Default: true
   swipeThreshold?: number; // Default: 150
+  disableKeyboardAvoidingView?: boolean; // Default: false (keep existing behavior)
 }
 
 export function BottomSheetModal({
@@ -31,6 +32,7 @@ export function BottomSheetModal({
   showHandle = true,
   enableSwipeToDismiss = true,
   swipeThreshold = 150,
+  disableKeyboardAvoidingView = false,
 }: BottomSheetModalProps) {
   const slideAnim = useRef(new Animated.Value(1000)).current;
   const dragY = useRef(new Animated.Value(0)).current;
@@ -56,7 +58,15 @@ export function BottomSheetModal({
   }, [visible, slideAnim, dragY]);
 
   // Listen to keyboard events and reset modal position when keyboard dismisses
+  // NOTE: This causes jittery animation with KeyboardAvoidingView + ScrollView
+  // Only enable if needed for specific modals without ScrollView
   useEffect(() => {
+    // Skip keyboard listener to prevent animation conflicts
+    // Modal position is already handled by KeyboardAvoidingView
+    if (disableKeyboardAvoidingView) {
+      return;
+    }
+
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
       // Reset drag position when keyboard is dismissed
       Animated.spring(dragY, {
@@ -70,7 +80,7 @@ export function BottomSheetModal({
     return () => {
       keyboardDidHideListener.remove();
     };
-  }, [dragY]);
+  }, [dragY, disableKeyboardAvoidingView]);
 
   // Pan Responder for swipe down gesture
   const panResponder = useRef(
@@ -109,37 +119,45 @@ export function BottomSheetModal({
     })
   ).current;
 
+  const modalContent = (
+    <Pressable style={styles.modalOverlay} onPress={onClose}>
+      <Animated.View
+        style={[
+          styles.modalContainer,
+          {
+            maxHeight: height as DimensionValue,
+            transform: [{ translateY: Animated.add(slideAnim, dragY) }],
+          },
+        ]}
+      >
+        <Pressable onPress={(e) => e.stopPropagation()} style={styles.contentWrapper}>
+          {/* Swipeable Handle Area */}
+          {showHandle && (
+            <View {...panResponder.panHandlers} style={styles.handleArea}>
+              <View style={styles.modalHandle} />
+            </View>
+          )}
+
+          {/* Modal Content */}
+          {children}
+        </Pressable>
+      </Animated.View>
+    </Pressable>
+  );
+
   return (
     <Modal visible={visible} animationType="none" transparent={true} onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      >
-        <Pressable style={styles.modalOverlay} onPress={onClose}>
-          <Animated.View
-            style={[
-              styles.modalContainer,
-              {
-                maxHeight: height as DimensionValue,
-                transform: [{ translateY: Animated.add(slideAnim, dragY) }],
-              },
-            ]}
-          >
-            <Pressable onPress={(e) => e.stopPropagation()} style={styles.contentWrapper}>
-              {/* Swipeable Handle Area */}
-              {showHandle && (
-                <View {...panResponder.panHandlers} style={styles.handleArea}>
-                  <View style={styles.modalHandle} />
-                </View>
-              )}
-
-              {/* Modal Content */}
-              {children}
-            </Pressable>
-          </Animated.View>
-        </Pressable>
-      </KeyboardAvoidingView>
+      {disableKeyboardAvoidingView ? (
+        <View style={styles.keyboardView}>{modalContent}</View>
+      ) : (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? -20 : -20}
+        >
+          {modalContent}
+        </KeyboardAvoidingView>
+      )}
     </Modal>
   );
 }
