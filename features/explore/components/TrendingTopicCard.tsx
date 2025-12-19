@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   trendingKeyword: {
-    fontSize: Typography.fontSize['2xl'],
+    fontSize: Typography.fontSize.lg,
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: -0.3,
