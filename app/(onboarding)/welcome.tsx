@@ -5,7 +5,7 @@ import { Body, Heading } from '@/shared/components/ui/Typography';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,15 @@ export default function OnboardingScreen() {
   const colors = Colors.light;
   const pagerRef = useRef<PagerView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Preload all images for smooth transitions
+  useEffect(() => {
+    const imagesToPreload = onboardingSlides
+      .map((slide) => slide.illustration)
+      .filter(Boolean);
+
+    Image.prefetch(imagesToPreload);
+  }, []);
 
   const handleNext = () => {
     if (currentIndex < onboardingSlides.length - 1) {
@@ -64,6 +73,8 @@ export default function OnboardingScreen() {
                   style={styles.illustration}
                   contentFit="contain"
                   transition={300}
+                  cachePolicy="memory-disk"
+                  priority="high"
                 />
               )}
             </View>
