@@ -58,7 +58,7 @@ export function CustomAlert({
         useNativeDriver: true,
       }).start();
     }
-  }, [visible]);
+  }, [scaleValue, visible]);
 
   const getAlertConfig = () => {
     switch (type) {

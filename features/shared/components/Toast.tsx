@@ -228,7 +228,8 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
-    zIndex: 9999,
+    zIndex: 99999,
+    elevation: 99999,
   },
   toastTop: {
     top: Spacing['3xl'],

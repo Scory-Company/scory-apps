@@ -10,7 +10,6 @@ import {
   View,
   PanResponder,
   DimensionValue,
-  Keyboard,
 } from 'react-native';
 
 interface BottomSheetModalProps {
@@ -58,28 +57,13 @@ export function BottomSheetModal({
   }, [visible, slideAnim, dragY]);
 
   // Listen to keyboard events and reset modal position when keyboard dismisses
-  // NOTE: This causes jittery animation with KeyboardAvoidingView + ScrollView
-  // Only enable if needed for specific modals without ScrollView
+  // NOTE: Disabled to prevent jittery animation conflict with KeyboardAvoidingView
+  // KeyboardAvoidingView already handles modal position automatically
   useEffect(() => {
-    // Skip keyboard listener to prevent animation conflicts
-    // Modal position is already handled by KeyboardAvoidingView
-    if (disableKeyboardAvoidingView) {
-      return;
-    }
-
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      // Reset drag position when keyboard is dismissed
-      Animated.spring(dragY, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 80,
-        friction: 10,
-      }).start();
-    });
-
-    return () => {
-      keyboardDidHideListener.remove();
-    };
+    // Keyboard listener disabled to prevent animation conflicts
+    // The dragY animation conflicts with KeyboardAvoidingView's automatic positioning
+    // causing the modal to shake/vibrate when keyboard closes
+    return;
   }, [dragY, disableKeyboardAvoidingView]);
 
   // Pan Responder for swipe down gesture

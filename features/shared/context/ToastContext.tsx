@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Toast } from '../components/Toast';
+import { Modal, StyleSheet } from 'react-native';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading' | 'progress';
 type ToastPosition = 'top' | 'bottom';
@@ -156,23 +157,33 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {/* Render toasts globally here */}
-      {toasts.map((toast, index) => (
-        <Toast
-          key={toast.id}
-          id={toast.id}
+      {/* Render toasts in a Modal to ensure they appear above all other modals */}
+      {toasts.length > 0 && (
+        <Modal
           visible={true}
-          type={toast.type}
-          message={toast.message}
-          description={toast.description}
-          position={toast.position}
-          duration={toast.duration}
-          progress={toast.progress}
-          action={toast.action}
-          onHide={() => hideToast(toast.id)}
-          index={index}
-        />
-      ))}
+          transparent={true}
+          animationType="none"
+          statusBarTranslucent={true}
+          pointerEvents="box-none"
+        >
+          {toasts.map((toast, index) => (
+            <Toast
+              key={toast.id}
+              id={toast.id}
+              visible={true}
+              type={toast.type}
+              message={toast.message}
+              description={toast.description}
+              position={toast.position}
+              duration={toast.duration}
+              progress={toast.progress}
+              action={toast.action}
+              onHide={() => hideToast(toast.id)}
+              index={index}
+            />
+          ))}
+        </Modal>
+      )}
     </ToastContext.Provider>
   );
 };
