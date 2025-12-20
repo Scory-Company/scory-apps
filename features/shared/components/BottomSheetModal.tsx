@@ -135,9 +135,9 @@ export function BottomSheetModal({
         <View style={styles.keyboardView}>{modalContent}</View>
       ) : (
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardView}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? -20 : -20}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
           {modalContent}
         </KeyboardAvoidingView>
