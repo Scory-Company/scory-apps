@@ -6,12 +6,12 @@ import { Title } from '@/shared/components/ui/Typography';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 type AuthMode = 'login' | 'register';
 
@@ -37,12 +37,16 @@ export function AuthModal({
 
   return (
     <BottomSheetModal visible={visible} onClose={onClose}>
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.modalContent}
         contentContainerStyle={styles.modalScrollContent}
         showsVerticalScrollIndicator={false}
         bounces={false}
         keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        extraScrollHeight={20}
+        keyboardOpeningTime={0}
       >
         {/* Modal Header */}
         <View style={styles.modalHeader}>
@@ -58,7 +62,7 @@ export function AuthModal({
         ) : (
           <RegisterForm onSubmit={onRegister} onSwitchToLogin={onSwitchMode} />
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </BottomSheetModal>
   );
 }
@@ -69,7 +73,8 @@ const styles = StyleSheet.create({
   },
   modalScrollContent: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing['3xl'],
+    paddingBottom: Spacing['4xl'], // Extra padding untuk keyboard space
+    flexGrow: 1,
   },
   modalHeader: {
     flexDirection: 'row',

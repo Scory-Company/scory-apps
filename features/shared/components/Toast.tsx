@@ -9,7 +9,6 @@ import {
   Text,
   View,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading' | 'progress';
@@ -150,22 +149,26 @@ export function Toast({
   if (!visible) return null;
 
   return (
-    <Animated.View
-      style={[
-        styles.toastContainer,
-        position === 'top' ? styles.toastTop : styles.toastBottom,
-        {
-          transform: [{ translateY: translateYRef.current }],
-          opacity: opacityRef.current,
-        },
-      ]}
+    <View
+      style={styles.toastWrapper}
       pointerEvents="box-none"
     >
-      <Pressable
-        onPress={action?.onClick}
-        style={[styles.toast, { backgroundColor: config.bgColor }]}
-        disabled={!action}
+      <Animated.View
+        style={[
+          styles.toastContainer,
+          position === 'top' ? styles.toastTop : styles.toastBottom,
+          {
+            transform: [{ translateY: translateYRef.current }],
+            opacity: opacityRef.current,
+          },
+        ]}
+        pointerEvents="box-none"
       >
+        <Pressable
+          onPress={action?.onClick}
+          style={[styles.toast, { backgroundColor: config.bgColor }]}
+          disabled={!action}
+        >
         {/* Icon */}
         {config.showSpinner ? (
           <ActivityIndicator size="small" color="#FFFFFF" />
@@ -218,18 +221,28 @@ export function Toast({
         )}
       </Pressable>
     </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  toastWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999999,
+    elevation: 999999,
+  },
   toastContainer: {
     position: 'absolute',
     left: 0,
     right: 0,
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
-    zIndex: 99999,
-    elevation: 99999,
+    zIndex: 999999,
+    elevation: 999999,
   },
   toastTop: {
     top: Spacing['3xl'],
