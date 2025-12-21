@@ -11,9 +11,10 @@ interface LoginFormProps {
   onSubmit: (email: string, password: string, rememberMe: boolean) => void;
   onSwitchToRegister: () => void;
   onGoogleSignIn?: () => void;
+  isLoading?: boolean;
 }
 
-export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: LoginFormProps) {
+export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn, isLoading = false }: LoginFormProps) {
   const { t } = useTranslation();
   const colors = Colors.light;
   const [email, setEmail] = useState('');
@@ -70,7 +71,7 @@ export function LoginForm({ onSubmit, onSwitchToRegister, onGoogleSignIn }: Logi
       </View>
 
       {/* Sign In Button */}
-      <Button variant="primary" size="lg" fullWidth onPress={handleSubmit}>
+      <Button variant="primary" size="lg" fullWidth onPress={handleSubmit} loading={isLoading} disabled={isLoading}>
         {t('auth.login')}
       </Button>
 

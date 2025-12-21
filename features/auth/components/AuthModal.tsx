@@ -22,6 +22,7 @@ interface AuthModalProps {
   onSwitchMode: () => void;
   onLogin: (email: string, password: string, rememberMe: boolean) => void;
   onRegister: (name: string, email: string, password: string) => void;
+  isLoading?: boolean;
 }
 
 export function AuthModal({
@@ -31,6 +32,7 @@ export function AuthModal({
   onSwitchMode,
   onLogin,
   onRegister,
+  isLoading = false,
 }: AuthModalProps) {
   const { t } = useTranslation();
   const colors = Colors.light;
@@ -58,9 +60,9 @@ export function AuthModal({
 
         {/* Auth Form */}
         {mode === 'login' ? (
-          <LoginForm onSubmit={onLogin} onSwitchToRegister={onSwitchMode} />
+          <LoginForm onSubmit={onLogin} onSwitchToRegister={onSwitchMode} isLoading={isLoading} />
         ) : (
-          <RegisterForm onSubmit={onRegister} onSwitchToLogin={onSwitchMode} />
+          <RegisterForm onSubmit={onRegister} onSwitchToLogin={onSwitchMode} isLoading={isLoading} />
         )}
       </KeyboardAwareScrollView>
     </BottomSheetModal>

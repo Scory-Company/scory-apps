@@ -99,12 +99,14 @@ export default function AboutScreen() {
                 <View style={[styles.featureIconContainer, { backgroundColor: colors.primary + '15' }]}>
                   <Ionicons name={feature.icon} size={24} color={colors.primary} />
                 </View>
-                <Text style={[styles.featureTitle, { color: colors.text }]}>
-                  {feature.title}
-                </Text>
-                <Text style={[styles.featureDescription, { color: colors.textMuted }]}>
-                  {feature.description}
-                </Text>
+                <View style={styles.featureContent}>
+                  <Text style={[styles.featureTitle, { color: colors.text }]}>
+                    {feature.title}
+                  </Text>
+                  <Text style={[styles.featureDescription, { color: colors.textMuted }]}>
+                    {feature.description}
+                  </Text>
+                </View>
               </View>
             ))}
           </View>
@@ -199,20 +201,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
+    flexShrink: 0,
+  },
+  featureContent: {
+    flex: 1,
+    minWidth: 0,
   },
   featureTitle: {
     fontSize: Typography.fontSize.base,
     fontWeight: '600',
     marginBottom: Spacing.xs,
-    flex: 1,
+    flexWrap: 'wrap',
   },
   featureDescription: {
     fontSize: Typography.fontSize.sm,
     lineHeight: 20,
-    position: 'absolute',
-    left: Spacing.lg + 48 + Spacing.md,
-    right: Spacing.lg,
-    top: Spacing.lg + 24,
+    flexWrap: 'wrap',
   },
   missionCard: {
     marginHorizontal: Spacing.lg,

@@ -8,12 +8,12 @@ import {
   View,
   TextInput,
   ActivityIndicator,
-  ScrollView,
 } from 'react-native';
 import { BottomSheetModal } from '@/features/shared/components';
 import { standaloneNotesApi } from '@/services';
 import { useToast } from '@/features/shared/hooks/useToast';
 import { useTranslation } from 'react-i18next';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface AddNoteModalProps {
   visible: boolean;
@@ -104,12 +104,18 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
         showHandle={true}
         enableSwipeToDismiss={true}
       >
-        <ScrollView
+        <KeyboardAwareScrollView
           style={styles.modalContent}
           contentContainerStyle={styles.modalScrollContent}
           showsVerticalScrollIndicator={false}
-          bounces={false}
           keyboardShouldPersistTaps="handled"
+          enableOnAndroid={true}
+          enableAutomaticScroll={true}
+          extraScrollHeight={100}
+          extraHeight={150}
+          keyboardOpeningTime={0}
+          enableResetScrollToCoords={false}
+          scrollToOverflowEnabled={true}
         >
           {/* Header */}
           <View style={styles.modalHeader}>
@@ -191,7 +197,7 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({ visible, onClose, on
               )}
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </BottomSheetModal>
 
       {/* Toast Notifications */}
@@ -206,7 +212,8 @@ const styles = StyleSheet.create({
   },
   modalScrollContent: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing['3xl'],
+    paddingBottom: 150, 
+    flexGrow: 1,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -236,8 +243,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.md,
     fontSize: Typography.fontSize.base,
-    minHeight: 150,
-    maxHeight: 300,
+    minHeight: 300,
+    maxHeight: 600,
     marginBottom: Spacing.lg,
   },
   actions: {

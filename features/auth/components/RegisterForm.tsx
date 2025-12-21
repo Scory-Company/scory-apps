@@ -14,9 +14,10 @@ import {
 interface RegisterFormProps {
   onSubmit: (name: string, email: string, password: string) => void;
   onSwitchToLogin: () => void;
+  isLoading?: boolean;
 }
 
-export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps) {
+export function RegisterForm({ onSubmit, onSwitchToLogin, isLoading = false }: RegisterFormProps) {
   const { t } = useTranslation();
   const colors = Colors.light;
   const [name, setName] = useState('');
@@ -119,7 +120,8 @@ export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps) {
         size="lg"
         fullWidth
         onPress={handleSubmit}
-        disabled={!isFormValid}
+        disabled={!isFormValid || isLoading}
+        loading={isLoading}
       >
         {t('auth.createAccount')}
       </Button>

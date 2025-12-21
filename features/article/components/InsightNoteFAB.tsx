@@ -1,6 +1,6 @@
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -8,10 +8,10 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ScrollView,
 } from 'react-native';
 import { useInsights } from '@/hooks/useInsights';
 import { BottomSheetModal, Toast } from '@/features/shared/components';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface InsightNoteFABProps {
   articleSlug: string;
@@ -31,8 +31,21 @@ export const InsightNoteFAB: React.FC<InsightNoteFABProps> = ({
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
+  // Ref for scroll view
+  const scrollViewRef = useRef<any>(null);
+
   // Use insights hook for saving
   const { saveNote: saveNoteApi, isSavingNote } = useInsights(articleSlug);
+
+  // Reset scroll position when modal opens
+  useEffect(() => {
+    if (modalVisible && scrollViewRef.current) {
+      // Small delay to ensure modal is fully rendered
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToPosition(0, 0, false);
+      }, 100);
+    }
+  }, [modalVisible]);
 
   const handleSave = async () => {
     if (!note.trim()) return;
@@ -81,12 +94,19 @@ export const InsightNoteFAB: React.FC<InsightNoteFABProps> = ({
         showHandle={true}
         enableSwipeToDismiss={true}
       >
-        <ScrollView
+        <KeyboardAwareScrollView
+          ref={scrollViewRef}
           style={styles.modalContent}
           contentContainerStyle={styles.modalScrollContent}
           showsVerticalScrollIndicator={false}
-          bounces={false}
           keyboardShouldPersistTaps="handled"
+          enableOnAndroid={true}
+          enableAutomaticScroll={true}
+          extraScrollHeight={100}
+          extraHeight={150}
+          keyboardOpeningTime={0}
+          enableResetScrollToCoords={false}
+          scrollToOverflowEnabled={true}
         >
           {/* Header */}
           <View style={styles.modalHeader}>
@@ -160,7 +180,7 @@ export const InsightNoteFAB: React.FC<InsightNoteFABProps> = ({
               )}
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </BottomSheetModal>
 
       {/* Toast Notification */}
@@ -198,7 +218,8 @@ const styles = StyleSheet.create({
   },
   modalScrollContent: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing['3xl'],
+    paddingBottom: 120,
+    flexGrow: 1,
   },
   modalHeader: {
     flexDirection: 'row',

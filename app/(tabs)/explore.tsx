@@ -432,7 +432,7 @@ export default function ExploreScreen() {
 
   const handleClearCategory = () => {
     setSelectedCategory('All');
-    setAllFetchedArticles([]); // Clear fetched articles
+    // DON'T clear allFetchedArticles - keep cached data for future filtering
     setHasSearched(false); // Reset search state
     setExternalResults([]); // Clear external results
   };
