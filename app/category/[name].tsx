@@ -65,9 +65,9 @@ export default function CategoryDetailScreen() {
           image: article.imageUrl
             ? { uri: article.imageUrl }
             : require('@/assets/images/dummy/news/education.png'),
-          reads: article.viewCount
+          reads: article.viewCount >= 1000
             ? `${(article.viewCount / 1000).toFixed(1)}k reads`
-            : '0 reads',
+            : `${article.viewCount || 0} reads`,
         }));
 
         if (append) {

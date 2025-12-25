@@ -1,7 +1,8 @@
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface ArticleMetadataProps {
   category: string;
@@ -20,7 +21,11 @@ export const ArticleMetadata: React.FC<ArticleMetadataProps> = ({
   reads = '10k',
   readTime = '5 min read',
 }) => {
+  const { t } = useTranslation();
   const colors = Colors.light;
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const [measured, setMeasured] = useState(false);
 
   // Format author name - max 2 authors, add "et al." if more
   const formatAuthorName = (authorString: string): string => {
@@ -36,6 +41,18 @@ export const ArticleMetadata: React.FC<ArticleMetadataProps> = ({
 
   const displayAuthor = formatAuthorName(author);
 
+  // Measure if text is truncated by checking line count
+  const onTextLayout = (e: any) => {
+    if (!measured) {
+      const { lines } = e.nativeEvent;
+      // Show button if there are more than 2 lines when rendered without numberOfLines
+      if (lines && lines.length > 2) {
+        setIsTruncated(true);
+      }
+      setMeasured(true);
+    }
+  };
+
   return (
     <>
       {/* Category Badge */}
@@ -43,8 +60,42 @@ export const ArticleMetadata: React.FC<ArticleMetadataProps> = ({
         <Text style={[styles.categoryText, { color: colors.text }]}>{category}</Text>
       </View>
 
-      {/* Title */}
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      {/* Title with Expand/Collapse */}
+      <View>
+        {/* Invisible text to measure full height */}
+        <Text
+          style={[styles.title, { color: colors.text, position: 'absolute', opacity: 0, zIndex: -1 }]}
+          onTextLayout={onTextLayout}
+        >
+          {title}
+        </Text>
+
+        {/* Visible text */}
+        <Text
+          style={[styles.title, { color: colors.text }]}
+          numberOfLines={isExpanded ? undefined : 2}
+        >
+          {title}
+        </Text>
+
+        {/* Show "Selengkapnya"/"Lebih Sedikit" button if title is long */}
+        {isTruncated && (
+          <TouchableOpacity
+            onPress={() => setIsExpanded(!isExpanded)}
+            style={styles.expandButton}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.expandButtonText, { color: colors.primary }]}>
+              {isExpanded ? t('common.showLess') : t('common.showMore')}
+            </Text>
+            <Ionicons
+              name={isExpanded ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              color={colors.primary}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Metadata Row */}
       <View style={styles.metadataContainer}>
@@ -88,7 +139,19 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize['3xl'],
     fontWeight: '700',
     lineHeight: Typography.fontSize['3xl'] * 1.3,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.xs,
+  },
+  expandButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.sm,
+    gap: 4,
+  },
+  expandButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
   },
   metadataContainer: {
     flexDirection: 'row',

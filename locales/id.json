@@ -15,7 +15,9 @@
     "done": "Selesai",
     "search": "Cari",
     "filter": "Filter",
-    "sort": "Urutkan"
+    "sort": "Urutkan",
+    "showMore": "Selengkapnya",
+    "showLess": "Lebih Sedikit"
   },
   "auth": {
     "login": "Masuk",

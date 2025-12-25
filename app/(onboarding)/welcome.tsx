@@ -9,8 +9,17 @@ import React, { useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useTranslation } from 'react-i18next';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  scaleWidth,
+  isSmallDevice,
+  hp,
+  wp,
+  rs,
+} from '@/utils/responsive';
 
 const { width } = Dimensions.get('window');
+const isSmall = isSmallDevice();
 
 export default function OnboardingScreen() {
   const { t } = useTranslation();
@@ -37,7 +46,7 @@ export default function OnboardingScreen() {
   const currentSlide = onboardingSlides[currentIndex];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       {/* Logo - Fixed at top */}
       <View style={styles.logoSection}>
         <Image
@@ -75,8 +84,17 @@ export default function OnboardingScreen() {
 
             {/* Content */}
             <View style={styles.contentSection}>
-              <Heading align="center">{t(item.titleKey)}</Heading>
-              <Body align="center" style={styles.description}>
+              <Heading
+                align="center"
+                size={isSmall ? '2xl' : '3xl'}
+              >
+                {t(item.titleKey)}
+              </Heading>
+              <Body
+                align="center"
+                size={isSmall ? 'sm' : 'base'}
+                style={styles.description}
+              >
                 {t(item.descriptionKey)}
               </Body>
             </View>
@@ -93,7 +111,7 @@ export default function OnboardingScreen() {
               styles.dot,
               {
                 backgroundColor: index === currentIndex ? colors.primary : colors.border,
-                width: index === currentIndex ? 24 : 8,
+                width: index === currentIndex ? scaleWidth(24) : scaleWidth(8),
               },
             ]}
           />
@@ -116,7 +134,7 @@ export default function OnboardingScreen() {
           </ButtonLink>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -125,13 +143,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logoSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing['3xl'],
-    paddingBottom: Spacing.md,
+    paddingHorizontal: scaleWidth(Spacing.lg),
+    paddingTop: isSmall ? rs(Spacing.lg) : rs(Spacing['2xl']),
+    paddingBottom: rs(Spacing.sm),
   },
   logo: {
-    width: 80,
-    height: 72,
+    width: scaleWidth(80),
+    height: scaleWidth(72),
   },
   pagerView: {
     flex: 1,
@@ -139,40 +157,43 @@ const styles = StyleSheet.create({
   slide: {
     width,
     flex: 1,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: scaleWidth(Spacing.lg),
   },
   illustrationSection: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: Spacing.xl,
+    marginVertical: isSmall ? rs(Spacing.md) : rs(Spacing.lg),
+    minHeight: isSmall ? hp(25) : hp(35),
+    maxHeight: isSmall ? hp(35) : hp(45),
   },
   illustration: {
-    width: '100%',
-    aspectRatio: 1,
-    maxHeight: 300,
+    width: wp(85),
+    height: '100%',
+    maxWidth: isSmall ? scaleWidth(260) : scaleWidth(340),
   },
   contentSection: {
-    gap: Spacing.md,
-    paddingBottom: Spacing.lg,
+    gap: rs(Spacing.md),
+    paddingBottom: rs(Spacing.md),
+    paddingHorizontal: scaleWidth(Spacing.sm),
   },
   description: {
-    lineHeight: 24,
+    lineHeight: isSmall ? 20 : 24,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.xs,
-    paddingVertical: Spacing.lg,
+    gap: scaleWidth(Spacing.xs),
+    paddingVertical: rs(isSmall ? Spacing.md : Spacing.lg),
   },
   dot: {
-    height: 8,
-    borderRadius: 4,
+    height: scaleWidth(8),
+    borderRadius: scaleWidth(4),
   },
   bottomSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing['3xl'],
-    gap: Spacing.md,
+    paddingHorizontal: scaleWidth(Spacing.lg),
+    paddingBottom: isSmall ? rs(Spacing.lg) : rs(Spacing['2xl']),
+    gap: rs(Spacing.md),
   },
 });
