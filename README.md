@@ -2,6 +2,12 @@
   <img src="./assets/images/icon.png" alt="Scory Logo" width="120" height="120" />
   <h1>Dokumentasi Aplikasi Scory</h1>
   <p><em>Research Journal Learning App</em></p>
+
+  <p>
+    <a href="https://drive.google.com/file/d/1yeLvsvMyHoNCOh_bJpTFAs-p1GQyPUp8/view?usp=sharing">
+      <img src="https://img.shields.io/badge/Download-APK-6366F1?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
+    </a>
+  </p>
 </div>
 
 ---
@@ -343,12 +349,6 @@ scory-apps/
 3. Connect via USB
 4. Run: `npm run android`
 
-#### iOS (via Xcode):
-1. Connect iPhone via USB
-2. Trust computer di iPhone
-3. Select device di Xcode
-4. Run: `npm run ios`
-
 ---
 
 ## Build untuk Production
@@ -391,20 +391,6 @@ npx eas submit --platform ios
 - [React Native Documentation](https://reactnative.dev/)
 - [Expo Router](https://docs.expo.dev/router/introduction/)
 - [EAS Build](https://docs.expo.dev/build/introduction/)
-
-### Project Documentation
-- `AGENTS.md` - Developer guidelines & architecture
-- `CLAUDE.md` - AI agent instructions
-- `README.md` - Basic project info
-
----
-
-## Kontak & Support
-
-**Project Manager:** Habdil Iqrawardana
-**Developer:** Tiko
-
-Untuk issue atau pertanyaan, silakan buat issue di repository GitHub atau hubungi tim development.
 
 ---
 
