@@ -5,21 +5,12 @@ import { Body, Heading } from '@/shared/components/ui/Typography';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import React, { useRef, useState, useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  scaleWidth,
-  isSmallDevice,
-  hp,
-  wp,
-  rs,
-} from '@/utils/responsive';
-
-const { width } = Dimensions.get('window');
-const isSmall = isSmallDevice();
+import { useResponsiveDimensions } from '@/utils/responsive';
 
 export default function OnboardingScreen() {
   const { t } = useTranslation();
@@ -27,6 +18,9 @@ export default function OnboardingScreen() {
   const colors = Colors.light;
   const pagerRef = useRef<PagerView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Use dynamic responsive dimensions that update on screen changes
+  const responsive = useResponsiveDimensions();
 
   const handleNext = () => {
     if (currentIndex < onboardingSlides.length - 1) {
@@ -45,13 +39,68 @@ export default function OnboardingScreen() {
   const isLastSlide = currentIndex === onboardingSlides.length - 1;
   const currentSlide = onboardingSlides[currentIndex];
 
+  // Create dynamic styles based on responsive dimensions
+  const dynamicStyles = useMemo(() => ({
+    logoSection: {
+      paddingHorizontal: responsive.scaleWidth(Spacing.lg),
+      paddingTop: responsive.isSmall ? responsive.rs(Spacing.lg) : responsive.rs(Spacing['2xl']),
+      paddingBottom: responsive.rs(Spacing.sm),
+    },
+    logo: {
+      width: responsive.scaleWidth(80),
+      height: responsive.scaleHeight(72), // Fix: use scaleHeight for proper aspect ratio
+    },
+    slide: {
+      width: responsive.width,
+      flex: 1,
+      paddingHorizontal: responsive.scaleWidth(Spacing.lg),
+    },
+    illustrationSection: {
+      flex: 1,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      marginVertical: responsive.isSmall ? responsive.rs(Spacing.md) : responsive.rs(Spacing.lg),
+      minHeight: responsive.isSmall ? responsive.hp(25) : responsive.hp(30),
+      maxHeight: responsive.isSmall ? responsive.hp(35) : responsive.hp(40),
+    },
+    illustration: {
+      width: responsive.wp(80),
+      height: '100%' as const,
+      maxWidth: responsive.isSmall ? responsive.scaleWidth(240) : responsive.scaleWidth(320),
+    },
+    contentSection: {
+      gap: responsive.rs(Spacing.md),
+      paddingBottom: responsive.rs(Spacing.md),
+      paddingHorizontal: responsive.scaleWidth(Spacing.xs), // Reduced from sm
+    },
+    description: {
+      lineHeight: responsive.isSmall ? 20 : 24,
+    },
+    pagination: {
+      flexDirection: 'row' as const,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      gap: responsive.scaleWidth(Spacing.xs),
+      paddingVertical: responsive.rs(responsive.isSmall ? Spacing.md : Spacing.lg),
+    },
+    dot: {
+      height: responsive.scaleWidth(8),
+      borderRadius: responsive.scaleWidth(4),
+    },
+    bottomSection: {
+      paddingHorizontal: responsive.scaleWidth(Spacing.lg),
+      paddingBottom: responsive.isSmall ? responsive.rs(Spacing.lg) : responsive.rs(Spacing['2xl']),
+      gap: responsive.rs(Spacing.md),
+    },
+  }), [responsive]);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       {/* Logo - Fixed at top */}
-      <View style={styles.logoSection}>
+      <View style={dynamicStyles.logoSection}>
         <Image
           source={require('@/assets/images/onboarding/logo.svg')}
-          style={styles.logo}
+          style={dynamicStyles.logo}
           contentFit="contain"
         />
       </View>
@@ -64,13 +113,13 @@ export default function OnboardingScreen() {
         onPageSelected={(e) => setCurrentIndex(e.nativeEvent.position)}
       >
         {onboardingSlides.map((item) => (
-          <View key={item.id} style={styles.slide}>
+          <View key={item.id} style={dynamicStyles.slide}>
             {/* Illustration */}
-            <View style={styles.illustrationSection}>
+            <View style={dynamicStyles.illustrationSection}>
               {item.illustration && (
                 <Image
                   source={item.illustration}
-                  style={styles.illustration}
+                  style={dynamicStyles.illustration}
                   contentFit="contain"
                   transition={150}
                   cachePolicy="memory-disk"
@@ -83,17 +132,17 @@ export default function OnboardingScreen() {
             </View>
 
             {/* Content */}
-            <View style={styles.contentSection}>
+            <View style={dynamicStyles.contentSection}>
               <Heading
                 align="center"
-                size={isSmall ? '2xl' : '3xl'}
+                size={responsive.isSmall ? '2xl' : '3xl'}
               >
                 {t(item.titleKey)}
               </Heading>
               <Body
                 align="center"
-                size={isSmall ? 'sm' : 'base'}
-                style={styles.description}
+                size={responsive.isSmall ? 'sm' : 'base'}
+                style={dynamicStyles.description}
               >
                 {t(item.descriptionKey)}
               </Body>
@@ -103,15 +152,15 @@ export default function OnboardingScreen() {
       </PagerView>
 
       {/* Pagination Dots */}
-      <View style={styles.pagination}>
+      <View style={dynamicStyles.pagination}>
         {onboardingSlides.map((_, index) => (
           <View
             key={index}
             style={[
-              styles.dot,
+              dynamicStyles.dot,
               {
                 backgroundColor: index === currentIndex ? colors.primary : colors.border,
-                width: index === currentIndex ? scaleWidth(24) : scaleWidth(8),
+                width: index === currentIndex ? responsive.scaleWidth(24) : responsive.scaleWidth(8),
               },
             ]}
           />
@@ -119,7 +168,7 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Fixed Bottom CTA */}
-      <View style={styles.bottomSection}>
+      <View style={dynamicStyles.bottomSection}>
         <Button variant="primary" size="lg" fullWidth onPress={handleNext}>
           {isLastSlide ? t('onboarding.getStarted') : t('common.next')}
         </Button>
@@ -138,62 +187,12 @@ export default function OnboardingScreen() {
   );
 }
 
+// Static styles (non-responsive values only)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  logoSection: {
-    paddingHorizontal: scaleWidth(Spacing.lg),
-    paddingTop: isSmall ? rs(Spacing.lg) : rs(Spacing['2xl']),
-    paddingBottom: rs(Spacing.sm),
-  },
-  logo: {
-    width: scaleWidth(80),
-    height: scaleWidth(72),
-  },
   pagerView: {
     flex: 1,
-  },
-  slide: {
-    width,
-    flex: 1,
-    paddingHorizontal: scaleWidth(Spacing.lg),
-  },
-  illustrationSection: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: isSmall ? rs(Spacing.md) : rs(Spacing.lg),
-    minHeight: isSmall ? hp(25) : hp(35),
-    maxHeight: isSmall ? hp(35) : hp(45),
-  },
-  illustration: {
-    width: wp(85),
-    height: '100%',
-    maxWidth: isSmall ? scaleWidth(260) : scaleWidth(340),
-  },
-  contentSection: {
-    gap: rs(Spacing.md),
-    paddingBottom: rs(Spacing.md),
-    paddingHorizontal: scaleWidth(Spacing.sm),
-  },
-  description: {
-    lineHeight: isSmall ? 20 : 24,
-  },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: scaleWidth(Spacing.xs),
-    paddingVertical: rs(isSmall ? Spacing.md : Spacing.lg),
-  },
-  dot: {
-    height: scaleWidth(8),
-    borderRadius: scaleWidth(4),
-  },
-  bottomSection: {
-    paddingHorizontal: scaleWidth(Spacing.lg),
-    paddingBottom: isSmall ? rs(Spacing.lg) : rs(Spacing['2xl']),
-    gap: rs(Spacing.md),
   },
 });

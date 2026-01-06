@@ -3,13 +3,34 @@
  * Provides scaling functions based on device dimensions for consistent UI across different screen sizes
  */
 
-import { Dimensions, PixelRatio, Platform } from 'react-native';
+import { Dimensions, PixelRatio, Platform, useWindowDimensions } from 'react-native';
+import { useMemo } from 'react';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Base dimensions (design reference - iPhone 14 Pro)
 const BASE_WIDTH = 393;
 const BASE_HEIGHT = 852;
+
+/**
+ * Hook for responsive dimensions that updates on screen size changes
+ * Use this in components instead of static values
+ */
+export const useResponsiveDimensions = () => {
+  const { width, height } = useWindowDimensions();
+
+  return useMemo(() => ({
+    width,
+    height,
+    isSmall: height < 750 || width < 360,
+    isTablet: width >= 768,
+    scaleWidth: (size: number) => (width / BASE_WIDTH) * size,
+    scaleHeight: (size: number) => (height / BASE_HEIGHT) * size,
+    wp: (percentage: number) => (width * percentage) / 100,
+    hp: (percentage: number) => (height * percentage) / 100,
+    rs: (baseSpacing: number) => (height / BASE_HEIGHT) * baseSpacing,
+  }), [width, height]);
+};
 
 /**
  * Scale value based on screen width
@@ -80,9 +101,10 @@ export const getDeviceType = () => {
 
 /**
  * Check if screen is small (useful for conditional rendering)
+ * Updated threshold for better coverage of modern devices
  */
 export const isSmallDevice = (): boolean => {
-  return SCREEN_HEIGHT < 700 || SCREEN_WIDTH < 360;
+  return SCREEN_HEIGHT < 750 || SCREEN_WIDTH < 360;
 };
 
 /**

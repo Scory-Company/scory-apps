@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 // Base URL configuration
@@ -44,10 +43,10 @@ api.interceptors.request.use(
 
 // Response interceptor - Handle errors & expired tokens
 let isRefreshing = false;
-let failedQueue: Array<{
+let failedQueue: {
   resolve: (value?: unknown) => void;
   reject: (reason?: any) => void;
-}> = [];
+}[] = [];
 
 const processQueue = (error: any = null) => {
   failedQueue.forEach((prom) => {
